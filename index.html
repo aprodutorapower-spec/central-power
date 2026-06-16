@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central Power · Projetos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --power-black: #0A0A0A;
+  --power-red: #D9352D;
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --surface-2: #F4F2EC;
+  --surface-3: #EAE7DE;
+  --border: rgba(10, 10, 10, 0.08);
+  --border-2: rgba(10, 10, 10, 0.16);
+  --text: #1A1A1A;
+  --text-2: #5F5E5A;
+  --text-3: #8E8D88;
+  --green: #1D9E75;
+  --green-dark: #3B6D11;
+  --green-bg: #EAF3DE;
+  --amber-dark: #854F0B;
+  --amber-bg: #FAEEDA;
+  --red-dark: #A32D2D;
+  --red-bg: #FCEBEB;
+  --gray-bg: #F1EFE8;
+  --gray-dark: #5F5E5A;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Power topbar */
+.pw-topbar { background: var(--power-black); color: #FFF; padding: 12px 18px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pw-topbar-l { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pw-logo { font-size: 13px; font-weight: 600; letter-spacing: 1.5px; }
+.pw-logo .red { color: var(--power-red); }
+.pw-bc { font-size: 12px; color: rgba(255,255,255,0.55); }
+.pw-bc b { color: rgba(255,255,255,0.9); font-weight: 500; }
+.pw-topbar-r { display: flex; align-items: center; gap: 10px; }
+.pw-user { font-size: 11px; color: rgba(255,255,255,0.55); }
+.pw-edit-btn { background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2); padding: 5px 12px; font-size: 11px; border-radius: 999px; cursor: pointer; font-family: inherit; letter-spacing: 0.3px; }
+.pw-edit-btn:hover { background: rgba(255,255,255,0.08); color: #FFF; }
+.pw-edit-btn.active { background: var(--power-red); color: #FFF; border-color: var(--power-red); }
+
+/* Header */
+.v-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 0 4px; flex-wrap: wrap; }
+.v-header-l { flex: 1; min-width: 280px; }
+.v-client { font-size: 22px; font-weight: 500; margin: 0; letter-spacing: -0.2px; }
+.v-meta { font-size: 12px; color: var(--text-2); margin: 6px 0 10px; }
+.v-obj { font-size: 13px; color: var(--text-2); font-style: italic; line-height: 1.5; padding-left: 10px; border-left: 2px solid var(--border); max-width: 540px; margin: 0; }
+.v-header-r { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.v-status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; user-select: none; }
+.v-status .dot { width: 10px; height: 10px; border-radius: 50%; }
+.v-status.green { background: var(--green-bg); color: var(--green-dark); }
+.v-status.green .dot { background: var(--green-dark); }
+.v-status.yellow { background: var(--amber-bg); color: var(--amber-dark); }
+.v-status.yellow .dot { background: var(--amber-dark); }
+.v-status.red { background: var(--red-bg); color: var(--red-dark); }
+.v-status.red .dot { background: var(--red-dark); }
+.v-status.gray { background: var(--gray-bg); color: var(--gray-dark); }
+.v-status.gray .dot { background: var(--gray-dark); }
+.v-last-update { font-size: 11px; color: var(--text-3); }
+
+/* Hero KPI */
+.v-hero { background: var(--surface-2); border-radius: var(--radius-lg); padding: 18px 20px; }
+.v-hero-label { font-size: 11px; color: var(--text-2); margin: 0 0 8px; letter-spacing: 0.3px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.v-hero-num { font-size: 34px; font-weight: 500; margin: 0; line-height: 1; letter-spacing: -0.5px; }
+.v-hero-num .total { font-size: 19px; color: var(--text-2); font-weight: 400; }
+.v-hero-bar { height: 6px; background: var(--surface-3); border-radius: 3px; margin: 12px 0 10px; overflow: hidden; }
+.v-hero-bar-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
+.v-hero-subs { display: flex; gap: 22px; font-size: 12px; color: var(--text-2); flex-wrap: wrap; }
+.v-hero-sub b { color: var(--text); font-weight: 500; }
+
+/* Sprint bar */
+.v-sprint { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 11px 16px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 12px; }
+.v-sprint-l { display: inline-flex; align-items: center; gap: 10px; color: var(--text-2); flex-wrap: wrap; }
+.v-sprint-l b { color: var(--text); font-weight: 500; }
+.v-sprint-sep { color: var(--text-3); }
+.v-sprint-r { display: inline-flex; align-items: center; gap: 9px; font-size: 11px; color: var(--text-2); flex-wrap: wrap; }
+.v-sprint-r b { color: var(--text); font-weight: 500; font-size: 12px; }
+.v-sprint-bar { width: 90px; height: 5px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
+.v-sprint-bar-fill { height: 100%; background: #185FA5; border-radius: 3px; }
+.v-sprint-action { background: transparent; color: var(--text-2); border: 1px solid var(--border-2); padding: 4px 11px; font-size: 11px; border-radius: 999px; cursor: pointer; font-family: inherit; }
+.v-sprint-action:hover { border-color: var(--power-red); color: var(--power-red); }
+
+/* Kanban */
+.v-kanban { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.v-col { background: var(--surface-2); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 7px; min-height: 220px; }
+.v-col-head { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-2); font-weight: 500; padding: 0 2px 6px; letter-spacing: 0.3px; }
+.v-col-count { background: var(--surface); padding: 2px 8px; border-radius: 8px; font-size: 10px; color: var(--text); }
+.v-task { background: var(--surface); border: 0.5px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 12px; line-height: 1.4; position: relative; }
+.v-task.atrasado { border-color: var(--power-red); }
+.v-task.done { color: var(--text-2); }
+.v-task.done .v-task-title { text-decoration: line-through; }
+.v-task-title { cursor: default; }
+body.editing .v-task-title { cursor: pointer; }
+.v-task-meta { font-size: 10px; color: var(--text-3); margin-top: 4px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.v-tag-atrasado { display: inline-block; background: var(--power-red); color: #FFF; font-size: 9px; font-weight: 500; padding: 2px 7px; border-radius: 8px; margin-right: 6px; vertical-align: middle; letter-spacing: 0.3px; }
+.v-task-actions { display: none; margin-top: 6px; gap: 4px; flex-wrap: wrap; }
+.v-task.edit .v-task-actions { display: flex; }
+.v-task-actions button { background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 3px 8px; font-size: 10px; cursor: pointer; font-family: inherit; color: var(--text-2); }
+.v-task-actions button:hover { border-color: var(--border-2); color: var(--text); }
+.v-task-actions button.del { color: var(--power-red); border-color: rgba(217,53,45,0.2); }
+.v-add-task { background: transparent; border: 1px dashed var(--border-2); border-radius: 6px; padding: 8px; font-size: 11px; color: var(--text-3); cursor: pointer; font-family: inherit; margin-top: auto; }
+.v-add-task:hover { border-color: var(--power-red); color: var(--power-red); }
+
+/* Timeline */
+.v-tl { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.v-sect-title { font-size: 11px; color: var(--text-2); font-weight: 500; margin: 0 0 10px; display: flex; align-items: center; justify-content: space-between; letter-spacing: 0.3px; }
+.v-tl-item { display: flex; gap: 14px; padding: 10px 0; border-bottom: 0.5px dashed var(--border); }
+.v-tl-item:last-child { border-bottom: none; padding-bottom: 0; }
+.v-tl-date { font-size: 11px; color: var(--text-2); min-width: 80px; padding-top: 2px; font-weight: 500; }
+.v-tl-body { font-size: 13px; line-height: 1.5; flex: 1; }
+.v-tl-body ul { margin: 0; padding-left: 18px; }
+.v-tl-body li { margin: 0; }
+.v-tl-add, .v-hero-action { background: transparent; border: 1px solid var(--border-2); border-radius: 999px; padding: 4px 11px; font-size: 11px; cursor: pointer; font-family: inherit; color: var(--text-2); }
+.v-tl-add:hover, .v-hero-action:hover { border-color: var(--power-red); color: var(--power-red); }
+
+/* Modal */
+.modal-bg { position: fixed; inset: 0; background: rgba(10, 10, 10, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); padding: 22px 24px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; }
+.modal h2 { margin: 0 0 16px; font-size: 16px; font-weight: 500; }
+.modal label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 4px; margin-top: 12px; }
+.modal input, .modal textarea, .modal select { width: 100%; padding: 9px 12px; border: 1px solid var(--border-2); border-radius: 6px; font-family: inherit; font-size: 13px; background: var(--surface); color: var(--text); outline: none; resize: vertical; }
+.modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--power-red); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.modal-actions button { padding: 8px 16px; border-radius: 6px; font-family: inherit; font-size: 13px; cursor: pointer; border: 1px solid var(--border-2); background: var(--surface); color: var(--text-2); }
+.modal-actions button.primary { background: var(--power-black); color: #FFF; border-color: var(--power-black); }
+.modal-actions button:hover { opacity: 0.9; }
+
+/* Edit-mode visibility */
+body:not(.editing) .v-add-task,
+body:not(.editing) .v-tl-add,
+body:not(.editing) .v-hero-action,
+body:not(.editing) .v-sprint-action { display: none; }
+body.editing .v-status { cursor: pointer; }
+body.editing .v-obj { cursor: pointer; }
+body.editing .v-obj:hover { border-left-color: var(--power-red); }
+
+.loading, .empty { padding: 40px; text-align: center; color: var(--text-3); font-size: 13px; }
+.config-pending { padding: 30px; background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); }
+.config-pending h2 { margin: 0 0 12px; font-size: 16px; font-weight: 500; }
+.config-pending p { margin: 0 0 14px; color: var(--text-2); }
+.config-pending pre { background: var(--surface-2); padding: 14px; border-radius: 6px; font-size: 12px; overflow: auto; font-family: 'SF Mono', Monaco, monospace; }
+.config-pending small { display: block; margin-top: 14px; font-size: 12px; color: var(--text-3); }
+
+@media (max-width: 720px) {
+  .v-kanban { grid-template-columns: 1fr; }
+  .v-sprint { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Carregando painel...</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ============================================================
+// CONFIG · substitua antes de usar
+// ============================================================
+const SUPABASE_URL = 'https://pruntjhpcucfiudcdtpb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydW50amhwY3VjZml1ZGNkdHBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NjQxMTQsImV4cCI6MjA5NzE0MDExNH0.ZU71_fOMRdqizlCaANxeYsVu_nM6xUgHXDj86WCdCws';
+const EDIT_PASSWORD = 'power2026';
+const CLIENT_SLUG = 'vivian';
+
+// ============================================================
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const state = {
+  client: null, kpi: null, sprints: [], activeSprint: null,
+  tasks: [], updates: [], editMode: false,
+};
+
+const STATUS_LABELS = { green: 'Saudável', yellow: 'Atenção', red: 'Bloqueado', gray: 'Sem update' };
+const STATUS_CYCLE = ['green', 'yellow', 'red', 'gray'];
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmtDate(d) {
+  if (!d) return '';
+  const date = typeof d === 'string' ? new Date(d.length > 10 ? d : d + 'T12:00:00') : new Date(d);
+  const dias = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  return `${dias[date.getDay()]} ${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}`;
+}
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function daysBetween(a, b) {
+  return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000);
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ============================================================
+// DATA
+// ============================================================
+async function loadAll() {
+  const { data: client, error: clientErr } = await sb.from('clients').select('*').eq('slug', CLIENT_SLUG).single();
+  if (clientErr || !client) throw new Error('Cliente não encontrado: ' + CLIENT_SLUG);
+  state.client = client;
+
+  const { data: kpis } = await sb.from('client_kpis').select('*').eq('client_id', client.id).limit(1);
+  state.kpi = kpis?.[0] || null;
+
+  const { data: sprints } = await sb.from('sprints').select('*').order('id', { ascending: false });
+  state.sprints = sprints || [];
+  state.activeSprint = determineActiveSprint(state.sprints);
+
+  if (state.activeSprint) {
+    const { data: tasks } = await sb.from('tasks').select('*')
+      .eq('client_id', client.id).eq('sprint_id', state.activeSprint.id)
+      .order('position', { ascending: true });
+    state.tasks = tasks || [];
+  } else { state.tasks = []; }
+
+  const { data: updates } = await sb.from('daily_updates').select('*')
+    .eq('client_id', client.id).order('update_date', { ascending: false }).limit(14);
+  state.updates = updates || [];
+}
+
+function determineActiveSprint(sprints) {
+  if (!sprints?.length) return null;
+  const tdy = today();
+  let s = sprints.find(x => x.start_date <= tdy && x.end_date >= tdy);
+  if (s) return { ...s, phase: 'active' };
+  s = sprints.filter(x => x.start_date > tdy).sort((a,b) => a.start_date.localeCompare(b.start_date))[0];
+  if (s) return { ...s, phase: 'upcoming' };
+  s = [...sprints].sort((a,b) => b.end_date.localeCompare(a.end_date))[0];
+  return { ...s, phase: 'closed' };
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="shell">
+      ${renderTopbar()}
+      ${renderHeader()}
+      ${renderHero()}
+      ${renderSprint()}
+      ${renderKanban()}
+      ${renderTimeline()}
+    </div>
+  `;
+  document.body.classList.toggle('editing', state.editMode);
+  attachEvents();
+}
+
+function renderTopbar() {
+  return `
+    <div class="pw-topbar">
+      <div class="pw-topbar-l">
+        <span class="pw-logo">PRODUTORA P<span class="red">●</span>WER</span>
+        <span class="pw-bc">Central de projetos / <b>${esc(state.client.name)}</b></span>
+      </div>
+      <div class="pw-topbar-r">
+        <span class="pw-user">${esc(state.client.owner)}</span>
+        <button class="pw-edit-btn ${state.editMode ? 'active' : ''}" id="btn-edit-mode">
+          ${state.editMode ? 'modo edição ativo' : 'ativar edição'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderHeader() {
+  const c = state.client;
+  const last = state.updates[0];
+  return `
+    <div class="v-header">
+      <div class="v-header-l">
+        <p class="v-client">${esc(c.name)}</p>
+        <p class="v-meta">${esc(c.niche || '')} · dono: ${esc(c.owner)}${c.team ? ' · time: ' + esc(c.team) : ''}</p>
+        <p class="v-obj" id="obj">${esc(c.objective || 'Clique para definir o objetivo do projeto.')}</p>
+      </div>
+      <div class="v-header-r">
+        <span class="v-status ${c.status}" id="status-pill">
+          <span class="dot"></span>${STATUS_LABELS[c.status] || 'Sem status'}
+        </span>
+        <span class="v-last-update">${last ? 'Última atualização · ' + fmtDate(last.update_date) : 'Sem atualizações'}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderHero() {
+  const k = state.kpi;
+  if (!k) {
+    return `<div class="v-hero"><p class="v-hero-label">Sem KPI cadastrado <button class="v-hero-action" id="btn-edit-kpi">cadastrar</button></p></div>`;
+  }
+  const pct = k.goal_value ? Math.min(100, Math.round((k.current_value / k.goal_value) * 100)) : 0;
+  const missing = k.goal_value - k.current_value;
+  const daysToEvent = k.event_date ? daysBetween(today(), k.event_date) : null;
+  return `
+    <div class="v-hero">
+      <p class="v-hero-label">
+        <span>${esc(k.label)}${k.event_label ? ' · ' + esc(k.event_label) : ''}</span>
+        <button class="v-hero-action" id="btn-edit-kpi">editar</button>
+      </p>
+      <p class="v-hero-num">${k.current_value} <span class="total">de ${k.goal_value}</span></p>
+      <div class="v-hero-bar"><div class="v-hero-bar-fill" style="width:${pct}%"></div></div>
+      <div class="v-hero-subs">
+        <span class="v-hero-sub"><b>${pct}%</b> da meta</span>
+        <span class="v-hero-sub"><b>${missing}</b> a vender</span>
+        ${daysToEvent !== null ? `<span class="v-hero-sub"><b>${daysToEvent} ${daysToEvent === 1 ? 'dia' : 'dias'}</b> para o evento</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderSprint() {
+  const s = state.activeSprint;
+  if (!s) return `<div class="v-sprint"><span class="v-sprint-l">Nenhum sprint cadastrado.</span></div>`;
+  const done = state.tasks.filter(t => t.status === 'done').length;
+  const total = state.tasks.length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+
+  let phaseLabel;
+  if (s.phase === 'active') {
+    phaseLabel = `dia ${daysBetween(s.start_date, today()) + 1} de 7`;
+  } else if (s.phase === 'upcoming') {
+    const d = daysBetween(today(), s.start_date);
+    phaseLabel = `começa em ${d} ${d === 1 ? 'dia' : 'dias'}`;
+  } else {
+    phaseLabel = 'encerrado';
+  }
+
+  return `
+    <div class="v-sprint">
+      <span class="v-sprint-l">
+        <b>Sprint ${s.id}</b>
+        <span class="v-sprint-sep">·</span>
+        <span>${fmtDate(s.start_date)} → ${fmtDate(s.end_date)}</span>
+        <span class="v-sprint-sep">·</span>
+        <span>${phaseLabel}</span>
+      </span>
+      <span class="v-sprint-r">
+        entregas <b>${done} / ${total}</b>
+        <span class="v-sprint-bar"><span class="v-sprint-bar-fill" style="width:${pct}%"></span></span>
+        <span>${pct}%</span>
+        <button class="v-sprint-action" id="btn-close-sprint">encerrar sprint</button>
+      </span>
+    </div>
+  `;
+}
+
+function renderKanban() {
+  const cols = [
+    { key: 'todo', label: 'A fazer' },
+    { key: 'doing', label: 'Em andamento' },
+    { key: 'done', label: 'Concluído' },
+  ];
+  return `
+    <div class="v-kanban">
+      ${cols.map(col => {
+        const tasks = state.tasks.filter(t => t.status === col.key);
+        return `
+          <div class="v-col">
+            <div class="v-col-head">
+              <span>${col.label}</span>
+              <span class="v-col-count">${tasks.length}</span>
+            </div>
+            ${tasks.map(renderTask).join('')}
+            <button class="v-add-task" data-add-task="${col.key}">+ adicionar tarefa</button>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderTask(t) {
+  const metaParts = [];
+  if (t.is_focus) metaParts.push('<span>foco do sprint</span>');
+  if (t.progress != null) metaParts.push(`<span>${t.progress}%</span>`);
+  if (t.assignee) metaParts.push(`<span>${esc(t.assignee)}</span>`);
+  if (t.is_late && t.carried_from_sprint) metaParts.push(`<span>vindo do sprint ${t.carried_from_sprint}</span>`);
+  if (t.status === 'done' && t.completed_at) metaParts.push(`<span>concluído ${fmtDate(t.completed_at.split('T')[0])}</span>`);
+  return `
+    <div class="v-task ${t.is_late ? 'atrasado' : ''} ${t.status === 'done' ? 'done' : ''}" data-task-id="${t.id}">
+      <div class="v-task-title" data-task-toggle="${t.id}">
+        ${t.is_late ? '<span class="v-tag-atrasado">atrasado</span>' : ''}${esc(t.title)}
+      </div>
+      ${metaParts.length ? `<div class="v-task-meta">${metaParts.join('')}</div>` : ''}
+      <div class="v-task-actions">
+        ${t.status !== 'todo' ? `<button data-move-task="${t.id}|todo">← a fazer</button>` : ''}
+        ${t.status !== 'doing' ? `<button data-move-task="${t.id}|doing">em andamento</button>` : ''}
+        ${t.status !== 'done' ? `<button data-move-task="${t.id}|done">concluído</button>` : ''}
+        <button data-edit-task="${t.id}">editar</button>
+        <button class="del" data-del-task="${t.id}">excluir</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderTimeline() {
+  return `
+    <div class="v-tl">
+      <div class="v-sect-title">
+        <span>Atualizações diárias</span>
+        <button class="v-tl-add" id="btn-add-update">+ nova atualização</button>
+      </div>
+      ${state.updates.length === 0
+        ? '<div class="empty">Nenhuma atualização registrada ainda.</div>'
+        : state.updates.map(u => `
+          <div class="v-tl-item">
+            <span class="v-tl-date">${fmtDate(u.update_date)}</span>
+            <div class="v-tl-body">
+              <ul>${u.bullets.split('\n').filter(b => b.trim()).map(b => `<li>${esc(b.replace(/^[-•]\s*/, ''))}</li>`).join('')}</ul>
+            </div>
+          </div>
+        `).join('')}
+    </div>
+  `;
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+function attachEvents() {
+  document.getElementById('btn-edit-mode').onclick = toggleEditMode;
+  if (!state.editMode) return;
+
+  const pill = document.getElementById('status-pill');
+  if (pill) pill.onclick = cycleStatus;
+
+  const obj = document.getElementById('obj');
+  if (obj) obj.onclick = editObjective;
+
+  const kpiBtn = document.getElementById('btn-edit-kpi');
+  if (kpiBtn) kpiBtn.onclick = editKpi;
+
+  const closeBtn = document.getElementById('btn-close-sprint');
+  if (closeBtn) closeBtn.onclick = closeSprint;
+
+  document.querySelectorAll('[data-add-task]').forEach(b => b.onclick = () => addTask(b.getAttribute('data-add-task')));
+  document.querySelectorAll('[data-task-toggle]').forEach(el => {
+    el.onclick = () => {
+      const task = el.closest('.v-task');
+      document.querySelectorAll('.v-task.edit').forEach(t => t !== task && t.classList.remove('edit'));
+      task.classList.toggle('edit');
+    };
+  });
+  document.querySelectorAll('[data-move-task]').forEach(b => {
+    b.onclick = () => { const [id, s] = b.getAttribute('data-move-task').split('|'); moveTask(id, s); };
+  });
+  document.querySelectorAll('[data-edit-task]').forEach(b => b.onclick = () => editTask(b.getAttribute('data-edit-task')));
+  document.querySelectorAll('[data-del-task]').forEach(b => b.onclick = () => deleteTask(b.getAttribute('data-del-task')));
+
+  document.getElementById('btn-add-update').onclick = addUpdate;
+}
+
+function toggleEditMode() {
+  if (!state.editMode) {
+    const pw = prompt('Senha de edição:');
+    if (pw !== EDIT_PASSWORD) {
+      if (pw !== null) alert('Senha incorreta.');
+      return;
+    }
+  }
+  state.editMode = !state.editMode;
+  render();
+}
+
+async function cycleStatus() {
+  const cur = state.client.status;
+  const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(cur) + 1) % STATUS_CYCLE.length];
+  await sb.from('clients').update({ status: next, updated_at: new Date().toISOString() }).eq('id', state.client.id);
+  state.client.status = next;
+  render();
+}
+
+async function editObjective() {
+  const v = prompt('Objetivo do projeto:', state.client.objective || '');
+  if (v === null) return;
+  await sb.from('clients').update({ objective: v, updated_at: new Date().toISOString() }).eq('id', state.client.id);
+  state.client.objective = v;
+  render();
+}
+
+async function editKpi() {
+  const k = state.kpi;
+  showModal({
+    title: k ? 'Editar KPI' : 'Cadastrar KPI',
+    fields: [
+      { name: 'label', label: 'Rótulo', value: k?.label || 'Ingressos da imersão', type: 'text' },
+      { name: 'event_label', label: 'Texto do evento', value: k?.event_label || '', type: 'text' },
+      { name: 'event_date', label: 'Data do evento', value: k?.event_date || '', type: 'date' },
+      { name: 'current_value', label: 'Atual', value: k?.current_value ?? 0, type: 'number' },
+      { name: 'goal_value', label: 'Meta', value: k?.goal_value ?? 60, type: 'number' },
+    ],
+    onSave: async (data) => {
+      data.current_value = parseInt(data.current_value, 10) || 0;
+      data.goal_value = parseInt(data.goal_value, 10) || 0;
+      data.event_date = data.event_date || null;
+      data.updated_at = new Date().toISOString();
+      if (k) {
+        await sb.from('client_kpis').update(data).eq('id', k.id);
+        Object.assign(state.kpi, data);
+      } else {
+        data.client_id = state.client.id;
+        const { data: ins } = await sb.from('client_kpis').insert(data).select().single();
+        state.kpi = ins;
+      }
+      render();
+    }
+  });
+}
+
+async function addTask(status) {
+  showModal({
+    title: 'Nova tarefa',
+    fields: [
+      { name: 'title', label: 'Tarefa', value: '', type: 'text' },
+      { name: 'assignee', label: 'Responsável (opcional)', value: '', type: 'text' },
+      { name: 'is_focus', label: 'Foco do sprint?', value: false, type: 'checkbox' },
+    ],
+    onSave: async (data) => {
+      if (!data.title.trim()) return;
+      const pos = state.tasks.filter(t => t.status === status).reduce((m, t) => Math.max(m, t.position || 0), 0) + 1;
+      const payload = {
+        client_id: state.client.id, sprint_id: state.activeSprint?.id,
+        title: data.title.trim(), status, is_focus: !!data.is_focus,
+        assignee: data.assignee.trim() || null, position: pos,
+      };
+      const { data: ins } = await sb.from('tasks').insert(payload).select().single();
+      state.tasks.push(ins);
+      render();
+    }
+  });
+}
+
+async function editTask(id) {
+  const t = state.tasks.find(x => x.id === id);
+  if (!t) return;
+  showModal({
+    title: 'Editar tarefa',
+    fields: [
+      { name: 'title', label: 'Tarefa', value: t.title, type: 'text' },
+      { name: 'assignee', label: 'Responsável', value: t.assignee || '', type: 'text' },
+      { name: 'progress', label: 'Progresso (% — em branco se não aplicável)', value: t.progress ?? '', type: 'number' },
+      { name: 'is_focus', label: 'Foco do sprint?', value: !!t.is_focus, type: 'checkbox' },
+    ],
+    onSave: async (data) => {
+      const upd = {
+        title: data.title.trim(), assignee: data.assignee.trim() || null,
+        progress: data.progress === '' ? null : parseInt(data.progress, 10),
+        is_focus: !!data.is_focus, updated_at: new Date().toISOString(),
+      };
+      await sb.from('tasks').update(upd).eq('id', id);
+      Object.assign(t, upd);
+      render();
+    }
+  });
+}
+
+async function moveTask(id, status) {
+  const t = state.tasks.find(x => x.id === id);
+  if (!t) return;
+  const upd = { status, updated_at: new Date().toISOString() };
+  upd.completed_at = status === 'done' ? new Date().toISOString() : null;
+  await sb.from('tasks').update(upd).eq('id', id);
+  Object.assign(t, upd);
+  render();
+}
+
+async function deleteTask(id) {
+  if (!confirm('Excluir esta tarefa?')) return;
+  await sb.from('tasks').delete().eq('id', id);
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  render();
+}
+
+async function addUpdate() {
+  showModal({
+    title: 'Nova atualização diária',
+    fields: [
+      { name: 'update_date', label: 'Data', value: today(), type: 'date' },
+      { name: 'bullets', label: 'Bullets · um por linha', value: '', type: 'textarea' },
+    ],
+    onSave: async (data) => {
+      if (!data.bullets.trim()) return;
+      const payload = {
+        client_id: state.client.id,
+        update_date: data.update_date,
+        bullets: data.bullets.trim(),
+      };
+      const { data: ins } = await sb.from('daily_updates').insert(payload).select().single();
+      state.updates.unshift(ins);
+      render();
+    }
+  });
+}
+
+async function closeSprint() {
+  const s = state.activeSprint;
+  if (!s) return alert('Nenhum sprint ativo.');
+  const carry = state.tasks.filter(t => t.status !== 'done').length;
+  const done = state.tasks.filter(t => t.status === 'done').length;
+  if (!confirm(`Encerrar Sprint ${s.id}?\n\n${done} concluída(s) serão excluídas.\n${carry} aberta(s) seguem para o próximo sprint com tag "atrasado".\n\nConfirmar?`)) return;
+
+  const nextStart = new Date(s.end_date + 'T12:00:00');
+  nextStart.setDate(nextStart.getDate() + 1);
+  const nextEnd = new Date(nextStart);
+  nextEnd.setDate(nextEnd.getDate() + 6);
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const nextId = s.id + 1;
+
+  await sb.from('sprints').upsert({ id: nextId, start_date: iso(nextStart), end_date: iso(nextEnd) });
+  await sb.from('tasks').delete().eq('client_id', state.client.id).eq('sprint_id', s.id).eq('status', 'done');
+  await sb.from('tasks')
+    .update({ sprint_id: nextId, is_late: true, carried_from_sprint: s.id, updated_at: new Date().toISOString() })
+    .eq('client_id', state.client.id).eq('sprint_id', s.id).in('status', ['todo', 'doing']);
+
+  await loadAll();
+  render();
+  alert(`Sprint ${s.id} encerrado. Iniciando Sprint ${nextId}.`);
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function showModal({ title, fields, onSave }) {
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg';
+  bg.innerHTML = `
+    <div class="modal">
+      <h2>${esc(title)}</h2>
+      ${fields.map(f => {
+        if (f.type === 'textarea') return `<label>${esc(f.label)}</label><textarea data-f="${f.name}" rows="5">${esc(f.value)}</textarea>`;
+        if (f.type === 'checkbox') return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:14px;"><input type="checkbox" data-f="${f.name}" ${f.value ? 'checked' : ''} style="width:auto;">${esc(f.label)}</label>`;
+        return `<label>${esc(f.label)}</label><input data-f="${f.name}" type="${f.type}" value="${esc(f.value)}">`;
+      }).join('')}
+      <div class="modal-actions">
+        <button id="modal-cancel">cancelar</button>
+        <button class="primary" id="modal-save">salvar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(bg);
+  const close = () => bg.remove();
+  bg.querySelector('#modal-cancel').onclick = close;
+  bg.onclick = e => { if (e.target === bg) close(); };
+  bg.querySelector('#modal-save').onclick = async () => {
+    const data = {};
+    bg.querySelectorAll('[data-f]').forEach(inp => {
+      const name = inp.getAttribute('data-f');
+      data[name] = inp.type === 'checkbox' ? inp.checked : inp.value;
+    });
+    close();
+    await onSave(data);
+  };
+  setTimeout(() => { const f = bg.querySelector('input,textarea'); if (f) f.focus(); }, 30);
+}
+
+// ============================================================
+// STARTUP
+// ============================================================
+async function init() {
+  if (SUPABASE_URL.startsWith('COLE_AQUI')) {
+    document.getElementById('app').innerHTML = `
+      <div class="shell">
+        <div class="pw-topbar">
+          <div class="pw-topbar-l">
+            <span class="pw-logo">PRODUTORA P<span class="red">●</span>WER</span>
+            <span class="pw-bc">Central de projetos · <b>configuração pendente</b></span>
+          </div>
+        </div>
+        <div class="config-pending">
+          <h2>Falta configurar o Supabase</h2>
+          <p>Abra o <code>index.html</code> num editor e troque as 3 variáveis no topo do script:</p>
+          <pre>const SUPABASE_URL = 'https://SEU-PROJETO.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJ...sua_anon_key...';
+const EDIT_PASSWORD = 'sua_senha_de_edicao';</pre>
+          <small>Veja o <b>README.md</b> para o passo a passo completo.</small>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  try {
+    await loadAll();
+    render();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('app').innerHTML = `<div class="loading" style="color:var(--power-red);">Erro: ${esc(err.message)}</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
