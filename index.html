@@ -9,26 +9,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --power-black: #0A0A0A;
-  --power-red: #D9352D;
-  --bg: #FAFAF7;
-  --surface: #FFFFFF;
-  --surface-2: #F4F2EC;
-  --surface-3: #EAE7DE;
-  --border: rgba(10, 10, 10, 0.08);
-  --border-2: rgba(10, 10, 10, 0.16);
-  --text: #1A1A1A;
-  --text-2: #5F5E5A;
-  --text-3: #8E8D88;
-  --green: #1D9E75;
-  --green-dark: #3B6D11;
-  --green-bg: #EAF3DE;
-  --amber-dark: #854F0B;
-  --amber-bg: #FAEEDA;
-  --red-dark: #A32D2D;
-  --red-bg: #FCEBEB;
-  --gray-bg: #F1EFE8;
-  --gray-dark: #5F5E5A;
+  --power-black: #080C07;
+  --power-red: #E8392F;
+  --bg: #0D110C;
+  --surface: #141A13;
+  --surface-2: #1B2219;
+  --surface-3: #222B20;
+  --border: rgba(200, 220, 195, 0.08);
+  --border-2: rgba(200, 220, 195, 0.15);
+  --text: #DDE8DA;
+  --text-2: #8A9E85;
+  --text-3: #556150;
+  --green: #3DBF8A;
+  --green-dark: #3DBF8A;
+  --green-bg: rgba(61, 191, 138, 0.12);
+  --amber-dark: #D4953A;
+  --amber-bg: rgba(212, 149, 58, 0.12);
+  --red-dark: #E8392F;
+  --red-bg: rgba(232, 57, 47, 0.12);
+  --gray-bg: rgba(200, 220, 195, 0.07);
+  --gray-dark: #8A9E85;
   --radius: 8px;
   --radius-lg: 12px;
 }
@@ -45,9 +45,9 @@ body {
 }
 
 .shell {
-  max-width: 1100px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 14px;
+  padding: 16px 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -56,8 +56,8 @@ body {
 /* Power topbar */
 .pw-topbar { background: var(--power-black); color: #FFF; padding: 12px 18px; border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .pw-topbar-l { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.pw-logo { font-size: 13px; font-weight: 600; letter-spacing: 1.5px; }
-.pw-logo .red { color: var(--power-red); }
+.pw-logo { font-size: 15px; font-weight: 700; letter-spacing: 2px; display: flex; align-items: center; gap: 0; }
+.pw-logo .pw-icon { width: 20px; height: 20px; display: inline-block; flex-shrink: 0; }
 .pw-bc { font-size: 12px; color: rgba(255,255,255,0.55); }
 .pw-bc b { color: rgba(255,255,255,0.9); font-weight: 500; }
 .pw-topbar-r { display: flex; align-items: center; gap: 10px; }
@@ -279,7 +279,7 @@ function renderTopbar() {
   return `
     <div class="pw-topbar">
       <div class="pw-topbar-l">
-        <span class="pw-logo">PRODUTORA P<span class="red">●</span>WER</span>
+        <span class="pw-logo">P<svg class="pw-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10.5" y="1.5" width="3" height="9" rx="1.5" fill="#E8392F"/><path d="M7 6.5A8 8 0 1 0 17 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>WER</span>
         <span class="pw-bc">Central de projetos / <b>${esc(state.client.name)}</b></span>
       </div>
       <div class="pw-topbar-r">
@@ -691,7 +691,7 @@ async function init() {
       <div class="shell">
         <div class="pw-topbar">
           <div class="pw-topbar-l">
-            <span class="pw-logo">PRODUTORA P<span class="red">●</span>WER</span>
+            <span class="pw-logo">P<svg class="pw-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10.5" y="1.5" width="3" height="9" rx="1.5" fill="#E8392F"/><path d="M7 6.5A8 8 0 1 0 17 6.5" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>WER</span>
             <span class="pw-bc">Central de projetos · <b>configuração pendente</b></span>
           </div>
         </div>
