@@ -85,15 +85,21 @@ body {
 .v-status.gray .dot { background: var(--gray-dark); }
 .v-last-update { font-size: 11px; color: var(--text-3); }
 
-/* Hero KPI */
-.v-hero { background: var(--surface-2); border-radius: var(--radius-lg); padding: 18px 20px; }
-.v-hero-label { font-size: 11px; color: var(--text-2); margin: 0 0 8px; letter-spacing: 0.3px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.v-hero-num { font-size: 34px; font-weight: 500; margin: 0; line-height: 1; letter-spacing: -0.5px; }
-.v-hero-num .total { font-size: 19px; color: var(--text-2); font-weight: 400; }
-.v-hero-bar { height: 6px; background: var(--surface-3); border-radius: 3px; margin: 12px 0 10px; overflow: hidden; }
-.v-hero-bar-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
-.v-hero-subs { display: flex; gap: 22px; font-size: 12px; color: var(--text-2); flex-wrap: wrap; }
-.v-hero-sub b { color: var(--text); font-weight: 500; }
+/* Metrics row */
+.v-metrics { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr; gap: 10px; }
+.v-metric { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.v-metric.main { background: var(--surface-2); border-color: var(--border-2); }
+.v-metric-label { font-size: 10px; color: var(--text-3); font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; margin: 0 0 4px; display: flex; justify-content: space-between; align-items: center; }
+.v-metric-num { font-size: 28px; font-weight: 500; letter-spacing: -0.5px; line-height: 1; margin: 0; }
+.v-metric-num .v-metric-total { font-size: 16px; color: var(--text-2); font-weight: 400; }
+.v-metric-num.sm { font-size: 22px; }
+.v-metric-bar { height: 4px; background: var(--surface-3); border-radius: 2px; margin: 10px 0 2px; overflow: hidden; }
+.v-metric-bar-fill { height: 100%; background: var(--power-red); border-radius: 2px; transition: width 0.3s; }
+.v-metric-sub { font-size: 11px; color: var(--text-2); margin: 0; }
+
+/* Task progress bar */
+.v-task-bar { height: 3px; background: var(--surface-3); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.v-task-bar-fill { height: 100%; background: var(--power-red); border-radius: 2px; opacity: 0.8; }
 
 /* Sprint bar */
 .v-sprint { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 11px 16px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 12px; }
@@ -168,9 +174,14 @@ body.editing .v-obj:hover { border-left-color: var(--power-red); }
 .config-pending pre { background: var(--surface-2); padding: 14px; border-radius: 6px; font-size: 12px; overflow: auto; font-family: 'SF Mono', Monaco, monospace; }
 .config-pending small { display: block; margin-top: 14px; font-size: 12px; color: var(--text-3); }
 
+@media (max-width: 900px) {
+  .v-metrics { grid-template-columns: 1fr 1fr; }
+  .v-metric.main { grid-column: 1 / -1; }
+}
 @media (max-width: 720px) {
   .v-kanban { grid-template-columns: 1fr; }
   .v-sprint { grid-template-columns: 1fr; }
+  .v-metrics { grid-template-columns: 1fr 1fr; }
 }
 </style>
 </head>
@@ -299,8 +310,6 @@ function renderHeader() {
     <div class="v-header">
       <div class="v-header-l">
         <p class="v-client">${esc(c.name)}</p>
-        <p class="v-meta">${esc(c.niche || '')} · dono: ${esc(c.owner)}${c.team ? ' · time: ' + esc(c.team) : ''}</p>
-        <p class="v-obj" id="obj">${esc(c.objective || 'Clique para definir o objetivo do projeto.')}</p>
       </div>
       <div class="v-header-r">
         <span class="v-status ${c.status}" id="status-pill">
@@ -315,23 +324,43 @@ function renderHeader() {
 function renderHero() {
   const k = state.kpi;
   if (!k) {
-    return `<div class="v-hero"><p class="v-hero-label">Sem KPI cadastrado <button class="v-hero-action" id="btn-edit-kpi">cadastrar</button></p></div>`;
+    return `<div class="v-metrics"><div class="v-metric main"><p class="v-metric-label">Sem KPI cadastrado <button class="v-hero-action" id="btn-edit-kpi">cadastrar</button></p></div></div>`;
   }
   const pct = k.goal_value ? Math.min(100, Math.round((k.current_value / k.goal_value) * 100)) : 0;
   const missing = k.goal_value - k.current_value;
   const daysToEvent = k.event_date ? daysBetween(today(), k.event_date) : null;
+  const fmtMoney = v => v != null ? 'R$ ' + Number(v).toLocaleString('pt-BR') : '—';
+  const fmtPct = v => v != null ? Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%' : '—';
   return `
-    <div class="v-hero">
-      <p class="v-hero-label">
-        <span>${esc(k.label)}${k.event_label ? ' · ' + esc(k.event_label) : ''}</span>
-        <button class="v-hero-action" id="btn-edit-kpi">editar</button>
-      </p>
-      <p class="v-hero-num">${k.current_value} <span class="total">de ${k.goal_value}</span></p>
-      <div class="v-hero-bar"><div class="v-hero-bar-fill" style="width:${pct}%"></div></div>
-      <div class="v-hero-subs">
-        <span class="v-hero-sub"><b>${pct}%</b> da meta</span>
-        <span class="v-hero-sub"><b>${missing}</b> a vender</span>
-        ${daysToEvent !== null ? `<span class="v-hero-sub"><b>${daysToEvent} ${daysToEvent === 1 ? 'dia' : 'dias'}</b> para o evento</span>` : ''}
+    <div class="v-metrics">
+      <div class="v-metric main">
+        <p class="v-metric-label">
+          <span>${esc(k.label)}${k.event_label ? ' · ' + esc(k.event_label) : ''}</span>
+          <button class="v-hero-action" id="btn-edit-kpi">editar</button>
+        </p>
+        <p class="v-metric-num">${k.current_value} <span class="v-metric-total">/ ${k.goal_value}</span></p>
+        <div class="v-metric-bar"><div class="v-metric-bar-fill" style="width:${pct}%"></div></div>
+        <p class="v-metric-sub">${pct}% da meta · ${missing} a vender${daysToEvent !== null ? ' · ' + daysToEvent + ' dias para o evento' : ''}</p>
+      </div>
+      <div class="v-metric">
+        <p class="v-metric-label">CPA</p>
+        <p class="v-metric-num">${fmtMoney(k.cpa)}</p>
+        <p class="v-metric-sub">por aquisição</p>
+      </div>
+      <div class="v-metric">
+        <p class="v-metric-label">Investimento</p>
+        <p class="v-metric-num sm">${fmtMoney(k.investment_total)}</p>
+        <p class="v-metric-sub">total no período</p>
+      </div>
+      <div class="v-metric">
+        <p class="v-metric-label">Connect Rate</p>
+        <p class="v-metric-num">${fmtPct(k.connect_rate)}</p>
+        <p class="v-metric-sub">da landing page</p>
+      </div>
+      <div class="v-metric">
+        <p class="v-metric-label">CTR</p>
+        <p class="v-metric-num">${fmtPct(k.ctr)}</p>
+        <p class="v-metric-sub">nos anúncios</p>
       </div>
     </div>
   `;
@@ -401,7 +430,6 @@ function renderKanban() {
 function renderTask(t) {
   const metaParts = [];
   if (t.is_focus) metaParts.push('<span>foco do sprint</span>');
-  if (t.progress != null) metaParts.push(`<span>${t.progress}%</span>`);
   if (t.assignee) metaParts.push(`<span>${esc(t.assignee)}</span>`);
   if (t.is_late && t.carried_from_sprint) metaParts.push(`<span>vindo do sprint ${t.carried_from_sprint}</span>`);
   if (t.status === 'done' && t.completed_at) metaParts.push(`<span>concluído ${fmtDate(t.completed_at.split('T')[0])}</span>`);
@@ -411,6 +439,7 @@ function renderTask(t) {
         ${t.is_late ? '<span class="v-tag-atrasado">atrasado</span>' : ''}${esc(t.title)}
       </div>
       ${metaParts.length ? `<div class="v-task-meta">${metaParts.join('')}</div>` : ''}
+      ${t.progress != null ? `<div class="v-task-bar"><div class="v-task-bar-fill" style="width:${t.progress}%"></div></div>` : ''}
       <div class="v-task-actions">
         ${t.status !== 'todo' ? `<button data-move-task="${t.id}|todo">← a fazer</button>` : ''}
         ${t.status !== 'doing' ? `<button data-move-task="${t.id}|doing">em andamento</button>` : ''}
@@ -517,11 +546,19 @@ async function editKpi() {
       { name: 'event_date', label: 'Data do evento', value: k?.event_date || '', type: 'date' },
       { name: 'current_value', label: 'Atual', value: k?.current_value ?? 0, type: 'number' },
       { name: 'goal_value', label: 'Meta', value: k?.goal_value ?? 60, type: 'number' },
+      { name: 'cpa', label: 'CPA (R$)', value: k?.cpa ?? '', type: 'number' },
+      { name: 'investment_total', label: 'Investimento total (R$)', value: k?.investment_total ?? '', type: 'number' },
+      { name: 'connect_rate', label: 'Connect Rate (%)', value: k?.connect_rate ?? '', type: 'number' },
+      { name: 'ctr', label: 'CTR (%)', value: k?.ctr ?? '', type: 'number' },
     ],
     onSave: async (data) => {
       data.current_value = parseInt(data.current_value, 10) || 0;
       data.goal_value = parseInt(data.goal_value, 10) || 0;
       data.event_date = data.event_date || null;
+      data.cpa = data.cpa === '' ? null : parseFloat(data.cpa);
+      data.investment_total = data.investment_total === '' ? null : parseFloat(data.investment_total);
+      data.connect_rate = data.connect_rate === '' ? null : parseFloat(data.connect_rate);
+      data.ctr = data.ctr === '' ? null : parseFloat(data.ctr);
       data.updated_at = new Date().toISOString();
       if (k) {
         await sb.from('client_kpis').update(data).eq('id', k.id);
@@ -628,10 +665,12 @@ async function closeSprint() {
   const done = state.tasks.filter(t => t.status === 'done').length;
   if (!confirm(`Encerrar Sprint ${s.id}?\n\n${done} concluída(s) serão excluídas.\n${carry} aberta(s) seguem para o próximo sprint com tag "atrasado".\n\nConfirmar?`)) return;
 
+  // Sprints sempre dom→sáb: próximo domingo = sábado atual + 1
   const nextStart = new Date(s.end_date + 'T12:00:00');
   nextStart.setDate(nextStart.getDate() + 1);
+  while (nextStart.getDay() !== 0) nextStart.setDate(nextStart.getDate() + 1);
   const nextEnd = new Date(nextStart);
-  nextEnd.setDate(nextEnd.getDate() + 6);
+  nextEnd.setDate(nextEnd.getDate() + 6); // domingo + 6 = sábado
   const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const nextId = s.id + 1;
 
