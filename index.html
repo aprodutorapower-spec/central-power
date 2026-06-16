@@ -6,7 +6,7 @@
 <title>Central Power · Projetos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --power-black: #080808;
@@ -36,7 +36,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Syne', system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
   font-size: 14px;
@@ -67,12 +67,11 @@ body {
 .pw-edit-btn.active { background: var(--power-red); color: #FFF; border-color: var(--power-red); }
 
 /* Header */
-.v-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 0 4px; flex-wrap: wrap; }
-.v-header-l { flex: 1; min-width: 280px; }
-.v-client { font-size: 22px; font-weight: 500; margin: 0; letter-spacing: -0.2px; }
-.v-meta { font-size: 12px; color: var(--text-2); margin: 6px 0 10px; }
-.v-obj { font-size: 13px; color: var(--text-2); font-style: italic; line-height: 1.5; padding-left: 10px; border-left: 2px solid var(--border); max-width: 540px; margin: 0; }
-.v-header-r { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.v-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 18px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); flex-wrap: wrap; }
+.v-header-l { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 3px; }
+.v-header-eyebrow { font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 1.8px; text-transform: uppercase; }
+.v-client { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.3px; }
+.v-header-r { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .v-status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; user-select: none; }
 .v-status .dot { width: 10px; height: 10px; border-radius: 50%; }
 .v-status.green { background: var(--green-bg); color: var(--green-dark); }
@@ -309,6 +308,7 @@ function renderHeader() {
   return `
     <div class="v-header">
       <div class="v-header-l">
+        <span class="v-header-eyebrow">Cliente</span>
         <p class="v-client">${esc(c.name)}</p>
       </div>
       <div class="v-header-r">
