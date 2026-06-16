@@ -108,8 +108,8 @@ body {
 .v-sprint-sep { color: var(--text-3); }
 .v-sprint-r { display: inline-flex; align-items: center; gap: 9px; font-size: 11px; color: var(--text-2); flex-wrap: wrap; }
 .v-sprint-r b { color: var(--text); font-weight: 500; font-size: 12px; }
-.v-sprint-bar { width: 90px; height: 5px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
-.v-sprint-bar-fill { height: 100%; background: #185FA5; border-radius: 3px; }
+.v-sprint-bar { width: 160px; height: 6px; background: var(--surface-3); border-radius: 3px; overflow: hidden; }
+.v-sprint-bar-fill { height: 100%; background: var(--power-red); border-radius: 3px; }
 .v-sprint-action { background: transparent; color: var(--text-2); border: 1px solid var(--border-2); padding: 4px 11px; font-size: 11px; border-radius: 999px; cursor: pointer; font-family: inherit; }
 .v-sprint-action:hover { border-color: var(--power-red); color: var(--power-red); }
 
@@ -439,7 +439,6 @@ function renderTask(t) {
         ${t.is_late ? '<span class="v-tag-atrasado">atrasado</span>' : ''}${esc(t.title)}
       </div>
       ${metaParts.length ? `<div class="v-task-meta">${metaParts.join('')}</div>` : ''}
-      ${t.progress != null ? `<div class="v-task-bar"><div class="v-task-bar-fill" style="width:${t.progress}%"></div></div>` : ''}
       <div class="v-task-actions">
         ${t.status !== 'todo' ? `<button data-move-task="${t.id}|todo">← a fazer</button>` : ''}
         ${t.status !== 'doing' ? `<button data-move-task="${t.id}|doing">em andamento</button>` : ''}
