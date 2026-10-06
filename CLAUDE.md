@@ -27,6 +27,7 @@ Pauta automática da call de sexta, integrações (Meta Ads em leitura, Berry Pa
 - A Central Power antiga (página única) ficou guardada em `public/legado.html`. As tabelas dela (`clients`, `tasks`, `sprints`, `daily_updates`, `client_kpis`) são legado: não mexer.
 - Tabelas novas têm nome em português (`perfis`, `experts`, `expert_estrategistas`).
 - Não há acesso direto ao banco por aqui: cada migration é colada pelo Ricardo no SQL Editor do Supabase.
+- A Vercel NÃO está ligada ao GitHub (a conta GitHub da Vercel é outra). Publicar ao fim de cada etapa com `npx vercel deploy --prod --yes` (Node em `~/.nvm/versions/node/v24.16.0/bin`), depois do commit + push.
 - Next 16: o antigo `middleware.ts` chama-se `proxy.ts`. Ver AGENTS.md.
 
 @AGENTS.md
