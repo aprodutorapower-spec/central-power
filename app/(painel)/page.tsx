@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { obterSessao } from "@/lib/sessao";
 import { criarExpert, definirExpertAtivo, trocarResponsavel } from "./actions";
@@ -36,6 +37,16 @@ export default async function PainelPage() {
     ]);
 
   const experts = (listaExperts ?? []) as Expert[];
+
+  const { data: ativos } = await supabase
+    .from("lancamentos")
+    .select("expert_id")
+    .eq("situacao", "ativo");
+  const resumo = (expertId: string) => {
+    const total = (ativos ?? []).filter((l) => l.expert_id === expertId).length;
+    if (!total) return "Nenhum lançamento ativo";
+    return total === 1 ? "1 lançamento ativo" : `${total} lançamentos ativos`;
+  };
   const estrategistas = listaEstrategistas ?? [];
 
   if (!admin) {
@@ -61,11 +72,16 @@ export default async function PainelPage() {
         {meus.length ? (
           <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {meus.map((expert) => (
-              <li
-                key={expert.id}
-                className="rounded-xl border border-borda bg-cartao px-5 py-4"
-              >
-                {expert.nome}
+              <li key={expert.id}>
+                <Link
+                  href={`/experts/${expert.id}`}
+                  className="block rounded-xl border border-borda bg-cartao px-5 py-4 hover:border-power-claro"
+                >
+                  <span className="font-semibold">{expert.nome}</span>
+                  <span className="mt-1 block text-sm text-apagado">
+                    {resumo(expert.id)}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -149,11 +165,17 @@ export default async function PainelPage() {
                     key={expert.id}
                     className="flex flex-wrap items-center justify-between gap-2 py-3"
                   >
-                    <span
-                      className={expert.ativo ? "" : "text-apagado line-through"}
+                    <Link
+                      href={`/experts/${expert.id}`}
+                      className={`hover:text-power-claro ${
+                        expert.ativo ? "" : "text-apagado line-through"
+                      }`}
                     >
                       {expert.nome}
-                    </span>
+                      <span className="ml-2 text-xs text-apagado">
+                        {resumo(expert.id)}
+                      </span>
+                    </Link>
                     <div className="flex items-center gap-3">
                       <form action={trocarResponsavel} className="flex gap-1">
                         <input type="hidden" name="id" value={expert.id} />

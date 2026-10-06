@@ -132,6 +132,53 @@ async function testar() {
     .select("id");
   confere("A não se promove a admin", !virouAdmin?.length);
 
+  // Lançamentos (seguem o expert)
+  const modelo = { tipo: "LPS", de0: "2030-01-07", d0: "2030-01-14", dp0: "2030-01-20", dfc: "2030-01-22" };
+  const { data: lancB } = await servico
+    .from("lancamentos")
+    .insert({ ...modelo, nome: `${MARCA} lançamento de B`, expert_id: expertB.id })
+    .select("id")
+    .single();
+
+  const { data: lancA } = await a.cliente
+    .from("lancamentos")
+    .insert({ ...modelo, nome: `${MARCA} lançamento de A`, expert_id: expertA.id })
+    .select("id");
+  confere("A cria lançamento no próprio expert", lancA?.length === 1);
+
+  const { data: lancamentosDeA } = await a.cliente.from("lancamentos").select("id");
+  confere(
+    "A lê só os próprios lançamentos",
+    lancamentosDeA?.length === 1 && lancamentosDeA[0].id === lancA?.[0]?.id,
+  );
+
+  const { error: lancIndevido } = await a.cliente
+    .from("lancamentos")
+    .insert({ ...modelo, nome: `${MARCA} indevido`, expert_id: expertB.id });
+  confere("A não cria lançamento em expert de B", Boolean(lancIndevido));
+
+  const { data: alterouLancB } = await a.cliente
+    .from("lancamentos")
+    .update({ nome: `${MARCA} invadido` })
+    .eq("id", lancB.id)
+    .select("id");
+  confere("A não altera lançamento de B", !alterouLancB?.length);
+
+  const { error: moveu } = await a.cliente
+    .from("lancamentos")
+    .update({ expert_id: expertB.id })
+    .eq("id", lancA?.[0]?.id);
+  confere("A não move lançamento para expert de B", Boolean(moveu));
+
+  const { data: anonLanc } = await anonimo.from("lancamentos").select("id");
+  confere("sem login não lê lancamentos", !anonLanc?.length);
+
+  const { data: lancDoAdmin } = await admin.cliente
+    .from("lancamentos")
+    .select("id")
+    .like("nome", `${MARCA}%`);
+  confere("admin lê os lançamentos de todos", lancDoAdmin?.length === 2);
+
   // Admin
   const { data: expertsDoAdmin } = await admin.cliente
     .from("experts")

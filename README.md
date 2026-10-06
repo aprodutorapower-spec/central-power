@@ -27,7 +27,13 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 ## Como cadastrar um lançamento
 
-Entra na etapa 2 (em construção).
+1. Na tela inicial, clique no expert.
+2. Clique em **Novo lançamento**.
+3. Dê um nome, escolha o tipo (**LP**, evento único, ou **LPS**, semanal 5+1) e informe o **D0** (dia do evento; no LPS, a segunda-feira da aula 1).
+4. O sistema calcula as outras datas: **DE0** (D0-7), **DP0** (só no LPS, D0+6) e **DFC** (LP: D0+4; LPS: DP0+2). Todas podem ser ajustadas. **M0** e **DV0** são opcionais.
+5. Informe a meta de ingressos, se já tiver, e clique em **Salvar lançamento**.
+
+Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
 ## Como editar os modelos de checkpoint
 
