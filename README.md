@@ -83,7 +83,7 @@ As mudanças valem só para os lançamentos criados depois; os que já existem n
 
 ## Próximos passos
 
-1. **Decidir como o Ricardo será avisado e como os estrategistas serão cobrados** (Telegram, e-mail, WhatsApp, cobrança automática pelo sistema ou apenas o painel).
+1. **Decidir como o Ricardo será avisado e como os estrategistas serão cobrados** (Telegram, e-mail, WhatsApp, cobrança automática pelo sistema ou apenas o painel). Adiado pelo Ricardo em 06/10/2026, para depois dos ajustes no sistema.
 2. Pauta automática da call de sexta.
 3. Integrações: Meta Ads por BM em modo leitura, Berry Pay, Asana.
 4. Lançamentos perpétuos.

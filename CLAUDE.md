@@ -36,8 +36,13 @@ Fluxo de cada etapa: build, lint, tipos, `scripts/isolamento.mjs`, publicar, rel
 - Cores: destaque só no vermelho da logo (`power`); `power-claro` é só para texto pequeno; amarelo e verde só no semáforo (status e prazos). O Ricardo rejeitou o amarelo-alaranjado em selos.
 - Sessão: `obterSessao()` faz uma chamada só (`rpc meu_perfil`); o `proxy.ts` lê o cookie sem ida ao servidor de login. Não voltar a usar `auth.getUser()` em toda requisição: deixava os cliques lentos.
 
-## Pendência aberta
-Definir como o Ricardo será avisado e como os estrategistas serão cobrados (Telegram, e-mail, WhatsApp, cobrança automática pelo sistema ou apenas o painel). Lembre o Ricardo disso ao final de toda sessão até ser decidido.
+## Pendência adiada
+Como o Ricardo será avisado e como os estrategistas serão cobrados: em 06/10/2026 ele mandou jogar para frente ("ainda vou mexer no sistema antes de pensar nisso"). Não lembrar disso a cada sessão; só retomar quando ele puxar o assunto.
+
+## Decisões do Ricardo
+- LPS tem sempre a mesma estrutura (D0 segunda, pitch D0+6, carrinho fecha D0+8). Está certo como está; não perguntar de novo.
+- Status do lançamento é manual por enquanto.
+- Comparecimento = pessoas no grupo de WhatsApp, campo visível. Sem bloqueio/próximo passo e sem vendas do produto principal no formulário.
 
 ## Próximos passos (fora do v1)
 Pauta automática da call de sexta, integrações (Meta Ads por BM em modo leitura, Berry Pay, Asana), lançamentos perpétuos, teste de aceite com os estrategistas, domínio próprio.
