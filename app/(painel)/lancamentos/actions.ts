@@ -141,8 +141,6 @@ export async function salvarAtualizacao(
     .from("lancamentos")
     .update({
       status,
-      bloqueio: texto("bloqueio"),
-      proximo_passo: texto("proximo_passo"),
       status_atualizado_em: agora,
       status_atualizado_por_nome: perfil.nome,
     })
@@ -159,14 +157,7 @@ export async function salvarAtualizacao(
     verba_investida: dinheiro("verba_investida"),
     ingressos_vendidos: inteiro("ingressos_vendidos"),
     receita_ingressos: dinheiro("receita_ingressos"),
-    comp_aula1: inteiro("comp_aula1"),
-    comp_aula2: inteiro("comp_aula2"),
-    comp_aula3: inteiro("comp_aula3"),
-    comp_aula4: inteiro("comp_aula4"),
-    comp_aula5: inteiro("comp_aula5"),
-    comp_pitch: inteiro("comp_pitch"),
-    vendas_produto: inteiro("vendas_produto"),
-    faturamento_produto: dinheiro("faturamento_produto"),
+    grupo_whatsapp: inteiro("grupo_whatsapp"),
   });
   if (error) return { erro: "O status foi salvo, mas as métricas não. Tente de novo." };
 

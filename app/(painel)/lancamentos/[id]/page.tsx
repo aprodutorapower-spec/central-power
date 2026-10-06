@@ -11,7 +11,7 @@ import {
 } from "@/lib/linha-do-tempo";
 import { faseDoLancamento, TIPOS, type Lancamento } from "@/lib/marcos";
 import { calcular, haQuanto, STATUS, type Foto } from "@/lib/metricas";
-import { formatarInteiro, formatarReal } from "@/lib/numeros";
+import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
 import { definirSituacao } from "../actions";
 import { CartaoCheckpoint } from "./cartao-checkpoint";
@@ -114,25 +114,8 @@ export default async function LancamentoPage({
           ) : null}
         </div>
 
-        {lancamento.bloqueio || lancamento.proximo_passo ? (
-          <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-            {lancamento.bloqueio ? (
-              <p>
-                <span className="block text-xs text-apagado">Bloqueio atual</span>
-                {lancamento.bloqueio}
-              </p>
-            ) : null}
-            {lancamento.proximo_passo ? (
-              <p>
-                <span className="block text-xs text-apagado">Próximo passo</span>
-                {lancamento.proximo_passo}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-
         {ultima && numeros ? (
-          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-5">
+          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-3 lg:grid-cols-6">
             <Numero rotulo="Verba investida" valor={formatarReal(ultima.verba_investida)} />
             <Numero
               rotulo="Ingressos vendidos"
@@ -144,6 +127,15 @@ export default async function LancamentoPage({
               }
             />
             <Numero rotulo="Receita de ingressos" valor={formatarReal(ultima.receita_ingressos)} />
+            <Numero
+              rotulo="No grupo de WhatsApp"
+              valor={
+                formatarInteiro(ultima.grupo_whatsapp) +
+                (numeros.comparecimento != null
+                  ? ` (${formatarPercentual(numeros.comparecimento)})`
+                  : "")
+              }
+            />
             <Numero rotulo="CPA" valor={formatarReal(numeros.cpa)} />
             <Numero rotulo="Ticket médio" valor={formatarReal(numeros.ticketMedio)} />
           </div>
@@ -223,10 +215,10 @@ export default async function LancamentoPage({
         <h2 className="font-semibold">Histórico de métricas</h2>
         {fotos.length ? (
           <div className="mt-3 overflow-x-auto rounded-xl border border-borda bg-cartao">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="text-xs text-apagado">
                 <tr>
-                  {["Data", "Quem", "Verba", "Ingressos", "Receita", "CPA", "Ticket médio"].map(
+                  {["Data", "Quem", "Verba", "Ingressos", "Receita", "Grupo WhatsApp", "CPA", "Ticket médio"].map(
                     (coluna) => (
                       <th key={coluna} className="px-4 py-3 font-normal">
                         {coluna}
@@ -248,6 +240,12 @@ export default async function LancamentoPage({
                       <td className="px-4 py-3">{formatarReal(foto.verba_investida)}</td>
                       <td className="px-4 py-3">{formatarInteiro(foto.ingressos_vendidos)}</td>
                       <td className="px-4 py-3">{formatarReal(foto.receita_ingressos)}</td>
+                      <td className="px-4 py-3">
+                        {formatarInteiro(foto.grupo_whatsapp)}
+                        {calculo.comparecimento != null
+                          ? ` (${formatarPercentual(calculo.comparecimento)})`
+                          : ""}
+                      </td>
                       <td className="px-4 py-3">{formatarReal(calculo.cpa)}</td>
                       <td className="px-4 py-3">{formatarReal(calculo.ticketMedio)}</td>
                     </tr>

@@ -25,6 +25,10 @@ export function formatarInteiro(valor: number | null | undefined) {
   return valor == null ? "—" : INTEIRO.format(valor);
 }
 
+export function formatarPercentual(valor: number | null | undefined) {
+  return valor == null ? "—" : `${Math.round(valor * 100)}%`;
+}
+
 // Para preencher campo de formulário: 1234.5 -> "1234,50".
 export function dinheiroParaCampo(valor: number | null | undefined) {
   return valor == null ? "" : valor.toFixed(2).replace(".", ",");

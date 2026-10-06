@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { calcular, COMPARECIMENTO, STATUS, type Foto, type Status } from "@/lib/metricas";
+import { calcular, STATUS, type Foto, type Status } from "@/lib/metricas";
 import {
   dinheiroParaCampo,
+  formatarPercentual,
   formatarReal,
   lerDinheiro,
   lerInteiro,
@@ -27,17 +28,14 @@ export function FormAtualizacao({ lancamento, ultima }: Props) {
     ultima?.ingressos_vendidos?.toString() ?? "",
   );
   const [receita, setReceita] = useState(dinheiroParaCampo(ultima?.receita_ingressos));
+  const [grupo, setGrupo] = useState(ultima?.grupo_whatsapp?.toString() ?? "");
 
-  const { cpa, ticketMedio } = calcular({
+  const { cpa, ticketMedio, comparecimento } = calcular({
     verba_investida: lerDinheiro(verba),
     ingressos_vendidos: lerInteiro(ingressos),
     receita_ingressos: lerDinheiro(receita),
+    grupo_whatsapp: lerInteiro(grupo),
   });
-
-  const aulas =
-    lancamento.tipo === "LPS"
-      ? COMPARECIMENTO
-      : [{ campo: "comp_aula1" as const, rotulo: "Evento" }];
 
   return (
     <form action={acao} className="mt-4">
@@ -68,30 +66,8 @@ export function FormAtualizacao({ lancamento, ultima }: Props) {
         </div>
       </fieldset>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm text-apagado">
-          Bloqueio atual
-          <textarea
-            name="bloqueio"
-            rows={2}
-            defaultValue={lancamento.bloqueio}
-            placeholder="O que está travando? Deixe vazio se nada."
-            className={`${CAMPO} text-texto`}
-          />
-        </label>
-        <label className="block text-sm text-apagado">
-          Próximo passo
-          <textarea
-            name="proximo_passo"
-            rows={2}
-            defaultValue={lancamento.proximo_passo}
-            className={`${CAMPO} text-texto`}
-          />
-        </label>
-      </div>
-
       <p className="mt-5 text-sm font-semibold">Números até agora</p>
-      <div className="mt-2 grid gap-4 sm:grid-cols-3">
+      <div className="mt-2 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <label className="block text-sm text-apagado">
           Verba investida (R$)
           <input
@@ -122,48 +98,23 @@ export function FormAtualizacao({ lancamento, ultima }: Props) {
             className={`${CAMPO} text-texto`}
           />
         </label>
+        <label className="block text-sm text-apagado">
+          No grupo de WhatsApp
+          <input
+            name="grupo_whatsapp"
+            inputMode="numeric"
+            value={grupo}
+            onChange={(evento) => setGrupo(evento.target.value)}
+            className={`${CAMPO} text-texto`}
+          />
+        </label>
       </div>
       <p className="mt-2 text-sm text-apagado">
         CPA <span className="text-texto">{formatarReal(cpa)}</span> · Ticket médio{" "}
-        <span className="text-texto">{formatarReal(ticketMedio)}</span>
+        <span className="text-texto">{formatarReal(ticketMedio)}</span> · Comparecimento
+        no grupo <span className="text-texto">{formatarPercentual(comparecimento)}</span>
       </p>
 
-      <details className="mt-4">
-        <summary className="cursor-pointer text-sm text-apagado hover:text-texto">
-          Opcionais: comparecimento e produto principal
-        </summary>
-        <div className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {aulas.map((aula) => (
-            <label key={aula.campo} className="block text-sm text-apagado">
-              Comparecimento · {aula.rotulo}
-              <input
-                name={aula.campo}
-                inputMode="numeric"
-                defaultValue={ultima?.[aula.campo] ?? ""}
-                className={`${CAMPO} text-texto`}
-              />
-            </label>
-          ))}
-          <label className="block text-sm text-apagado">
-            Vendas do produto principal
-            <input
-              name="vendas_produto"
-              inputMode="numeric"
-              defaultValue={ultima?.vendas_produto ?? ""}
-              className={`${CAMPO} text-texto`}
-            />
-          </label>
-          <label className="block text-sm text-apagado">
-            Faturamento do produto (R$)
-            <input
-              name="faturamento_produto"
-              inputMode="decimal"
-              defaultValue={dinheiroParaCampo(ultima?.faturamento_produto)}
-              className={`${CAMPO} text-texto`}
-            />
-          </label>
-        </div>
-      </details>
 
       {resultado.erro ? (
         <p className="mt-4 text-sm text-power-claro" role="alert">

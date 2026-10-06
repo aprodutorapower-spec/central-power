@@ -52,12 +52,10 @@ Leva menos de 5 minutos e funciona no celular.
 
 1. Abra o lançamento e clique em **Atualizar lançamento**.
 2. Escolha o status: **No trilho** (verde), **Atenção** (amarelo) ou **Em risco** (vermelho).
-3. Escreva o **bloqueio atual** (se houver) e o **próximo passo**.
-4. Preencha os números até agora: **verba investida**, **ingressos vendidos** e **receita de ingressos**. Eles já vêm com os valores da última vez; é só corrigir.
-5. Se quiser, abra **Opcionais** para comparecimento por aula e vendas do produto principal.
-6. Clique em **Salvar atualização**.
+3. Preencha os números até agora: **verba investida**, **ingressos vendidos**, **receita de ingressos** e quantas pessoas estão **no grupo de WhatsApp**. Eles já vêm com os valores da última vez; é só corrigir.
+4. Clique em **Salvar atualização**.
 
-O sistema calcula o **CPA** (verba ÷ ingressos) e o **ticket médio** (receita de ingressos ÷ ingressos). Cada atualização vira uma "foto" datada no **Histórico de métricas**, com quem preencheu, e o topo da página passa a mostrar "Atualizado há X dias" (fica em vermelho quando passa de 7 dias).
+O sistema calcula o **CPA** (verba ÷ ingressos), o **ticket médio** (receita de ingressos ÷ ingressos) e o **comparecimento no grupo** (pessoas no grupo de WhatsApp ÷ ingressos). O status é escolhido por quem atualiza; não é calculado. Cada atualização vira uma "foto" datada no **Histórico de métricas**, com quem preencheu, e o topo da página passa a mostrar "Atualizado há X dias" (fica em vermelho quando passa de 7 dias).
 
 ## Como editar os modelos de checkpoint
 
