@@ -30,6 +30,12 @@ Fluxo de cada etapa: build, lint, tipos, `scripts/isolamento.mjs`, publicar, rel
 - Login por e-mail e senha. O admin gera um link de acesso de uso único e envia por fora (WhatsApp); o estrategista entra por ele e cria a senha. Não usamos link mágico por e-mail porque o envio embutido do Supabase só manda uns poucos e-mails por hora.
 - O link de acesso só é consumido no clique do botão em /auth/confirmar (prévia de link de aplicativo de mensagem não gasta o link).
 
+## Cuidados aprendidos
+- Constante usada pelo servidor e pelo navegador mora em `lib/`, nunca num arquivo "use client": importada de lá numa página do servidor, ela chega vazia e a página quebra (foi o erro 500 da etapa 4). Build, lint e tipos não pegam isso.
+- Por isso, antes de dar uma etapa por pronta, abrir as telas num navegador de verdade (Chrome sem janela via puppeteer-core, instalado fora do projeto) com usuários fictícios e clicar nos botões; apagar os dados no final.
+- Cores: destaque só no vermelho da logo (`power`); `power-claro` é só para texto pequeno; amarelo e verde só no semáforo (status e prazos). O Ricardo rejeitou o amarelo-alaranjado em selos.
+- Sessão: `obterSessao()` faz uma chamada só (`rpc meu_perfil`); o `proxy.ts` lê o cookie sem ida ao servidor de login. Não voltar a usar `auth.getUser()` em toda requisição: deixava os cliques lentos.
+
 ## Pendência aberta
 Definir como o Ricardo será avisado e como os estrategistas serão cobrados (Telegram, e-mail, WhatsApp, cobrança automática pelo sistema ou apenas o painel). Lembre o Ricardo disso ao final de toda sessão até ser decidido.
 
@@ -39,7 +45,7 @@ Pauta automática da call de sexta, integrações (Meta Ads por BM em modo leitu
 ## Estado do projeto
 - Repositório `aprodutorapower-spec/central-power`, projeto Vercel `central-power`, Supabase `pruntjhpcucfiudcdtpb`.
 - A Central Power antiga (página única) ficou guardada em `public/legado.html`. As tabelas dela (`clients`, `tasks`, `sprints`, `daily_updates`, `client_kpis`) são legado: não mexer.
-- Tabelas novas têm nome em português (`perfis`, `experts`). `perfis.id` é próprio; o vínculo com o login é `perfis.user_id`.
+- Tabelas novas têm nome em português (`perfis`, `experts`, `lancamentos`, `checkpoint_modelos`, `checkpoints`, `fotos_metricas`). `perfis.id` é próprio; o vínculo com o login é `perfis.user_id`.
 - Banco: o Ricardo autorizou (06/10/2026) aplicar as migrations deste projeto direto, pela API de gestão do Supabase (`POST /v1/projects/pruntjhpcucfiudcdtpb/database/query`, token em `~/.config/supabase-power/token`). Aplicar cada arquivo de `supabase/migrations` dentro de `begin; ... commit;`.
 - Login: cadastro público desligado no Supabase; usuários só nascem pela tela Estrategistas. Link de acesso vale 24h.
 - A Vercel NÃO está ligada ao GitHub (a conta GitHub da Vercel é outra). Publicar ao fim de cada etapa com `npx vercel deploy --prod --yes` (Node em `~/.nvm/versions/node/v24.16.0/bin`), depois do commit + push.
