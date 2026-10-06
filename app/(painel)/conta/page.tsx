@@ -3,6 +3,7 @@ import { trocarSenha } from "../actions";
 
 const AVISOS: Record<string, string> = {
   ok: "Senha alterada.",
+  primeiro: "Você entrou. Crie uma senha para os próximos acessos.",
   curta: "A senha precisa ter pelo menos 8 caracteres.",
   diferente: "As duas senhas não são iguais.",
   erro: "Não foi possível alterar a senha. Tente de novo.",
@@ -23,7 +24,7 @@ export default async function ContaPage({ searchParams }: PageProps<"/conta">) {
         action={trocarSenha}
         className="mt-6 max-w-sm rounded-xl border border-borda bg-cartao p-6"
       >
-        <h2 className="font-semibold">Trocar senha</h2>
+        <h2 className="font-semibold">Senha de acesso</h2>
 
         <label className="mt-4 block text-sm text-apagado" htmlFor="senha">
           Nova senha
@@ -53,7 +54,7 @@ export default async function ContaPage({ searchParams }: PageProps<"/conta">) {
 
         {mensagem ? (
           <p
-            className={`mt-4 text-sm ${aviso === "ok" ? "text-ok" : "text-power-claro"}`}
+            className={`mt-4 text-sm ${aviso === "ok" || aviso === "primeiro" ? "text-ok" : "text-power-claro"}`}
             role="status"
           >
             {mensagem}

@@ -30,9 +30,12 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const naTelaDeLogin = request.nextUrl.pathname.startsWith("/login");
+  const caminho = request.nextUrl.pathname;
+  const naTelaDeLogin = caminho.startsWith("/login");
+  // O link de acesso precisa abrir para quem ainda não está logado.
+  const publico = naTelaDeLogin || caminho.startsWith("/auth");
 
-  if (!user && !naTelaDeLogin) {
+  if (!user && !publico) {
     const destino = request.nextUrl.clone();
     destino.pathname = "/login";
     destino.search = "";

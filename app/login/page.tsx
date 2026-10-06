@@ -44,7 +44,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
         {erro ? (
           <p className="mt-4 text-sm text-power-claro" role="alert">
-            E-mail ou senha incorretos.
+            {erro === "link"
+              ? "Esse link de acesso já foi usado ou venceu. Peça um novo ao Ricardo."
+              : "E-mail ou senha incorretos."}
           </p>
         ) : null}
 

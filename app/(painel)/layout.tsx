@@ -1,41 +1,39 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { criarClienteServidor, supabaseConfigurado } from "@/lib/supabase/server";
+import { obterSessao } from "@/lib/sessao";
+import { supabaseConfigurado } from "@/lib/supabase/server";
 import { AvisoConfiguracao } from "../aviso-configuracao";
 import { sair } from "../login/actions";
 
 export default async function PainelLayout({ children }: LayoutProps<"/">) {
   if (!supabaseConfigurado()) return <AvisoConfiguracao />;
 
-  const supabase = await criarClienteServidor();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, perfil } = await obterSessao();
   if (!user) redirect("/login");
 
-  const { data: perfil } = await supabase
-    .from("perfis")
-    .select("nome, papel, ativo")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  const liberado = Boolean(perfil?.ativo);
+  const admin = perfil?.papel === "admin";
+  const menu = admin
+    ? [
+        { href: "/", rotulo: "Experts" },
+        { href: "/estrategistas", rotulo: "Estrategistas" },
+      ]
+    : [{ href: "/", rotulo: "Meus experts" }];
 
   return (
     <>
       <header className="border-b border-borda bg-cartao">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-          <div className="flex items-center gap-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo-power.png" alt="Power" className="h-6 w-auto" />
-            <span className="hidden text-sm text-apagado sm:inline">
+            <span className="hidden text-sm text-apagado md:inline">
               Controle de Lançamentos
             </span>
-          </div>
+          </Link>
           <div className="flex items-center gap-4 text-sm">
             <Link href="/conta" className="text-apagado hover:text-texto">
               {perfil?.nome ?? user.email}
-              {perfil?.papel === "admin" ? " · Admin" : ""}
+              {admin ? " · Admin" : ""}
             </Link>
             <form action={sair}>
               <button
@@ -46,10 +44,19 @@ export default async function PainelLayout({ children }: LayoutProps<"/">) {
               </button>
             </form>
           </div>
+          {perfil ? (
+            <nav className="flex w-full gap-5 text-sm">
+              {menu.map((item) => (
+                <Link key={item.href} href={item.href} className="hover:text-power-claro">
+                  {item.rotulo}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">
-        {liberado ? (
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        {perfil ? (
           children
         ) : (
           <div className="rounded-xl border border-borda bg-cartao p-8">
