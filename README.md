@@ -10,6 +10,16 @@ Endereço: https://central-power.vercel.app
 - **Admin (Ricardo):** vê e edita tudo.
 - Sem login não se vê nada. Essa separação é garantida no banco de dados, não só na tela.
 
+## Visão geral (admin)
+
+É a primeira tela do admin. Mostra todos os lançamentos ativos de todos os experts, cada um com: status, estrategista, expert, tipo, próximo item da linha do tempo com os dias que faltam, quantos checkpoints estão atrasados, os números da última atualização (verba, ingressos, grupo de WhatsApp, CPA, ticket médio) e há quanto tempo foi atualizado (em vermelho quando passa de 7 dias ou nunca foi).
+
+- **Prioridades** (padrão): lista única, com o que precisa de atenção no topo. A ordem é: mais checkpoints atrasados, depois mais tempo sem atualização, depois status "Em risco".
+- **Por estrategista**: agrupado em Estrategista > Expert > Lançamento. Estrategista sem lançamento ativo também aparece, para ficar claro quem ainda não cadastrou.
+- **Filtros** por estrategista, status e tipo.
+
+Clicar num lançamento abre a página dele.
+
 ## Como liberar o acesso de um estrategista
 
 1. Entre como admin e abra **Estrategistas** no menu.
@@ -22,12 +32,12 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 ## Como cadastrar um expert
 
-- **Estrategista:** na tela inicial (**Meus experts**), digite o nome e clique em **Adicionar**. O expert já fica no nome dele.
-- **Admin:** na tela inicial (**Experts**), digite o nome, escolha o estrategista responsável e clique em **Adicionar**. Para mudar o responsável depois, escolha outro nome ao lado do expert e clique em **Trocar**.
+- **Estrategista:** em **Meus experts**, digite o nome e clique em **Adicionar**. O expert já fica no nome dele.
+- **Admin:** em **Experts**, digite o nome, escolha o estrategista responsável e clique em **Adicionar**. Para mudar o responsável depois, escolha outro nome na lista ao lado do expert.
 
 ## Como cadastrar um lançamento
 
-1. Na tela inicial, clique no expert.
+1. Em **Experts** (ou **Meus experts**), clique no expert.
 2. Clique em **Novo lançamento**.
 3. Dê um nome, escolha o tipo (**LP**, evento único, ou **LPS**, semanal 5+1) e informe o **D0** (dia do evento; no LPS, a segunda-feira da aula 1).
 4. O sistema calcula as outras datas: **DE0** (D0-7), **DP0** (só no LPS, D0+6) e **DFC** (LP: D0+4; LPS: DP0+2). Todas podem ser ajustadas. **M0** e **DV0** são opcionais.

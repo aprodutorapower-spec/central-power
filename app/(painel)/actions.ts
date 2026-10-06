@@ -17,7 +17,7 @@ export async function criarExpert(formData: FormData) {
     perfil.papel === "admin" ? escolhido || null : perfil.id;
 
   await supabase.from("experts").insert({ nome, estrategista_id });
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 export async function trocarResponsavel(formData: FormData) {
@@ -26,7 +26,7 @@ export async function trocarResponsavel(formData: FormData) {
 
   const { supabase } = await obterSessao();
   await supabase.from("experts").update({ estrategista_id }).eq("id", id);
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 export async function definirExpertAtivo(formData: FormData) {
@@ -35,7 +35,7 @@ export async function definirExpertAtivo(formData: FormData) {
 
   const { supabase } = await obterSessao();
   await supabase.from("experts").update({ ativo }).eq("id", id);
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 export async function trocarSenha(formData: FormData) {

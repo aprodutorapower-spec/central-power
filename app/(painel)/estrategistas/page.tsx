@@ -5,7 +5,7 @@ import { LinhaEstrategista } from "./linha-estrategista";
 
 export default async function EstrategistasPage() {
   const { supabase, perfil } = await obterSessao();
-  if (perfil?.papel !== "admin") redirect("/");
+  if (perfil?.papel !== "admin") redirect("/experts");
 
   const [{ data: estrategistas }, { data: experts }] = await Promise.all([
     supabase

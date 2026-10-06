@@ -25,7 +25,7 @@ export default async function ExpertPage({ params }: PageProps<"/experts/[id]">)
 
   return (
     <>
-      <Link href="/" className="text-sm text-apagado hover:text-texto">
+      <Link href="/experts" className="text-sm text-apagado hover:text-texto">
         ← Experts
       </Link>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

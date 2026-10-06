@@ -64,7 +64,7 @@ function FormModelo({ modelo, tipo }: { modelo?: Modelo; tipo: Tipo }) {
 
 export default async function ModelosPage() {
   const { supabase, perfil } = await obterSessao();
-  if (perfil?.papel !== "admin") redirect("/");
+  if (perfil?.papel !== "admin") redirect("/experts");
 
   const { data } = await supabase
     .from("checkpoint_modelos")

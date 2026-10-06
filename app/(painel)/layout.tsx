@@ -15,11 +15,12 @@ export default async function PainelLayout({ children }: LayoutProps<"/">) {
   const admin = perfil?.papel === "admin";
   const menu = admin
     ? [
-        { href: "/", rotulo: "Experts" },
+        { href: "/", rotulo: "Visão geral" },
+        { href: "/experts", rotulo: "Experts" },
         { href: "/estrategistas", rotulo: "Estrategistas" },
         { href: "/modelos", rotulo: "Modelos de checkpoint" },
       ]
-    : [{ href: "/", rotulo: "Meus experts" }];
+    : [{ href: "/experts", rotulo: "Meus experts" }];
 
   return (
     <>
@@ -44,7 +45,7 @@ export default async function PainelLayout({ children }: LayoutProps<"/">) {
             </form>
           </div>
           {perfil ? (
-            <nav className="flex w-full gap-5 text-sm">
+            <nav className="flex w-full flex-wrap gap-x-5 gap-y-2 text-sm">
               {menu.map((item) => (
                 <Link key={item.href} href={item.href} className="hover:text-power-claro">
                   {item.rotulo}
