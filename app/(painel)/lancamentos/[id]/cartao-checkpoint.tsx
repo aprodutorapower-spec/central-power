@@ -2,15 +2,8 @@
 
 import { useOptimistic, useTransition } from "react";
 import { diaDe, diasEntre, formatarData } from "@/lib/datas";
-import { contagem, corDoCheckpoint, type Checkpoint, type Cor } from "@/lib/linha-do-tempo";
+import { contagem, corDoCheckpoint, CORES, type Checkpoint } from "@/lib/linha-do-tempo";
 import { definirDataCheckpoint, definirEstadoCheckpoint } from "../actions";
-
-export const CORES: Record<Cor, { ponto: string; texto: string }> = {
-  em_dia: { ponto: "bg-ok", texto: "text-ok" },
-  perto: { ponto: "bg-atencao", texto: "text-atencao" },
-  atrasado: { ponto: "bg-power-claro", texto: "text-power-claro" },
-  neutro: { ponto: "bg-borda", texto: "text-apagado" },
-};
 
 const BOTAO =
   "rounded-lg border border-borda px-3 py-1.5 text-sm hover:border-power disabled:opacity-50";

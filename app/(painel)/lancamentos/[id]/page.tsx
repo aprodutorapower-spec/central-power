@@ -4,6 +4,7 @@ import { BotaoEnviar } from "@/app/botao-enviar";
 import { diaDe, diasEntre, formatarData, hoje } from "@/lib/datas";
 import {
   contagem,
+  CORES,
   montarLinhaDoTempo,
   tituloDoItem,
   type Checkpoint,
@@ -13,7 +14,7 @@ import { calcular, haQuanto, STATUS, type Foto } from "@/lib/metricas";
 import { formatarInteiro, formatarReal } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
 import { definirSituacao } from "../actions";
-import { CartaoCheckpoint, CORES } from "./cartao-checkpoint";
+import { CartaoCheckpoint } from "./cartao-checkpoint";
 import { FormAtualizacao } from "./form-atualizacao";
 
 function Numero({ rotulo, valor }: { rotulo: string; valor: string }) {

@@ -17,6 +17,14 @@ export type Checkpoint = {
 
 export type Cor = "em_dia" | "perto" | "atrasado" | "neutro";
 
+// Fica aqui (e não no componente de tela) porque servidor e navegador usam.
+export const CORES: Record<Cor, { ponto: string; texto: string }> = {
+  em_dia: { ponto: "bg-ok", texto: "text-ok" },
+  perto: { ponto: "bg-atencao", texto: "text-atencao" },
+  atrasado: { ponto: "bg-power-claro", texto: "text-power-claro" },
+  neutro: { ponto: "bg-borda", texto: "text-apagado" },
+};
+
 export type ItemLinha =
   | { tipo: "marco"; chave: string; sigla: string; titulo: string; data: string; dias: number; cor: Cor }
   | { tipo: "checkpoint"; chave: string; checkpoint: Checkpoint; data: string; dias: number; cor: Cor };
