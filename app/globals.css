@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Cores da Power: vermelho da logo sobre fundo escuro. */
+@theme inline {
+  --color-fundo: #111111;
+  --color-cartao: #1a1a1a;
+  --color-cartao-2: #212121;
+  --color-borda: #2c2c2c;
+  --color-texto: #f0f0f0;
+  --color-apagado: #8c8c8c;
+  --color-power: #9b0700;
+  --color-power-claro: #c8170e;
+  --color-ok: #22c55e;
+  --color-atencao: #eab308;
+  --font-sans: var(--font-syne), system-ui, -apple-system, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-fundo);
+  color: var(--color-texto);
+}
