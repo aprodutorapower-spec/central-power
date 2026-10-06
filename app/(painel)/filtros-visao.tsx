@@ -25,7 +25,9 @@ export function FiltrosVisao({ estrategistas }: Props) {
   const [carregando, iniciar] = useTransition();
 
   function definir(chave: string, valor: string) {
-    const novos = new URLSearchParams(parametros);
+    // Lê do endereço atual (e não do último desenho da tela) para dois
+    // filtros trocados em sequência não se atropelarem.
+    const novos = new URLSearchParams(window.location.search);
     if (valor) novos.set(chave, valor);
     else novos.delete(chave);
     iniciar(() => router.replace(`${caminho}?${novos}`, { scroll: false }));

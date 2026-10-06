@@ -196,13 +196,23 @@ export async function VisaoGeral({ filtros }: { filtros: Filtros }) {
 
       {porEstrategista ? (
         <div className="mt-6 grid gap-8">
-          {(estrategistas ?? [])
+          {[
+            ...(estrategistas ?? []),
+            // Lançamento de expert sem responsável não pode sumir do painel.
+            ...(linhas.some((l) => !nomes.has(l.estrategistaId ?? ""))
+              ? [{ id: null, nome: "Sem responsável" }]
+              : []),
+          ]
             .filter((e) => !filtros.estrategista || e.id === filtros.estrategista)
             .map((estrategista) => {
-              const dele = linhas.filter((l) => l.estrategistaId === estrategista.id);
+              const dele = linhas.filter((l) =>
+                estrategista.id
+                  ? l.estrategistaId === estrategista.id
+                  : !nomes.has(l.estrategistaId ?? ""),
+              );
               const experts = [...new Set(dele.map((l) => l.expert))].sort();
               return (
-                <section key={estrategista.id}>
+                <section key={estrategista.id ?? "sem"}>
                   <h2 className="text-lg font-semibold">
                     {estrategista.nome}
                     <span className="ml-2 text-sm font-normal text-apagado">
