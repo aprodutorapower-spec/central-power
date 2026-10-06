@@ -81,3 +81,35 @@ export async function definirSituacao(formData: FormData) {
     .eq("id", id);
   revalidatePath("/", "layout");
 }
+
+export async function definirEstadoCheckpoint(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const pedido = String(formData.get("estado") ?? "");
+  const estado =
+    pedido === "feito" || pedido === "nao_se_aplica" ? pedido : "pendente";
+
+  const { supabase, perfil } = await obterSessao();
+  if (!perfil) return;
+
+  const feito = estado === "feito";
+  await supabase
+    .from("checkpoints")
+    .update({
+      estado,
+      feito_em: feito ? new Date().toISOString() : null,
+      feito_por: feito ? perfil.id : null,
+      feito_por_nome: feito ? perfil.nome : null,
+    })
+    .eq("id", id);
+  revalidatePath("/", "layout");
+}
+
+export async function definirDataCheckpoint(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const nova = data(formData, "data");
+  if (!nova) return;
+
+  const { supabase } = await obterSessao();
+  await supabase.from("checkpoints").update({ data: nova }).eq("id", id);
+  revalidatePath("/", "layout");
+}

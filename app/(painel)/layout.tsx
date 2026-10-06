@@ -16,6 +16,7 @@ export default async function PainelLayout({ children }: LayoutProps<"/">) {
     ? [
         { href: "/", rotulo: "Experts" },
         { href: "/estrategistas", rotulo: "Estrategistas" },
+        { href: "/modelos", rotulo: "Modelos de checkpoint" },
       ]
     : [{ href: "/", rotulo: "Meus experts" }];
 

@@ -35,9 +35,24 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
+## Linha do tempo do lançamento
+
+Ao abrir um lançamento aparecem, em ordem de data, os marcos e os checkpoints (as entregas que precisam estar prontas em cada momento), com o **próximo** em destaque e a contagem de **atrasados**.
+
+- **Verde:** feito, ou vence em mais de 3 dias.
+- **Amarelo:** vence hoje ou nos próximos 3 dias.
+- **Vermelho:** venceu e continua pendente.
+- Marcos (M0, DV0, DE0, D0, DP0, DFC) não são "feitos": só contam os dias e ficam cinza depois que passam.
+
+Em cada checkpoint: **Marcar como feito** (guarda a data e quem marcou) e, em **Mais opções**, trocar a data ou marcar **Não se aplica**. Se o D0 do lançamento mudar, os checkpoints ainda pendentes andam junto.
+
 ## Como editar os modelos de checkpoint
 
-Entra na etapa 3 (em construção).
+1. Entre como admin e abra **Modelos de checkpoint** no menu.
+2. Há uma lista para LP e outra para LPS. Clique num checkpoint para editar o título, o prazo em dias a partir do D0 (negativo é antes, positivo é depois) e a descrição.
+3. Use **+ Novo checkpoint** para incluir e **Remover** para tirar.
+
+As mudanças valem só para os lançamentos criados depois; os que já existem não são alterados.
 
 ## Rotina de coordenação: 3 toques por semana
 

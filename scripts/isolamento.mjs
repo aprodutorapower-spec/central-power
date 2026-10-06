@@ -170,6 +170,71 @@ async function testar() {
     .eq("id", lancA?.[0]?.id);
   confere("A não move lançamento para expert de B", Boolean(moveu));
 
+  // Checkpoints (seguem o lançamento) e modelos (só admin)
+  const { data: cpsDeA } = await a.cliente
+    .from("checkpoints")
+    .select("id, lancamento_id");
+  confere(
+    "lançamento novo de A nasce com checkpoints, e A lê só os dele",
+    cpsDeA?.length > 0 && cpsDeA.every((c) => c.lancamento_id === lancA?.[0]?.id),
+  );
+
+  const { data: cpDeB } = await servico
+    .from("checkpoints")
+    .select("id")
+    .eq("lancamento_id", lancB.id)
+    .limit(1)
+    .single();
+
+  const { data: marcouB } = await a.cliente
+    .from("checkpoints")
+    .update({ estado: "feito" })
+    .eq("id", cpDeB.id)
+    .select("id");
+  confere("A não marca checkpoint de B", !marcouB?.length);
+
+  const { data: marcouProprio } = await a.cliente
+    .from("checkpoints")
+    .update({ estado: "feito" })
+    .eq("id", cpsDeA?.[0]?.id)
+    .select("id");
+  confere("A marca checkpoint próprio", marcouProprio?.length === 1);
+
+  const { error: moveuCp } = await a.cliente
+    .from("checkpoints")
+    .update({ lancamento_id: lancB.id })
+    .eq("id", cpsDeA?.[0]?.id);
+  confere("A não move checkpoint para lançamento de B", Boolean(moveuCp));
+
+  const { data: modelosDeA } = await a.cliente.from("checkpoint_modelos").select("id");
+  confere("A não lê os modelos (só admin)", !modelosDeA?.length);
+
+  const { data: alterouModelo } = await a.cliente
+    .from("checkpoint_modelos")
+    .update({ titulo: `${MARCA} invadido` })
+    .neq("titulo", "")
+    .select("id");
+  confere("A não altera os modelos", !alterouModelo?.length);
+
+  for (const tabela of ["checkpoints", "checkpoint_modelos"]) {
+    const { data } = await anonimo.from(tabela).select("id");
+    confere(`sem login não lê ${tabela}`, !data?.length);
+  }
+
+  const { data: modelosDoAdmin } = await admin.cliente
+    .from("checkpoint_modelos")
+    .select("id");
+  confere("admin lê os modelos", modelosDoAdmin?.length > 0);
+
+  const { data: cpsDoAdmin } = await admin.cliente
+    .from("checkpoints")
+    .select("lancamento_id")
+    .in("lancamento_id", [lancA?.[0]?.id, lancB.id]);
+  confere(
+    "admin lê os checkpoints de todos",
+    new Set((cpsDoAdmin ?? []).map((c) => c.lancamento_id)).size === 2,
+  );
+
   const { data: anonLanc } = await anonimo.from("lancamentos").select("id");
   confere("sem login não lê lancamentos", !anonLanc?.length);
 
