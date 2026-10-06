@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { criarClienteServidor, supabaseConfigurado } from "@/lib/supabase/server";
 import { AvisoConfiguracao } from "../aviso-configuracao";
@@ -32,10 +33,10 @@ export default async function PainelLayout({ children }: LayoutProps<"/">) {
             </span>
           </div>
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-apagado">
+            <Link href="/conta" className="text-apagado hover:text-texto">
               {perfil?.nome ?? user.email}
               {perfil?.papel === "admin" ? " · Admin" : ""}
-            </span>
+            </Link>
             <form action={sair}>
               <button
                 type="submit"
