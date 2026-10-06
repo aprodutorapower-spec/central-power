@@ -235,6 +235,49 @@ async function testar() {
     new Set((cpsDoAdmin ?? []).map((c) => c.lancamento_id)).size === 2,
   );
 
+  // Fotos de métricas (seguem o lançamento; histórico não é reescrito)
+  const { data: fotoB } = await servico
+    .from("fotos_metricas")
+    .insert({ lancamento_id: lancB.id, data: "2030-01-10", verba_investida: 100, ingressos_vendidos: 4, receita_ingressos: 200 })
+    .select("id")
+    .single();
+
+  const { data: fotoA } = await a.cliente
+    .from("fotos_metricas")
+    .insert({ lancamento_id: lancA?.[0]?.id, data: "2030-01-10", verba_investida: 50, ingressos_vendidos: 0, receita_ingressos: 0 })
+    .select("id");
+  confere("A registra foto no próprio lançamento", fotoA?.length === 1);
+
+  const { data: fotosDeA } = await a.cliente.from("fotos_metricas").select("id");
+  confere(
+    "A lê só as próprias fotos",
+    fotosDeA?.length === 1 && fotosDeA[0].id === fotoA?.[0]?.id,
+  );
+
+  const { error: fotoIndevida } = await a.cliente
+    .from("fotos_metricas")
+    .insert({ lancamento_id: lancB.id, data: "2030-01-10", verba_investida: 1 });
+  confere("A não registra foto em lançamento de B", Boolean(fotoIndevida));
+
+  const { data: reescreveu } = await a.cliente
+    .from("fotos_metricas")
+    .update({ verba_investida: 1 })
+    .eq("id", fotoA?.[0]?.id)
+    .select("id");
+  confere("A não reescreve o histórico (só admin)", !reescreveu?.length);
+
+  const { data: anonFotos } = await anonimo.from("fotos_metricas").select("id");
+  confere("sem login não lê fotos_metricas", !anonFotos?.length);
+
+  const { data: fotosDoAdmin } = await admin.cliente
+    .from("fotos_metricas")
+    .select("id")
+    .in("id", [fotoA?.[0]?.id, fotoB.id]);
+  confere("admin lê as fotos de todos", fotosDoAdmin?.length === 2);
+
+  const { data: anonPerfil, error: anonPerfilErro } = await anonimo.rpc("meu_perfil");
+  confere("sem login não consulta perfil", Boolean(anonPerfilErro) || !anonPerfil?.length);
+
   const { data: anonLanc } = await anonimo.from("lancamentos").select("id");
   confere("sem login não lê lancamentos", !anonLanc?.length);
 

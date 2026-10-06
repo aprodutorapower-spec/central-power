@@ -26,9 +26,12 @@ export async function proxy(request: NextRequest) {
     },
   });
 
+  // Só lê (e renova, se venceu) a sessão do cookie, sem ida ao servidor de
+  // login. Serve para redirecionar; quem protege os dados é o banco.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = Boolean(session);
 
   const caminho = request.nextUrl.pathname;
   const naTelaDeLogin = caminho.startsWith("/login");

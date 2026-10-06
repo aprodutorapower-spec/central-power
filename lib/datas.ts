@@ -31,3 +31,10 @@ export function formatarData(data: string | null) {
   const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}/${ano}`;
 }
+
+// Converte um instante (timestamp) no dia de calendário de São Paulo.
+export function diaDe(instante: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date(instante));
+}

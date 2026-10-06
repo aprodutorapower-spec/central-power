@@ -4,12 +4,13 @@ import { obterSessao } from "@/lib/sessao";
 import { supabaseConfigurado } from "@/lib/supabase/server";
 import { AvisoConfiguracao } from "../aviso-configuracao";
 import { sair } from "../login/actions";
+import { BotaoEnviar } from "@/app/botao-enviar";
 
 export default async function PainelLayout({ children }: LayoutProps<"/">) {
   if (!supabaseConfigurado()) return <AvisoConfiguracao />;
 
-  const { user, perfil } = await obterSessao();
-  if (!user) redirect("/login");
+  const { logado, perfil } = await obterSessao();
+  if (!logado) redirect("/login");
 
   const admin = perfil?.papel === "admin";
   const menu = admin
@@ -33,16 +34,13 @@ export default async function PainelLayout({ children }: LayoutProps<"/">) {
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <Link href="/conta" className="text-apagado hover:text-texto">
-              {perfil?.nome ?? user.email}
+              {perfil?.nome ?? "Minha conta"}
               {admin ? " · Admin" : ""}
             </Link>
             <form action={sair}>
-              <button
-                type="submit"
-                className="rounded-lg border border-borda px-3 py-1.5 hover:border-power-claro"
-              >
+              <BotaoEnviar className="rounded-lg border border-borda px-3 py-1.5 hover:border-power">
                 Sair
-              </button>
+              </BotaoEnviar>
             </form>
           </div>
           {perfil ? (

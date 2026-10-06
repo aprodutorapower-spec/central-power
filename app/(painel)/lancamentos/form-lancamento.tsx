@@ -7,7 +7,7 @@ import { calcularMarcos, TIPOS, type Lancamento, type Tipo } from "@/lib/marcos"
 import { salvarLancamento, type ResultadoLancamento } from "./actions";
 
 const CAMPO =
-  "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power-claro";
+  "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power";
 const INICIAL: ResultadoLancamento = {};
 
 type Props = { expertId: string; lancamento?: Lancamento; voltar: string };
@@ -57,7 +57,7 @@ export function FormLancamento({ expertId, lancamento, voltar }: Props) {
             <label
               key={opcao}
               className={`cursor-pointer rounded-lg border px-3 py-2 ${
-                tipo === opcao ? "border-power-claro bg-cartao-2" : "border-borda"
+                tipo === opcao ? "border-power bg-cartao-2" : "border-borda"
               }`}
             >
               <input
@@ -95,7 +95,7 @@ export function FormLancamento({ expertId, lancamento, voltar }: Props) {
             className={CAMPO}
           />
           {tipo === "LPS" && d0 && !ehSegunda(d0) ? (
-            <p className="mt-1 text-xs text-atencao">
+            <p className="mt-1 text-xs text-apagado">
               No LPS o D0 costuma ser uma segunda-feira. Pode salvar assim mesmo.
             </p>
           ) : null}
@@ -200,7 +200,7 @@ export function FormLancamento({ expertId, lancamento, voltar }: Props) {
         <button
           type="submit"
           disabled={salvando}
-          className="rounded-lg bg-power px-5 py-2 font-semibold hover:bg-power-claro disabled:opacity-60"
+          className="rounded-lg bg-power px-5 py-2 font-semibold hover:brightness-125 disabled:opacity-60"
         >
           {salvando ? "Salvando…" : "Salvar lançamento"}
         </button>

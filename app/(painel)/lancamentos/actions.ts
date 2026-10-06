@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { hoje } from "@/lib/datas";
 import { calcularMarcos, type Tipo } from "@/lib/marcos";
+import { lerDinheiro, lerInteiro } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
 
 export type ResultadoLancamento = { erro?: string };
@@ -112,4 +114,62 @@ export async function definirDataCheckpoint(formData: FormData) {
   const { supabase } = await obterSessao();
   await supabase.from("checkpoints").update({ data: nova }).eq("id", id);
   revalidatePath("/", "layout");
+}
+
+export type ResultadoAtualizacao = { erro?: string; ok?: boolean };
+
+// Atualização rápida: grava o status no lançamento e uma nova foto de métricas.
+export async function salvarAtualizacao(
+  _anterior: ResultadoAtualizacao,
+  formData: FormData,
+): Promise<ResultadoAtualizacao> {
+  const { supabase, perfil } = await obterSessao();
+  if (!perfil) return { erro: "Sua sessão expirou. Entre de novo." };
+
+  const lancamento_id = String(formData.get("lancamento_id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (status !== "verde" && status !== "amarelo" && status !== "vermelho") {
+    return { erro: "Escolha o status." };
+  }
+
+  const texto = (campo: string) => String(formData.get(campo) ?? "").trim();
+  const dinheiro = (campo: string) => lerDinheiro(texto(campo));
+  const inteiro = (campo: string) => lerInteiro(texto(campo));
+  const agora = new Date().toISOString();
+
+  const { data: salvo } = await supabase
+    .from("lancamentos")
+    .update({
+      status,
+      bloqueio: texto("bloqueio"),
+      proximo_passo: texto("proximo_passo"),
+      status_atualizado_em: agora,
+      status_atualizado_por_nome: perfil.nome,
+    })
+    .eq("id", lancamento_id)
+    .select("id");
+  if (!salvo?.length) return { erro: "Não foi possível salvar." };
+
+  const { error } = await supabase.from("fotos_metricas").insert({
+    lancamento_id,
+    data: hoje(),
+    preenchido_por: perfil.id,
+    preenchido_por_nome: perfil.nome,
+    fonte: "manual",
+    verba_investida: dinheiro("verba_investida"),
+    ingressos_vendidos: inteiro("ingressos_vendidos"),
+    receita_ingressos: dinheiro("receita_ingressos"),
+    comp_aula1: inteiro("comp_aula1"),
+    comp_aula2: inteiro("comp_aula2"),
+    comp_aula3: inteiro("comp_aula3"),
+    comp_aula4: inteiro("comp_aula4"),
+    comp_aula5: inteiro("comp_aula5"),
+    comp_pitch: inteiro("comp_pitch"),
+    vendas_produto: inteiro("vendas_produto"),
+    faturamento_produto: dinheiro("faturamento_produto"),
+  });
+  if (error) return { erro: "O status foi salvo, mas as métricas não. Tente de novo." };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
 }

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { obterSessao } from "@/lib/sessao";
-import { criarExpert, definirExpertAtivo, trocarResponsavel } from "./actions";
+import { criarExpert, definirExpertAtivo } from "./actions";
+import { SeletorResponsavel } from "./seletor-responsavel";
+import { BotaoEnviar } from "@/app/botao-enviar";
 
 type Expert = {
   id: string;
@@ -11,7 +13,7 @@ type Expert = {
 };
 
 const CAMPO =
-  "rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power-claro";
+  "rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power";
 
 export default async function PainelPage() {
   const { supabase, perfil } = await obterSessao();
@@ -62,12 +64,9 @@ export default async function PainelPage() {
             aria-label="Nome do novo expert"
             className={`w-full ${CAMPO}`}
           />
-          <button
-            type="submit"
-            className="shrink-0 rounded-lg bg-power px-4 py-2 font-semibold hover:bg-power-claro"
-          >
+          <BotaoEnviar className="shrink-0 rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125">
             Adicionar
-          </button>
+          </BotaoEnviar>
         </form>
         {meus.length ? (
           <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -75,7 +74,7 @@ export default async function PainelPage() {
               <li key={expert.id}>
                 <Link
                   href={`/experts/${expert.id}`}
-                  className="block rounded-xl border border-borda bg-cartao px-5 py-4 hover:border-power-claro"
+                  className="block rounded-xl border border-borda bg-cartao px-5 py-4 hover:border-power"
                 >
                   <span className="font-semibold">{expert.nome}</span>
                   <span className="mt-1 block text-sm text-apagado">
@@ -138,12 +137,9 @@ export default async function PainelPage() {
             </option>
           ))}
         </select>
-        <button
-          type="submit"
-          className="shrink-0 rounded-lg bg-power px-4 py-2 font-semibold hover:bg-power-claro"
-        >
+        <BotaoEnviar className="shrink-0 rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125">
           Adicionar
-        </button>
+        </BotaoEnviar>
       </form>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -177,28 +173,12 @@ export default async function PainelPage() {
                       </span>
                     </Link>
                     <div className="flex items-center gap-3">
-                      <form action={trocarResponsavel} className="flex gap-1">
-                        <input type="hidden" name="id" value={expert.id} />
-                        <select
-                          name="estrategista_id"
-                          defaultValue={expert.estrategista_id ?? ""}
-                          aria-label={`Responsável por ${expert.nome}`}
-                          className="rounded-lg border border-borda bg-cartao-2 px-2 py-1 text-xs outline-none focus:border-power-claro"
-                        >
-                          <option value="">Sem responsável</option>
-                          {estrategistas.map((estrategista) => (
-                            <option key={estrategista.id} value={estrategista.id}>
-                              {estrategista.nome}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="submit"
-                          className="rounded-lg border border-borda px-2 py-1 text-xs hover:border-power-claro"
-                        >
-                          Trocar
-                        </button>
-                      </form>
+                      <SeletorResponsavel
+                        expertId={expert.id}
+                        expertNome={expert.nome}
+                        atual={expert.estrategista_id}
+                        estrategistas={estrategistas}
+                      />
                       <form action={definirExpertAtivo}>
                         <input type="hidden" name="id" value={expert.id} />
                         <input
@@ -206,12 +186,9 @@ export default async function PainelPage() {
                           name="ativo"
                           value={String(!expert.ativo)}
                         />
-                        <button
-                          type="submit"
-                          className="text-xs text-apagado hover:text-texto"
-                        >
+                        <BotaoEnviar className="text-xs text-apagado hover:text-texto">
                           {expert.ativo ? "Desativar" : "Reativar"}
-                        </button>
+                        </BotaoEnviar>
                       </form>
                     </div>
                   </li>

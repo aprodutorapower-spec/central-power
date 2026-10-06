@@ -1,143 +1,27 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatarData, hoje } from "@/lib/datas";
+import { BotaoEnviar } from "@/app/botao-enviar";
+import { diaDe, diasEntre, formatarData, hoje } from "@/lib/datas";
 import {
   contagem,
   montarLinhaDoTempo,
   tituloDoItem,
   type Checkpoint,
-  type Cor,
-  type ItemLinha,
 } from "@/lib/linha-do-tempo";
 import { faseDoLancamento, TIPOS, type Lancamento } from "@/lib/marcos";
+import { calcular, haQuanto, STATUS, type Foto } from "@/lib/metricas";
+import { formatarInteiro, formatarReal } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
-import {
-  definirDataCheckpoint,
-  definirEstadoCheckpoint,
-  definirSituacao,
-} from "../actions";
+import { definirSituacao } from "../actions";
+import { CartaoCheckpoint, CORES } from "./cartao-checkpoint";
+import { FormAtualizacao } from "./form-atualizacao";
 
-const CORES: Record<Cor, { ponto: string; texto: string; rotulo: string }> = {
-  em_dia: { ponto: "bg-ok", texto: "text-ok", rotulo: "Em dia" },
-  perto: { ponto: "bg-atencao", texto: "text-atencao", rotulo: "Perto" },
-  atrasado: { ponto: "bg-power-claro", texto: "text-power-claro", rotulo: "Atrasado" },
-  neutro: { ponto: "bg-borda", texto: "text-apagado", rotulo: "" },
-};
-
-const BOTAO =
-  "rounded-lg border border-borda px-3 py-1.5 text-sm hover:border-power-claro";
-
-function BotaoEstado({
-  id,
-  estado,
-  children,
-  destaque,
-}: {
-  id: string;
-  estado: Checkpoint["estado"];
-  children: React.ReactNode;
-  destaque?: boolean;
-}) {
+function Numero({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <form action={definirEstadoCheckpoint}>
-      <input type="hidden" name="id" value={id} />
-      <input type="hidden" name="estado" value={estado} />
-      <button
-        type="submit"
-        className={
-          destaque
-            ? "rounded-lg bg-power px-3 py-1.5 text-sm font-semibold hover:bg-power-claro"
-            : BOTAO
-        }
-      >
-        {children}
-      </button>
-    </form>
-  );
-}
-
-function LinhaCheckpoint({ item }: { item: ItemLinha & { tipo: "checkpoint" } }) {
-  const { checkpoint } = item;
-  const cor = CORES[item.cor];
-  const pendente = checkpoint.estado === "pendente";
-
-  return (
-    <>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <span
-          className={`font-semibold ${
-            checkpoint.estado === "nao_se_aplica" ? "text-apagado line-through" : ""
-          }`}
-        >
-          {checkpoint.titulo}
-        </span>
-        <span className="text-sm">
-          {formatarData(checkpoint.data)}
-          {pendente ? (
-            <span className={`ml-2 ${cor.texto}`}>{contagem(item.dias)}</span>
-          ) : null}
-        </span>
-      </div>
-      {checkpoint.descricao ? (
-        <p className="mt-1 text-sm text-apagado">{checkpoint.descricao}</p>
-      ) : null}
-      {checkpoint.estado === "feito" ? (
-        <p className="mt-1 text-sm text-ok">
-          Feito
-          {checkpoint.feito_em
-            ? ` em ${formatarData(
-                new Intl.DateTimeFormat("en-CA", {
-                  timeZone: "America/Sao_Paulo",
-                }).format(new Date(checkpoint.feito_em)),
-              )}`
-            : ""}
-          {checkpoint.feito_por_nome ? ` por ${checkpoint.feito_por_nome}` : ""}
-        </p>
-      ) : null}
-      {checkpoint.estado === "nao_se_aplica" ? (
-        <p className="mt-1 text-sm text-apagado">Não se aplica</p>
-      ) : null}
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {pendente ? (
-          <BotaoEstado id={checkpoint.id} estado="feito" destaque>
-            Marcar como feito
-          </BotaoEstado>
-        ) : (
-          <BotaoEstado id={checkpoint.id} estado="pendente">
-            Voltar para pendente
-          </BotaoEstado>
-        )}
-        <details className="group">
-          <summary className={`cursor-pointer list-none ${BOTAO}`}>
-            Mais opções
-          </summary>
-          <div className="mt-2 flex flex-wrap items-end gap-2">
-            <form action={definirDataCheckpoint} className="flex items-end gap-2">
-              <input type="hidden" name="id" value={checkpoint.id} />
-              <label className="text-xs text-apagado">
-                Nova data
-                <input
-                  type="date"
-                  name="data"
-                  required
-                  defaultValue={checkpoint.data}
-                  className="mt-1 block rounded-lg border border-borda bg-cartao-2 px-2 py-1.5 text-sm text-texto outline-none focus:border-power-claro"
-                />
-              </label>
-              <button type="submit" className={BOTAO}>
-                Salvar data
-              </button>
-            </form>
-            {checkpoint.estado !== "nao_se_aplica" ? (
-              <BotaoEstado id={checkpoint.id} estado="nao_se_aplica">
-                Não se aplica
-              </BotaoEstado>
-            ) : null}
-          </div>
-        </details>
-      </div>
-    </>
+    <div>
+      <p className="text-xs text-apagado">{rotulo}</p>
+      <p className="mt-0.5 font-semibold">{valor}</p>
+    </div>
   );
 }
 
@@ -145,19 +29,26 @@ export default async function LancamentoPage({
   params,
 }: PageProps<"/lancamentos/[id]">) {
   const { id } = await params;
-  const { supabase } = await obterSessao();
+  const { supabase, perfil } = await obterSessao();
 
-  const [{ data }, { data: lista }] = await Promise.all([
+  const [{ data }, { data: lista }, { data: historico }] = await Promise.all([
     supabase
       .from("lancamentos")
       .select("*, experts(nome)")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("checkpoints").select("*").eq("lancamento_id", id),
+    supabase
+      .from("fotos_metricas")
+      .select("*")
+      .eq("lancamento_id", id)
+      .order("criado_em", { ascending: false }),
   ]);
   if (!data) notFound();
 
   const lancamento = data as Lancamento & { experts: { nome: string } };
+  const fotos = (historico ?? []) as Foto[];
+  const ultima = fotos[0] ?? null;
   const dia = hoje();
   const fase = faseDoLancamento(lancamento, dia);
   const encerrado = lancamento.situacao === "encerrado";
@@ -166,6 +57,12 @@ export default async function LancamentoPage({
     (lista ?? []) as Checkpoint[],
     dia,
   );
+
+  const status = lancamento.status ? STATUS[lancamento.status] : null;
+  const diasSemAtualizar = lancamento.status_atualizado_em
+    ? diasEntre(diaDe(lancamento.status_atualizado_em), dia)
+    : null;
+  const numeros = ultima ? calcular(ultima) : null;
 
   return (
     <>
@@ -181,7 +78,7 @@ export default async function LancamentoPage({
           <p className="mt-1 text-sm text-apagado">
             {TIPOS[lancamento.tipo]}
             {lancamento.meta_ingressos != null
-              ? ` · meta de ${lancamento.meta_ingressos} ingressos`
+              ? ` · meta de ${formatarInteiro(lancamento.meta_ingressos)} ingressos`
               : ""}
           </p>
         </div>
@@ -189,6 +86,77 @@ export default async function LancamentoPage({
           {fase.rotulo}
         </span>
       </div>
+
+      <section className="mt-6 rounded-xl border border-borda bg-cartao p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 font-semibold">
+            {status ? (
+              <>
+                <span className={`h-3 w-3 rounded-full ${status.ponto}`} />
+                {status.rotulo}
+              </>
+            ) : (
+              "Sem atualização ainda"
+            )}
+          </h2>
+          {diasSemAtualizar != null ? (
+            <span
+              className={`text-sm ${
+                diasSemAtualizar > 7 ? "text-power-claro" : "text-apagado"
+              }`}
+            >
+              Atualizado {haQuanto(diasSemAtualizar)}
+              {lancamento.status_atualizado_por_nome
+                ? ` por ${lancamento.status_atualizado_por_nome}`
+                : ""}
+            </span>
+          ) : null}
+        </div>
+
+        {lancamento.bloqueio || lancamento.proximo_passo ? (
+          <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            {lancamento.bloqueio ? (
+              <p>
+                <span className="block text-xs text-apagado">Bloqueio atual</span>
+                {lancamento.bloqueio}
+              </p>
+            ) : null}
+            {lancamento.proximo_passo ? (
+              <p>
+                <span className="block text-xs text-apagado">Próximo passo</span>
+                {lancamento.proximo_passo}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {ultima && numeros ? (
+          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-5">
+            <Numero rotulo="Verba investida" valor={formatarReal(ultima.verba_investida)} />
+            <Numero
+              rotulo="Ingressos vendidos"
+              valor={
+                formatarInteiro(ultima.ingressos_vendidos) +
+                (lancamento.meta_ingressos != null
+                  ? ` de ${formatarInteiro(lancamento.meta_ingressos)}`
+                  : "")
+              }
+            />
+            <Numero rotulo="Receita de ingressos" valor={formatarReal(ultima.receita_ingressos)} />
+            <Numero rotulo="CPA" valor={formatarReal(numeros.cpa)} />
+            <Numero rotulo="Ticket médio" valor={formatarReal(numeros.ticketMedio)} />
+          </div>
+        ) : null}
+
+        <details className="mt-4 border-t border-borda pt-4" open={!status}>
+          <summary className="cursor-pointer list-none">
+            <span className="inline-block rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125">
+              Atualizar lançamento
+            </span>
+          </summary>
+          <FormAtualizacao lancamento={lancamento} ultima={ultima} />
+        </details>
+      </section>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-borda bg-cartao p-5">
@@ -219,63 +187,94 @@ export default async function LancamentoPage({
       <section className="mt-6">
         <h2 className="font-semibold">Linha do tempo</h2>
         <ol className="mt-3 border-l border-borda">
-          {itens.map((item) => {
-            const cor = CORES[item.cor];
-            const ehProximo = item === proximo;
-            return (
+          {itens.map((item) =>
+            item.tipo === "checkpoint" ? (
+              <CartaoCheckpoint
+                key={item.chave}
+                checkpoint={item.checkpoint}
+                hoje={dia}
+                proximo={item === proximo}
+                quem={perfil?.nome ?? ""}
+              />
+            ) : (
               <li key={item.chave} className="relative pb-4 pl-6">
-                <span
-                  className={`absolute -left-[5px] top-5 h-2.5 w-2.5 rounded-full ${cor.ponto}`}
-                />
-                {item.tipo === "marco" ? (
-                  <div
-                    className={`flex flex-wrap items-baseline justify-between gap-x-3 rounded-lg px-4 py-2 text-sm ${
-                      ehProximo ? "border border-power-claro" : ""
-                    } ${item.dias < 0 ? "text-apagado" : ""}`}
-                  >
-                    <span>
-                      <span className="font-semibold">{item.sigla}</span> ·{" "}
-                      {item.titulo}
-                    </span>
-                    <span>
-                      {formatarData(item.data)}
-                      <span className="ml-2 text-apagado">{contagem(item.dias)}</span>
-                    </span>
-                  </div>
-                ) : (
-                  <div
-                    className={`rounded-xl border bg-cartao p-4 ${
-                      ehProximo ? "border-power-claro" : "border-borda"
-                    }`}
-                  >
-                    {ehProximo ? (
-                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-power-claro">
-                        Próximo
-                      </p>
-                    ) : null}
-                    <LinhaCheckpoint item={item} />
-                  </div>
-                )}
+                <span className="absolute -left-[5px] top-3.5 h-2.5 w-2.5 rounded-full bg-borda" />
+                <div
+                  className={`flex flex-wrap items-baseline justify-between gap-x-3 rounded-lg px-4 py-2 text-sm ${
+                    item === proximo ? "border border-power" : ""
+                  } ${item.dias < 0 ? "text-apagado" : ""}`}
+                >
+                  <span>
+                    <span className="font-semibold">{item.sigla}</span> · {item.titulo}
+                  </span>
+                  <span>
+                    {formatarData(item.data)}
+                    <span className="ml-2 text-apagado">{contagem(item.dias)}</span>
+                  </span>
+                </div>
               </li>
-            );
-          })}
+            ),
+          )}
         </ol>
       </section>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4">
-        <Link href={`/lancamentos/${lancamento.id}/editar`} className={BOTAO}>
+      <section className="mt-6">
+        <h2 className="font-semibold">Histórico de métricas</h2>
+        {fotos.length ? (
+          <div className="mt-3 overflow-x-auto rounded-xl border border-borda bg-cartao">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="text-xs text-apagado">
+                <tr>
+                  {["Data", "Quem", "Verba", "Ingressos", "Receita", "CPA", "Ticket médio"].map(
+                    (coluna) => (
+                      <th key={coluna} className="px-4 py-3 font-normal">
+                        {coluna}
+                      </th>
+                    ),
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-borda">
+                {fotos.map((foto) => {
+                  const calculo = calcular(foto);
+                  return (
+                    <tr key={foto.id}>
+                      <td className="px-4 py-3">{formatarData(foto.data)}</td>
+                      <td className="px-4 py-3">
+                        {foto.preenchido_por_nome ?? "—"}
+                        {foto.fonte !== "manual" ? ` (${foto.fonte})` : ""}
+                      </td>
+                      <td className="px-4 py-3">{formatarReal(foto.verba_investida)}</td>
+                      <td className="px-4 py-3">{formatarInteiro(foto.ingressos_vendidos)}</td>
+                      <td className="px-4 py-3">{formatarReal(foto.receita_ingressos)}</td>
+                      <td className="px-4 py-3">{formatarReal(calculo.cpa)}</td>
+                      <td className="px-4 py-3">{formatarReal(calculo.ticketMedio)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="mt-3 rounded-xl border border-borda bg-cartao p-5 text-sm text-apagado">
+            Nenhuma foto de métricas ainda. Ela nasce a cada atualização do lançamento.
+          </p>
+        )}
+      </section>
+
+      <div className="mt-6 flex flex-wrap items-center gap-4">
+        <Link
+          href={`/lancamentos/${lancamento.id}/editar`}
+          className="rounded-lg border border-borda px-4 py-2 hover:border-power"
+        >
           Editar lançamento
         </Link>
         <form action={definirSituacao}>
           <input type="hidden" name="id" value={lancamento.id} />
-          <input
-            type="hidden"
-            name="situacao"
-            value={encerrado ? "ativo" : "encerrado"}
-          />
-          <button type="submit" className="text-sm text-apagado hover:text-texto">
+          <input type="hidden" name="situacao" value={encerrado ? "ativo" : "encerrado"} />
+          <BotaoEnviar className="text-sm text-apagado hover:text-texto">
             {encerrado ? "Reabrir lançamento" : "Encerrar lançamento"}
-          </button>
+          </BotaoEnviar>
         </form>
       </div>
     </>

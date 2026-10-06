@@ -15,8 +15,8 @@ const INICIAL: ResultadoAcesso = {};
 
 const SITUACOES = {
   pendente: { rotulo: "Pendente", cor: "border-borda text-apagado" },
-  convidado: { rotulo: "Convidado", cor: "border-atencao text-atencao" },
-  ativo: { rotulo: "Ativo", cor: "border-ok text-ok" },
+  convidado: { rotulo: "Convidado", cor: "border-apagado text-texto" },
+  ativo: { rotulo: "Ativo", cor: "border-power bg-power text-texto" },
 };
 
 export function LinhaEstrategista({ id, nome, email, situacao, experts }: Props) {
@@ -54,12 +54,12 @@ export function LinhaEstrategista({ id, nome, email, situacao, experts }: Props)
           defaultValue={email ?? ""}
           placeholder="E-mail do estrategista"
           aria-label={`E-mail de ${nome}`}
-          className="w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power-claro"
+          className="w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power"
         />
         <button
           type="submit"
           disabled={enviando}
-          className="shrink-0 rounded-lg bg-power px-4 py-2 font-semibold hover:bg-power-claro disabled:opacity-60"
+          className="shrink-0 rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125 disabled:opacity-60"
         >
           {enviando
             ? "Gerando…"
@@ -85,7 +85,7 @@ export function LinhaEstrategista({ id, nome, email, situacao, experts }: Props)
           <button
             type="button"
             onClick={copiar}
-            className="mt-3 rounded-lg border border-borda px-3 py-1.5 text-sm hover:border-power-claro"
+            className="mt-3 rounded-lg border border-borda px-3 py-1.5 text-sm hover:border-power"
           >
             {copiado ? "Copiado" : "Copiar link"}
           </button>

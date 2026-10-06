@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Cores da Power: vermelho da logo sobre fundo escuro. */
+/* Cores da Power, tiradas da logo: branco e vermelho #9B0700 sobre preto. */
 @theme inline {
   --color-fundo: #111111;
   --color-cartao: #1a1a1a;
@@ -8,10 +8,13 @@
   --color-borda: #2c2c2c;
   --color-texto: #f0f0f0;
   --color-apagado: #8c8c8c;
+  /* Vermelho da logo: botões, bordas de destaque e marcações. */
   --color-power: #9b0700;
-  --color-power-claro: #c8170e;
+  /* Vermelho mais claro, só para texto pequeno e avisos ficarem legíveis no escuro. */
+  --color-power-claro: #e5383b;
+  /* Semáforo: usados apenas onde a cor carrega significado. */
   --color-ok: #22c55e;
-  --color-atencao: #eab308;
+  --color-atencao: #fadb14;
   --font-sans: var(--font-syne), system-ui, -apple-system, sans-serif;
 }
 

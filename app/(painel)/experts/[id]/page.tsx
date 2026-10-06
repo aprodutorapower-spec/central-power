@@ -32,7 +32,7 @@ export default async function ExpertPage({ params }: PageProps<"/experts/[id]">)
         <h1 className="text-2xl font-semibold">{expert.nome}</h1>
         <Link
           href={`/experts/${expert.id}/novo`}
-          className="rounded-lg bg-power px-4 py-2 font-semibold hover:bg-power-claro"
+          className="rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125"
         >
           Novo lançamento
         </Link>
@@ -46,7 +46,7 @@ export default async function ExpertPage({ params }: PageProps<"/experts/[id]">)
               <li key={lancamento.id}>
                 <Link
                   href={`/lancamentos/${lancamento.id}`}
-                  className="block rounded-xl border border-borda bg-cartao px-5 py-4 hover:border-power-claro"
+                  className="block rounded-xl border border-borda bg-cartao px-5 py-4 hover:border-power"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-semibold">{lancamento.nome}</span>

@@ -1,4 +1,5 @@
 import { confirmarAcesso } from "./actions";
+import { BotaoEnviar } from "@/app/botao-enviar";
 
 // A entrada só acontece no clique do botão: aplicativos de mensagem abrem o
 // link sozinhos para montar a prévia, e isso gastaria o link de uso único.
@@ -24,12 +25,9 @@ export default async function ConfirmarPage({
           name="token_hash"
           value={typeof token_hash === "string" ? token_hash : ""}
         />
-        <button
-          type="submit"
-          className="mt-6 w-full rounded-lg bg-power px-4 py-2 font-semibold hover:bg-power-claro"
-        >
+        <BotaoEnviar className="mt-6 w-full rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125">
           Entrar
-        </button>
+        </BotaoEnviar>
       </form>
     </main>
   );

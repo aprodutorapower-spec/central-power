@@ -1,6 +1,7 @@
 import { supabaseConfigurado } from "@/lib/supabase/server";
 import { AvisoConfiguracao } from "../aviso-configuracao";
 import { entrar } from "./actions";
+import { BotaoEnviar } from "@/app/botao-enviar";
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (!supabaseConfigurado()) return <AvisoConfiguracao />;
@@ -27,7 +28,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           type="email"
           required
           autoComplete="email"
-          className="mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power-claro"
+          className="mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power"
         />
 
         <label className="mt-4 block text-sm text-apagado" htmlFor="senha">
@@ -39,7 +40,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           type="password"
           required
           autoComplete="current-password"
-          className="mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power-claro"
+          className="mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power"
         />
 
         {erro ? (
@@ -50,12 +51,9 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           </p>
         ) : null}
 
-        <button
-          type="submit"
-          className="mt-6 w-full rounded-lg bg-power px-4 py-2 font-semibold hover:bg-power-claro"
-        >
+        <BotaoEnviar className="mt-6 w-full rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125">
           Entrar
-        </button>
+        </BotaoEnviar>
       </form>
     </main>
   );

@@ -32,6 +32,11 @@ export type Lancamento = {
   dfc: string;
   meta_ingressos: number | null;
   situacao: "ativo" | "encerrado";
+  status: "verde" | "amarelo" | "vermelho" | null;
+  bloqueio: string;
+  proximo_passo: string;
+  status_atualizado_em: string | null;
+  status_atualizado_por_nome: string | null;
 };
 
 // Datas sugeridas a partir do D0. LP: carrinho fecha em D0+4.
@@ -50,10 +55,10 @@ export function faseDoLancamento(lancamento: Lancamento, hoje: string) {
     return { rotulo: "Encerrado", cor: "border-borda text-apagado" };
   }
   if (diasEntre(hoje, lancamento.d0) > 0) {
-    return { rotulo: "Previsto", cor: "border-atencao text-atencao" };
+    return { rotulo: "Previsto", cor: "border-apagado text-texto" };
   }
   if (diasEntre(hoje, lancamento.dfc) >= 0) {
-    return { rotulo: "Em andamento", cor: "border-ok text-ok" };
+    return { rotulo: "Em andamento", cor: "border-power bg-power text-texto" };
   }
   return { rotulo: "Carrinho fechado", cor: "border-borda text-texto" };
 }

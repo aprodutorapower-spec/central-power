@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { TIPOS, type Tipo } from "@/lib/marcos";
 import { obterSessao } from "@/lib/sessao";
 import { removerModelo, salvarModelo } from "./actions";
+import { BotaoEnviar } from "@/app/botao-enviar";
 
 type Modelo = {
   id: string;
@@ -12,7 +13,7 @@ type Modelo = {
 };
 
 const CAMPO =
-  "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 text-sm text-texto outline-none focus:border-power-claro";
+  "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 text-sm text-texto outline-none focus:border-power";
 
 function prazo(dias: number) {
   if (dias === 0) return "D0";
@@ -53,12 +54,9 @@ function FormModelo({ modelo, tipo }: { modelo?: Modelo; tipo: Tipo }) {
         />
       </label>
       <div className="sm:col-span-2">
-        <button
-          type="submit"
-          className="rounded-lg border border-borda px-3 py-1.5 text-sm hover:border-power-claro"
-        >
+        <BotaoEnviar className="rounded-lg border border-borda px-3 py-1.5 text-sm hover:border-power">
           {modelo ? "Salvar" : "Adicionar checkpoint"}
-        </button>
+        </BotaoEnviar>
       </div>
     </form>
   );
@@ -106,12 +104,9 @@ export default async function ModelosPage() {
                         <FormModelo modelo={modelo} tipo={tipo} />
                         <form action={removerModelo} className="mt-3">
                           <input type="hidden" name="id" value={modelo.id} />
-                          <button
-                            type="submit"
-                            className="text-xs text-apagado hover:text-power-claro"
-                          >
+                          <BotaoEnviar className="text-xs text-apagado hover:text-power-claro">
                             Remover este checkpoint do modelo
-                          </button>
+                          </BotaoEnviar>
                         </form>
                       </div>
                     </details>
