@@ -25,7 +25,7 @@ const CAMPO =
 const INICIAL: ResultadoLancamento = {};
 
 const EXPLICACAO_TICKET =
-  "Preço do ingresso. Se houver mais de um preço (lotes, ingresso VIP, cupons), coloque o ticket médio: o valor médio pago por ingresso. Ele define o teto de mercado do CPA: o CPA deve ficar em, no máximo, o dobro do ticket.";
+  "Quanto entra, em média, por ingresso vendido, contando o ingresso e os order bumps comprados junto. Se houver mais de um preço (lotes, ingresso VIP, cupons), coloque o ticket médio. Ele define o teto de mercado do CPA: o CPA deve ficar em, no máximo, o dobro do ticket.";
 const EXPLICACAO_VERBA =
   "Quanto será investido em anúncios no lançamento inteiro, do começo ao fim. É diferente da verba investida até agora, que o estrategista informa em cada atualização: o sistema mostra uma contra a outra.";
 const EXPLICACAO_META_CPA =
@@ -232,7 +232,7 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
             </div>
             <div>
               <div className="relative flex items-center gap-1.5 text-sm text-apagado">
-                <label htmlFor="ticket_ingresso">Ticket do ingresso (R$)</label>
+                <label htmlFor="ticket_ingresso">Ticket médio do ingresso (R$)</label>
                 <Dica texto={EXPLICACAO_TICKET} />
               </div>
               <input

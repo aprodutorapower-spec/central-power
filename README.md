@@ -91,7 +91,7 @@ Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em
 Cada lançamento tem:
 
 - **Meta de ingressos:** total a vender.
-- **Ticket do ingresso:** o preço do ingresso. Se houver mais de um preço (lotes, VIP, cupons), use o ticket médio. É a base da régua de mercado do CPA.
+- **Ticket médio do ingresso:** quanto entra, em média, por ingresso vendido, contando o ingresso e os order bumps comprados junto. Se houver mais de um preço (lotes, VIP, cupons), use o ticket médio. É a base da régua de mercado do CPA.
 - **Verba total prevista:** quanto será investido em anúncios no lançamento inteiro. As telas mostram a verba investida até agora contra esse total.
 - **Meta de CPA (não obrigatória):** valor máximo aceitável por ingresso. Quando cadastrada, é ela que vale. Em branco, o sistema usa a régua de mercado: **o dobro do ticket do ingresso**. Com a marcação **Sem tráfego pago**, não se cobra CPA.
 - **Fim das vendas de ingressos:** em branco, vale o D0. O início é sempre o **DV0** do lançamento (ou o DE0, se não houver DV0); não há um segundo campo para isso.

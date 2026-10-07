@@ -183,7 +183,7 @@ function CartaoLancamento({
           }
         />
         <Bloco
-          rotulo="Receita de ingressos"
+          rotulo="Receita (ingressos + order bumps)"
           valor={formatarReal(foto?.receita_ingressos)}
         />
         <Bloco
@@ -191,8 +191,8 @@ function CartaoLancamento({
           valor={formatarReal(numeros?.ticketMedio)}
           detalhe={
             lancamento.ticket_ingresso != null
-              ? `Ticket cadastrado: ${formatarReal(lancamento.ticket_ingresso)}`
-              : undefined
+              ? `Receita ÷ ingressos · previsto: ${formatarReal(lancamento.ticket_ingresso)}`
+              : "Receita ÷ ingressos"
           }
         />
         <Bloco

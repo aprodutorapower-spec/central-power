@@ -43,7 +43,7 @@ export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa, ticket }: P
           />
         </label>
         <label className="block text-xs text-apagado">
-          Ticket do ingresso (R$)
+          Ticket médio (R$)
           <input
             name="ticket_ingresso"
             inputMode="decimal"
