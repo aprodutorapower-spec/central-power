@@ -8,11 +8,11 @@ Situação de cada item: **Feito** (já resolvido), **Etapa B**, **Etapa C** ou 
 
 | # | Achado | Por que importa | Situação |
 |---|--------|-----------------|----------|
-| 1 | A visão geral ordena por checkpoint atrasado e tempo sem atualização. Ingressos e CPA, que são o que define se um lançamento vai bem, não entram na ordem. | O topo da lista não é necessariamente o maior problema. | Etapa B (o cálculo de urgência já existe e é testado) |
+| 1 | A visão geral ordena por checkpoint atrasado e tempo sem atualização. Ingressos e CPA, que são o que define se um lançamento vai bem, não entram na ordem. | O topo da lista não é necessariamente o maior problema. | **Feito** na Etapa B |
 | 2 | Não havia meta de CPA nem ritmo esperado de ingressos. O número "70 de 300" não diz se está bom ou ruim para o dia de hoje. | Sem referência, cada cartão exige conta de cabeça. | **Feito**: metas, ritmo esperado e status Abaixo / Na meta / Acima |
-| 3 | A visão geral mostra lançamentos, não estrategistas. Para saber quem cobrar, é preciso ler todos os cartões e agrupar mentalmente. | A pergunta do Ricardo é "com quem eu falo primeiro". | Etapa B (visão macro por estrategista) |
-| 4 | Todos os cartões têm o mesmo peso visual, com 8 números cada, estejam bem ou mal. | O que está bem compete por atenção com o que está mal. | Etapas B e C (problemas em destaque, "Em dia" recolhido) |
-| 5 | Não há o motivo em palavras. O Ricardo vê números e precisa concluir sozinho o que cobrar. | A frase do motivo é o que vira a cobrança. | Etapas B e C (frase do motivo e "Copiar cobrança") |
+| 3 | A visão geral mostra lançamentos, não estrategistas. Para saber quem cobrar, é preciso ler todos os cartões e agrupar mentalmente. | A pergunta do Ricardo é "com quem eu falo primeiro". | **Feito** na Etapa B |
+| 4 | Todos os cartões têm o mesmo peso visual, com 8 números cada, estejam bem ou mal. | O que está bem compete por atenção com o que está mal. | **Feito** na visão macro; visão do estrategista na Etapa C |
+| 5 | Não há o motivo em palavras. O Ricardo vê números e precisa concluir sozinho o que cobrar. | A frase do motivo é o que vira a cobrança. | Frase do motivo **feita**; "Copiar cobrança" na Etapa C |
 | 6 | Para ver a linha do tempo é preciso sair da visão geral, abrir o lançamento e voltar. | Cada ida e volta custa tempo e perde a posição na lista. | Etapa C (painel lateral) |
 | 7 | O histórico de métricas é só uma tabela; não dá para ver tendência (melhorando ou piorando). | Um CPA ruim caindo é diferente de um CPA ruim subindo. | Etapa C (mini gráficos e seta de tendência) |
 | 8 | Lançamento sem meta não aparecia como pendência em lugar nenhum. | Sem meta não há como avaliar. | **Feito**: bloco "Sem meta definida" com preenchimento rápido |
@@ -44,7 +44,7 @@ Situação de cada item: **Feito** (já resolvido), **Etapa B**, **Etapa C** ou 
 | # | Achado | Situação |
 |---|--------|----------|
 | 21 | Tudo funciona no celular, sem rolagem lateral, exceto a tabela do histórico de métricas (rola para o lado, o que é aceitável). | Sem ação |
-| 22 | Na visão geral, os três cartões de resumo empilhados ocupam a primeira tela inteira antes de qualquer lançamento aparecer. | Etapa B (resumo compacto) |
+| 22 | Na visão geral, os três cartões de resumo empilhados ocupam a primeira tela inteira antes de qualquer lançamento aparecer. | **Feito** na Etapa B |
 | 23 | O formulário de atualização é bom no celular: campos grandes, teclado numérico, valores da última vez já preenchidos. Agora também mostra as metas e o status enquanto a pessoa digita. | **Feito** |
 
 ## 5. Formulários e mensagens

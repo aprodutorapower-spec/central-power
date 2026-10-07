@@ -1,6 +1,12 @@
 import { formatarData } from "@/lib/datas";
 import { formatarInteiro, formatarReal } from "@/lib/numeros";
-import { STATUS_META, type StatusMeta, type Urgencia } from "@/lib/urgencia";
+import {
+  FAIXAS,
+  STATUS_META,
+  type Faixa,
+  type StatusMeta,
+  type Urgencia,
+} from "@/lib/urgencia";
 
 // Sem "use client": serve tanto para páginas do servidor quanto para formulários.
 
@@ -8,6 +14,17 @@ export function SeloMeta({ status }: { status: StatusMeta }) {
   const { rotulo, icone, cor } = STATUS_META[status];
   return (
     <span className={`inline-flex items-center gap-1 text-sm font-semibold ${cor}`}>
+      <span aria-hidden>{icone}</span>
+      {rotulo}
+    </span>
+  );
+}
+
+// Situação geral de um lançamento ou de um estrategista: cor, ícone e texto.
+export function SeloFaixa({ faixa, className = "" }: { faixa: Faixa; className?: string }) {
+  const { rotulo, icone, cor } = FAIXAS[faixa];
+  return (
+    <span className={`inline-flex items-center gap-1.5 font-semibold ${cor} ${className}`}>
       <span aria-hidden>{icone}</span>
       {rotulo}
     </span>

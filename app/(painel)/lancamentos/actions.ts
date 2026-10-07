@@ -44,6 +44,7 @@ export async function salvarLancamento(
           meta_cpa: lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null,
           inicio_vendas: data(formData, "inicio_vendas"),
           fim_vendas: data(formData, "fim_vendas"),
+          sem_trafego: formData.get("sem_trafego") === "true",
         }
       : {};
 
@@ -185,13 +186,20 @@ export async function definirMetas(
 
   const meta_ingressos = lerInteiro(String(formData.get("meta_ingressos") ?? ""));
   const meta_cpa = lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null;
-  if (meta_ingressos == null && meta_cpa == null) {
+  // Botão "Sem tráfego pago": tira o lançamento da cobrança de CPA.
+  const sem_trafego = formData.get("sem_trafego") === "true";
+  if (!sem_trafego && meta_ingressos == null && meta_cpa == null) {
     return { erro: "Preencha pelo menos uma das metas." };
   }
 
   const { data: salvo } = await supabase
     .from("lancamentos")
-    .update({ meta_ingressos, meta_cpa, atualizado_em: new Date().toISOString() })
+    .update({
+      meta_ingressos,
+      meta_cpa: sem_trafego ? null : meta_cpa,
+      ...(sem_trafego ? { sem_trafego } : {}),
+      atualizado_em: new Date().toISOString(),
+    })
     .eq("id", String(formData.get("id") ?? ""))
     .select("id");
   if (!salvo?.length) return { erro: "Não foi possível salvar." };

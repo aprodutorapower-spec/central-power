@@ -16,6 +16,7 @@ const BASE: EntradaUrgencia["lancamento"] = {
   meta_cpa: 40,
   inicio_vendas: null,
   fim_vendas: null,
+  sem_trafego: false,
   dv0: "2026-01-01",
   de0: "2026-01-24",
   d0: "2026-01-31",
@@ -122,6 +123,20 @@ test("só uma meta preenchida: avalia a que existe e avisa da que falta", () => 
   assert.match(u.motivos.join(" | "), /Falta a meta de CPA/);
 });
 
+test("sem tráfego pago: não cobra CPA nem conta como sem meta", () => {
+  const fora = cenario(null, null, { sem_trafego: true, meta_ingressos: null, meta_cpa: null });
+  assert.equal(fora.faixa, "sem_trafego");
+  assert.equal(fora.faltaMeta, false);
+  assert.equal(fora.cpa.status, "nao_se_aplica");
+  assert.ok(fora.pontos < cenario(90, 5400, { meta_ingressos: null, meta_cpa: null }).pontos);
+
+  // Com meta de ingressos, ela continua valendo; o CPA não entra.
+  const organico = cenario(90, 9000, { sem_trafego: true, meta_cpa: null });
+  assert.equal(organico.faixa, "abaixo");
+  assert.equal(organico.cpa.status, "nao_se_aplica");
+  assert.equal(organico.faltaMeta, false);
+});
+
 test("sem dados: nenhuma atualização de métricas", () => {
   const u = cenario(null, null, { status: null, status_atualizado_em: null });
   assert.equal(u.faixa, "sem_dados");
@@ -131,8 +146,9 @@ test("sem dados: nenhuma atualização de métricas", () => {
 
   // Antes de as vendas começarem, não ter dados ainda não é problema.
   const antes = cenario(null, null, {}, { hoje: "2025-12-20" });
-  assert.equal(antes.faixa, "sem_dados");
+  assert.equal(antes.faixa, "nao_comecou");
   assert.ok(antes.pontos < u.pontos);
+  assert.match(antes.motivo, /Vendas começam em 01\/01\/2026/);
 });
 
 test("mesmo desvio é mais grave com o D0 perto do que com o D0 longe", () => {

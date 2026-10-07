@@ -12,13 +12,15 @@ Endereço: https://central-power.vercel.app
 
 ## Visão geral (admin)
 
-É a primeira tela do admin. Mostra todos os lançamentos ativos de todos os experts, cada um com: status, estrategista, expert, tipo, próximo item da linha do tempo com os dias que faltam, quantos checkpoints estão atrasados, os números da última atualização (verba, ingressos, grupo de WhatsApp, CPA, ticket médio) e há quanto tempo foi atualizado (em vermelho quando passa de 7 dias ou nunca foi).
+É a primeira tela do admin e responde a uma pergunta: **com quem falar primeiro, e por quê**.
 
-- **Prioridades** (padrão): lista única, com o que precisa de atenção no topo. A ordem é: mais checkpoints atrasados, depois mais tempo sem atualização, depois status "Em risco".
-- **Por estrategista**: agrupado em Estrategista > Expert > Lançamento. Estrategista sem lançamento ativo também aparece, para ficar claro quem ainda não cadastrou.
-- **Filtros** por estrategista, status e tipo.
+- **Onde começar:** o estrategista mais urgente, com o motivo em uma frase (por exemplo: "3 lançamentos ativos, 2 abaixo da meta de ingressos, CPA 34% acima da meta") e um botão para abrir os lançamentos dele.
+- **Operação:** quantos lançamentos ativos há em cada situação, verba total, ingressos vendidos contra a meta somada e CPA médio (verba total ÷ ingressos totais).
+- **Precisam de atenção:** os estrategistas que têm algo abaixo da meta ou sem dados, do pior para o melhor. Cada cartão mostra a situação (cor, ícone e texto), quantos lançamentos estão abaixo / na meta / acima, ingressos contra a meta, CPA médio contra a meta, o pior lançamento com o motivo e o lançamento mais defasado.
+- **Sem nada abaixo da meta:** os demais, em uma linha cada, para não competir por atenção.
+- **Sem meta definida:** lançamentos que ainda precisam de meta, com preenchimento direto na lista. O botão **Sem tráfego pago** tira o lançamento da cobrança de CPA (ele deixa de aparecer como "sem meta").
 
-Clicar num lançamento abre a página dele.
+O estrategista aparece com a urgência do seu pior lançamento. Clicar nele abre a **visão do estrategista**: todos os lançamentos ativos dele, os piores primeiro, cada um com o motivo, a barra de ingressos e o CPA contra a meta.
 
 ## Como liberar o acesso de um estrategista
 
@@ -60,7 +62,7 @@ Com as metas, o sistema calcula sozinho, sem guardar no banco:
 - **Ritmo esperado:** quantos ingressos deveriam estar vendidos hoje, em linha reta do início ao fim das vendas.
 - **Status de ingressos:** **Acima** (10% ou mais acima do esperado), **Na meta** (até 10% para cima ou para baixo) ou **Abaixo**.
 - **Status de CPA:** **Acima** quando o CPA está 10% ou mais abaixo da meta (gastando menos), **Na meta** na faixa de 10%, **Abaixo** quando passa da meta em mais de 10%. Sem ingresso vendido, fica "Sem dado".
-- **Sem meta** (falta o admin preencher) e **Sem dados** (nenhuma atualização de métricas).
+- **Sem meta** (falta o admin preencher), **Sem dados** (as vendas começaram e não há métricas), **Vendas não começaram** e **Sem tráfego pago** (marcado pelo admin: não se cobra CPA).
 
 A página do lançamento mostra a barra de ingressos com um risco marcando onde deveria estar hoje, e o formulário de atualização mostra as metas e o status enquanto o estrategista digita.
 
@@ -109,7 +111,7 @@ Em cada expert há o botão **Conectar Berry**. Cole a chave de API da conta Ber
 ## Próximos passos
 
 1. **Decidir como o Ricardo será avisado e como os estrategistas serão cobrados** (Telegram, e-mail, WhatsApp, cobrança automática pelo sistema ou apenas o painel). Adiado pelo Ricardo em 06/10/2026, para depois dos ajustes no sistema.
-2. Visão macro por estrategista (Etapa B) e visão do estrategista com "Copiar cobrança" (Etapa C). A lista completa de melhorias de tela está em `docs/auditoria-ux.md`.
+2. Visão do estrategista completa (Etapa C): mini gráficos, painel lateral da linha do tempo e "Copiar cobrança". A lista completa de melhorias de tela está em `docs/auditoria-ux.md`.
 3. Pauta automática da call de sexta.
 4. Integrações: Berry Pay preenchendo ingressos e receita sozinha, Meta Ads por BM em modo leitura, Asana.
 5. Lançamentos perpétuos.
@@ -121,6 +123,6 @@ Em cada expert há o botão **Conectar Berry**. Cole a chave de API da conta Ber
 
 - Next.js + Tailwind, Supabase (login e banco), publicado na Vercel.
 - Mudanças de banco ficam em `supabase/migrations`, numeradas.
-- Testes do cálculo de urgência: `npm test`.
+- Testes do cálculo de urgência e da ordenação do painel (com cenários fictícios, sem tocar no banco): `npm test`.
 - Teste de isolamento entre estrategistas: `node --env-file=.env.local scripts/isolamento.mjs`. Ele cria dados fictícios, testa e apaga tudo no final.
 - A página antiga da Central Power está guardada em `/legado.html`.

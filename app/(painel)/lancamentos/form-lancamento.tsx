@@ -246,6 +246,16 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
               <p className="mt-1 text-xs text-apagado">Em branco, vale o D0.</p>
             </div>
           </div>
+          <label className="mt-4 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="sem_trafego"
+              value="true"
+              defaultChecked={lancamento?.sem_trafego ?? false}
+              className="h-4 w-4 accent-power"
+            />
+            Sem tráfego pago (não cobra CPA nem aparece como “sem meta”)
+          </label>
         </>
       ) : lancamento ? (
         <p className="mt-1 text-sm text-apagado">

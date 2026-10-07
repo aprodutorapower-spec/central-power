@@ -33,7 +33,14 @@ export const PESO_STATUS_VERMELHO = 50; // estrategista marcou "Em risco"
 export const PESO_STATUS_AMARELO = 20; // estrategista marcou "Atenção"
 
 // Situação geral do lançamento frente às metas.
-export type Faixa = "abaixo" | "sem_dados" | "sem_meta" | "na_meta" | "acima";
+export type Faixa =
+  | "abaixo"
+  | "sem_dados"
+  | "sem_meta"
+  | "na_meta"
+  | "acima"
+  | "nao_comecou"
+  | "sem_trafego";
 // Situação de cada critério. "acima" é sempre o lado bom (no CPA, gastar menos).
 export type StatusMeta =
   | "abaixo"
@@ -41,7 +48,8 @@ export type StatusMeta =
   | "acima"
   | "sem_meta"
   | "sem_dado"
-  | "nao_comecou";
+  | "nao_comecou"
+  | "nao_se_aplica";
 
 // Cor, ícone e texto andam sempre juntos (nunca só a cor). Fica aqui, e não
 // num componente de tela, porque servidor e navegador usam.
@@ -51,7 +59,22 @@ export const FAIXAS: Record<Faixa, { rotulo: string; icone: string; cor: string 
   sem_meta: { rotulo: "Sem meta", icone: "○", cor: "text-apagado" },
   na_meta: { rotulo: "Na meta", icone: "●", cor: "text-texto" },
   acima: { rotulo: "Acima da meta", icone: "▲", cor: "text-ok" },
+  // Vendas de ingressos ainda não começaram e não há métricas: nada a cobrar.
+  nao_comecou: { rotulo: "Vendas não começaram", icone: "○", cor: "text-apagado" },
+  // Sem tráfego pago e sem meta de ingressos: fora da avaliação de metas.
+  sem_trafego: { rotulo: "Sem tráfego pago", icone: "–", cor: "text-apagado" },
 };
+
+// Do pior para o melhor: a situação de um grupo é a primeira que aparecer nele.
+export const ORDEM_FAIXAS: Faixa[] = [
+  "abaixo",
+  "sem_dados",
+  "sem_meta",
+  "na_meta",
+  "acima",
+  "nao_comecou",
+  "sem_trafego",
+];
 
 export const STATUS_META: Record<
   StatusMeta,
@@ -63,6 +86,7 @@ export const STATUS_META: Record<
   sem_meta: { rotulo: "Sem meta", icone: "○", cor: "text-apagado" },
   sem_dado: { rotulo: "Sem dado", icone: "?", cor: "text-apagado" },
   nao_comecou: { rotulo: "Vendas não começaram", icone: "○", cor: "text-apagado" },
+  nao_se_aplica: { rotulo: "Sem tráfego pago", icone: "–", cor: "text-apagado" },
 };
 
 export type EntradaUrgencia = {
@@ -72,6 +96,7 @@ export type EntradaUrgencia = {
     | "meta_cpa"
     | "inicio_vendas"
     | "fim_vendas"
+    | "sem_trafego"
     | "dv0"
     | "de0"
     | "d0"
@@ -121,7 +146,8 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   // CPA: menor é melhor. Sem ingresso vendido não há CPA, e isso não pune.
   const cpaAtual = dividir(foto?.verba_investida, vendidos);
   let statusCpa: StatusMeta;
-  if (l.meta_cpa == null) statusCpa = "sem_meta";
+  if (l.sem_trafego) statusCpa = "nao_se_aplica";
+  else if (l.meta_cpa == null) statusCpa = "sem_meta";
   else if (cpaAtual == null) statusCpa = "sem_dado";
   else if (cpaAtual <= l.meta_cpa * (1 - TOLERANCIA_META)) statusCpa = "acima";
   else if (cpaAtual <= l.meta_cpa * (1 + TOLERANCIA_META)) statusCpa = "na_meta";
@@ -133,7 +159,9 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   const desvioCpa =
     l.meta_cpa && cpaAtual != null ? (cpaAtual - l.meta_cpa) / l.meta_cpa : null;
 
-  const semMeta = l.meta_ingressos == null && l.meta_cpa == null;
+  // Sem tráfego pago não se cobra CPA; a meta de ingressos passa a ser opcional.
+  const foraDasMetas = l.sem_trafego && l.meta_ingressos == null;
+  const semMeta = !l.sem_trafego && l.meta_ingressos == null && l.meta_cpa == null;
   const semDados = vendidos == null;
   const abaixo = [statusIngressos, statusCpa].filter((s) => s === "abaixo").length;
   const avaliados = [statusIngressos, statusCpa].filter(
@@ -141,8 +169,9 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   );
 
   let faixa: Faixa;
-  if (semMeta) faixa = "sem_meta";
-  else if (semDados) faixa = "sem_dados";
+  if (foraDasMetas) faixa = "sem_trafego";
+  else if (semMeta) faixa = "sem_meta";
+  else if (semDados) faixa = vendasComecaram ? "sem_dados" : "nao_comecou";
   else if (abaixo) faixa = "abaixo";
   else if (avaliados.length && avaliados.every((s) => s === "acima")) faixa = "acima";
   else faixa = "na_meta";
@@ -166,7 +195,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
       pontos += PESO_DESVIO * limitar(desvioCpa!, 0, 1) * proximidade;
     }
   } else if (faixa === "sem_meta") pontos += PESO_SEM_META;
-  else if (faixa === "sem_dados") pontos += vendasComecaram ? PESO_SEM_DADOS : 0;
+  else if (faixa === "sem_dados") pontos += PESO_SEM_DADOS;
   else if (faixa === "acima") pontos += PESO_ACIMA;
 
   pontos += Math.min(
@@ -193,9 +222,10 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
     );
   }
   if (semMeta) motivos.push("Sem meta definida");
-  else if (l.meta_ingressos == null) motivos.push("Falta a meta de ingressos");
-  else if (l.meta_cpa == null) motivos.push("Falta a meta de CPA");
-  if (semDados && vendasComecaram) {
+  else if (!l.sem_trafego && l.meta_ingressos == null) {
+    motivos.push("Falta a meta de ingressos");
+  } else if (!l.sem_trafego && l.meta_cpa == null) motivos.push("Falta a meta de CPA");
+  if (semDados && vendasComecaram && !foraDasMetas) {
     motivos.push("Vendas começaram e não há métricas registradas");
   }
   if (atrasos.length) {
@@ -213,7 +243,9 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
 
   if (!motivos.length) {
     motivos.push(
-      !vendasComecaram
+      foraDasMetas
+        ? "Sem tráfego pago: fora das metas"
+        : !vendasComecaram
         ? `Vendas começam em ${formatarData(inicio)}`
         : faixa === "acima"
           ? "Acima da meta"
@@ -224,7 +256,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   return {
     faixa,
     pontos,
-    faltaMeta: l.meta_ingressos == null || l.meta_cpa == null,
+    faltaMeta: !l.sem_trafego && (l.meta_ingressos == null || l.meta_cpa == null),
     janela: { inicio, fim, vendasComecaram },
     ingressos: {
       status: statusIngressos,

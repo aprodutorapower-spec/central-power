@@ -183,7 +183,7 @@ async function testar() {
 
   const { data: metaDoAdmin } = await admin.cliente
     .from("lancamentos")
-    .update({ meta_ingressos: 300, meta_cpa: 40, inicio_vendas: "2030-01-01" })
+    .update({ meta_ingressos: 300, meta_cpa: 40, inicio_vendas: "2030-01-01", sem_trafego: false })
     .eq("id", lancA?.[0]?.id)
     .select("meta_ingressos, meta_cpa");
   confere(
@@ -193,15 +193,16 @@ async function testar() {
 
   const { data: metaDeA } = await a.cliente
     .from("lancamentos")
-    .update({ nome: `${MARCA} lançamento de A`, meta_ingressos: 1, meta_cpa: 999, inicio_vendas: null, fim_vendas: "2030-02-01" })
+    .update({ nome: `${MARCA} lançamento de A`, meta_ingressos: 1, meta_cpa: 999, inicio_vendas: null, fim_vendas: "2030-02-01", sem_trafego: true })
     .eq("id", lancA?.[0]?.id)
-    .select("meta_ingressos, meta_cpa, inicio_vendas, fim_vendas");
+    .select("meta_ingressos, meta_cpa, inicio_vendas, fim_vendas, sem_trafego");
   confere(
     "A edita o próprio lançamento, mas não muda as metas",
     metaDeA?.[0]?.meta_ingressos === 300 &&
       Number(metaDeA?.[0]?.meta_cpa) === 40 &&
       metaDeA?.[0]?.inicio_vendas === "2030-01-01" &&
-      metaDeA?.[0]?.fim_vendas === null,
+      metaDeA?.[0]?.fim_vendas === null &&
+      metaDeA?.[0]?.sem_trafego === false,
   );
 
   // Checkpoints (seguem o lançamento) e modelos (só admin)
