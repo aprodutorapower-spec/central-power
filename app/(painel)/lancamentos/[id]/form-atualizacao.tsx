@@ -130,6 +130,10 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
             onChange={(evento) => setGrupo(evento.target.value)}
             className={`${CAMPO} text-texto`}
           />
+          <span className="mt-1 block text-xs text-texto">
+            Conte só os participantes: não inclua os admins nem o pessoal da
+            equipe que está no grupo.
+          </span>
         </label>
       </div>
       <p className="mt-2 text-sm text-apagado">
