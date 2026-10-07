@@ -8,8 +8,13 @@ export default async function ExpertPage({ params }: PageProps<"/experts/[id]">)
   const { id } = await params;
   const { supabase } = await obterSessao();
 
-  const [{ data: expert }, { data: lista }] = await Promise.all([
+  const [{ data: expert }, { data: berry }, { data: lista }] = await Promise.all([
     supabase.from("experts").select("id, nome").eq("id", id).maybeSingle(),
+    supabase
+      .from("berry_conexoes")
+      .select("expert_id")
+      .eq("expert_id", id)
+      .maybeSingle(),
     supabase
       .from("lancamentos")
       .select("*")
@@ -30,12 +35,21 @@ export default async function ExpertPage({ params }: PageProps<"/experts/[id]">)
       </Link>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{expert.nome}</h1>
-        <Link
-          href={`/experts/${expert.id}/novo`}
-          className="rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125"
-        >
-          Novo lançamento
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href={`/experts/${expert.id}/berry`}
+            className="flex items-center gap-2 rounded-lg border border-borda px-4 py-2 hover:border-power"
+          >
+            {berry ? <span className="h-2.5 w-2.5 rounded-full bg-ok" /> : null}
+            {berry ? "Berry conectada" : "Conectar Berry"}
+          </Link>
+          <Link
+            href={`/experts/${expert.id}/novo`}
+            className="rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125"
+          >
+            Novo lançamento
+          </Link>
+        </div>
       </div>
 
       {lancamentos.length ? (

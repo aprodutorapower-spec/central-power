@@ -37,6 +37,8 @@ export type Lancamento = {
   proximo_passo: string;
   status_atualizado_em: string | null;
   status_atualizado_por_nome: string | null;
+  berry_produto_id: string | null;
+  berry_produto_nome: string | null;
 };
 
 // Datas sugeridas a partir do D0. LP: carrinho fecha em D0+4.

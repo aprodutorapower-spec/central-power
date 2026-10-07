@@ -268,6 +268,14 @@ export default async function LancamentoPage({
         >
           Editar lançamento
         </Link>
+        <Link
+          href={`/experts/${lancamento.expert_id}/berry`}
+          className="rounded-lg border border-borda px-4 py-2 hover:border-power"
+        >
+          {lancamento.berry_produto_nome
+            ? `Berry: ${lancamento.berry_produto_nome}`
+            : "Conectar Berry"}
+        </Link>
         <form action={definirSituacao}>
           <input type="hidden" name="id" value={lancamento.id} />
           <input type="hidden" name="situacao" value={encerrado ? "ativo" : "encerrado"} />

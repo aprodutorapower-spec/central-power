@@ -44,8 +44,14 @@ Como o Ricardo será avisado e como os estrategistas serão cobrados: em 06/10/2
 - Status do lançamento é manual por enquanto.
 - Comparecimento = pessoas no grupo de WhatsApp, campo visível. Sem bloqueio/próximo passo e sem vendas do produto principal no formulário.
 
+## Conexão com a Berry (07/10/2026)
+- Tela em `/experts/[id]/berry`: uma chave de API por expert (`berry_conexoes`) e o produto do ingresso por lançamento (`lancamentos.berry_produto_id` / `berry_produto_nome`). Cada edição da imersão é um produto diferente na Berry, muitas vezes já inativo: produtos inativos continuam na lista.
+- A chave é cifrada no servidor com `BERRY_SEGREDO` (em `.env.local` e na Vercel) e nunca volta para a tela; quem está logado só lê a situação da conexão. Gravar e ler a chave é pela chave de serviço, depois de conferir o acesso ao expert (`lib/berry.ts`). Se o `BERRY_SEGREDO` for trocado, as chaves precisam ser coladas de novo.
+- API da Berry: `https://api.berrypay.com.br/v1`, documentação em `https://developers.berrypay.com.br/llms-full.txt`. Só usamos leitura (produtos e contagem de vendas pagas). O servidor MCP da Berry não é necessário.
+- Por enquanto a tela só mostra a contagem de vendas pagas; ainda não grava fotos de métricas com fonte `berry`.
+
 ## Próximos passos (fora do v1)
-Pauta automática da call de sexta, integrações (Meta Ads por BM em modo leitura, Berry Pay, Asana), lançamentos perpétuos, teste de aceite com os estrategistas, domínio próprio.
+Pauta automática da call de sexta, integrações (Meta Ads por BM em modo leitura, Berry Pay preenchendo as métricas sozinha, Asana), lançamentos perpétuos, teste de aceite com os estrategistas, domínio próprio.
 
 ## Estado do projeto
 - Repositório `aprodutorapower-spec/central-power`, projeto Vercel `central-power`, Supabase `pruntjhpcucfiudcdtpb`.

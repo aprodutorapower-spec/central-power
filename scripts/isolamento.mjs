@@ -275,6 +275,59 @@ async function testar() {
     .in("id", [fotoA?.[0]?.id, fotoB.id]);
   confere("admin lê as fotos de todos", fotosDoAdmin?.length === 2);
 
+  // Conexão com a Berry (segue o expert; a chave nunca é lida por quem está logado)
+  await servico.from("berry_conexoes").insert([
+    { expert_id: expertA.id, chave_cifrada: "ficticia-a", chave_final: "aaaa" },
+    { expert_id: expertB.id, chave_cifrada: "ficticia-b", chave_final: "bbbb" },
+  ]);
+
+  const { data: berryDeA } = await a.cliente
+    .from("berry_conexoes")
+    .select("expert_id, chave_final");
+  confere(
+    "A vê só a situação da Berry do próprio expert",
+    berryDeA?.length === 1 && berryDeA[0].expert_id === expertA.id,
+  );
+
+  for (const [quem, cliente] of [["A", a.cliente], ["admin", admin.cliente]]) {
+    const { data, error } = await cliente.from("berry_conexoes").select("chave_cifrada");
+    confere(`${quem} não lê a chave da Berry`, Boolean(error) && !data?.length);
+  }
+
+  const { error: berryIndevida } = await a.cliente
+    .from("berry_conexoes")
+    .insert({ expert_id: criouProprio?.[0]?.id, chave_cifrada: "x", chave_final: "x" });
+  confere("A não grava chave da Berry direto no banco", Boolean(berryIndevida));
+
+  const { data: berryAlterada, error: berryAlteradaErro } = await a.cliente
+    .from("berry_conexoes")
+    .update({ chave_final: "zzzz" })
+    .eq("expert_id", expertA.id)
+    .select("expert_id");
+  confere(
+    "A não altera a conexão da Berry direto no banco",
+    Boolean(berryAlteradaErro) || !berryAlterada?.length,
+  );
+
+  const { data: berryApagada, error: berryApagadaErro } = await a.cliente
+    .from("berry_conexoes")
+    .delete()
+    .eq("expert_id", expertA.id)
+    .select("expert_id");
+  confere(
+    "A não apaga a conexão da Berry direto no banco",
+    Boolean(berryApagadaErro) || !berryApagada?.length,
+  );
+
+  const { data: anonBerry } = await anonimo.from("berry_conexoes").select("expert_id");
+  confere("sem login não lê berry_conexoes", !anonBerry?.length);
+
+  const { data: berryDoAdmin } = await admin.cliente
+    .from("berry_conexoes")
+    .select("expert_id")
+    .in("expert_id", [expertA.id, expertB.id]);
+  confere("admin vê a situação da Berry de todos", berryDoAdmin?.length === 2);
+
   const { data: anonPerfil, error: anonPerfilErro } = await anonimo.rpc("meu_perfil");
   confere("sem login não consulta perfil", Boolean(anonPerfilErro) || !anonPerfil?.length);
 
