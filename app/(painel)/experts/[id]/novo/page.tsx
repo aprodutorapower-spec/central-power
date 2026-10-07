@@ -17,19 +17,20 @@ export default async function NovoLancamentoPage({
   if (!expert) notFound();
 
   return (
-    <>
-      <Link
-        href={`/experts/${expert.id}`}
-        className="text-sm text-apagado hover:text-texto"
-      >
-        ← {expert.nome}
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold">Novo lançamento</h1>
-      <FormLancamento
-        expertId={expert.id}
-        voltar={`/experts/${expert.id}`}
-        admin={perfil?.papel === "admin"}
-      />
-    </>
+    // Tela estreita: fica no centro da página.
+    <div className="mx-auto max-w-2xl">
+        <Link
+          href={`/experts/${expert.id}`}
+          className="text-sm text-apagado hover:text-texto"
+        >
+          ← {expert.nome}
+        </Link>
+        <h1 className="mt-4 text-2xl font-semibold">Novo lançamento</h1>
+        <FormLancamento
+          expertId={expert.id}
+          voltar={`/experts/${expert.id}`}
+          admin={perfil?.papel === "admin"}
+        />
+    </div>
   );
 }

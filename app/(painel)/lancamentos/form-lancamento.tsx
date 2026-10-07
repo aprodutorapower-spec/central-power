@@ -3,14 +3,32 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { ehSegunda, formatarData } from "@/lib/datas";
-import { calcularMarcos, TIPOS, type Lancamento, type Tipo } from "@/lib/marcos";
+import {
+  calcularMarcos,
+  EXPLICACOES,
+  TIPOS,
+  type ChaveMarco,
+  type Lancamento,
+  type Tipo,
+} from "@/lib/marcos";
 import { dinheiroParaCampo, formatarInteiro, formatarReal } from "@/lib/numeros";
 import { janelaDeVendas } from "@/lib/urgencia";
+import { Dica } from "../interacoes";
 import { salvarLancamento, type ResultadoLancamento } from "./actions";
 
 const CAMPO =
   "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power";
 const INICIAL: ResultadoLancamento = {};
+
+// Rótulo de um campo de data com o "?" que explica o que ela é.
+function RotuloData({ campo, children }: { campo: ChaveMarco; children: React.ReactNode }) {
+  return (
+    <div className="relative flex items-center gap-1.5 text-sm text-apagado">
+      <label htmlFor={campo}>{children}</label>
+      <Dica texto={EXPLICACOES[campo]} />
+    </div>
+  );
+}
 
 type Props = {
   expertId: string;
@@ -86,9 +104,9 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm text-apagado" htmlFor="d0">
+          <RotuloData campo="d0">
             D0 · {tipo === "LPS" ? "aula 1 (segunda)" : "dia do evento"}
-          </label>
+          </RotuloData>
           <input
             id="d0"
             name="d0"
@@ -113,9 +131,9 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
       <p className="text-xs text-apagado">Pode ajustar qualquer uma.</p>
       <div className="mt-3 grid gap-4 sm:grid-cols-3">
         <div>
-          <label className="block text-sm text-apagado" htmlFor="de0">
+          <RotuloData campo="de0">
             DE0 · pré-evento
-          </label>
+          </RotuloData>
           <input
             id="de0"
             name="de0"
@@ -127,9 +145,9 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
         </div>
         {tipo === "LPS" ? (
           <div>
-            <label className="block text-sm text-apagado" htmlFor="dp0">
+            <RotuloData campo="dp0">
               DP0 · pitch
-            </label>
+            </RotuloData>
             <input
               id="dp0"
               name="dp0"
@@ -141,9 +159,9 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
           </div>
         ) : null}
         <div>
-          <label className="block text-sm text-apagado" htmlFor="dfc">
+          <RotuloData campo="dfc">
             DFC · carrinho fecha
-          </label>
+          </RotuloData>
           <input
             id="dfc"
             name="dfc"
@@ -158,9 +176,9 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
       <p className="mt-6 text-sm font-semibold">Opcionais</p>
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-sm text-apagado" htmlFor="m0">
+          <RotuloData campo="m0">
             M0 · dia da decisão
-          </label>
+          </RotuloData>
           <input
             id="m0"
             name="m0"
@@ -170,9 +188,9 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
           />
         </div>
         <div>
-          <label className="block text-sm text-apagado" htmlFor="dv0">
+          <RotuloData campo="dv0">
             DV0 · início da venda de ingressos
-          </label>
+          </RotuloData>
           <input
             id="dv0"
             name="dv0"

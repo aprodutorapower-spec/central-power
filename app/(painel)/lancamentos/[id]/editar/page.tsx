@@ -21,17 +21,18 @@ export default async function EditarLancamentoPage({
   const voltar = `/lancamentos/${lancamento.id}`;
 
   return (
-    <>
-      <Link href={voltar} className="text-sm text-apagado hover:text-texto">
-        ← {lancamento.nome}
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold">Editar lançamento</h1>
-      <FormLancamento
-        expertId={lancamento.expert_id}
-        lancamento={lancamento}
-        voltar={voltar}
-        admin={perfil?.papel === "admin"}
-      />
-    </>
+    // Tela estreita: fica no centro da página.
+    <div className="mx-auto max-w-2xl">
+        <Link href={voltar} className="text-sm text-apagado hover:text-texto">
+          ← {lancamento.nome}
+        </Link>
+        <h1 className="mt-4 text-2xl font-semibold">Editar lançamento</h1>
+        <FormLancamento
+          expertId={lancamento.expert_id}
+          lancamento={lancamento}
+          voltar={voltar}
+          admin={perfil?.papel === "admin"}
+        />
+    </div>
   );
 }

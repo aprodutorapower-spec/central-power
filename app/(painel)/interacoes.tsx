@@ -149,3 +149,53 @@ export function CartaoComPainel({
     </li>
   );
 }
+
+// "?" ao lado de um rótulo: mostra uma explicação curta ao passar o mouse ou
+// tocar. Quem usa precisa estar dentro de um elemento com "relative".
+export function Dica({ texto }: { texto: string }) {
+  const [aberta, setAberta] = useState(false);
+  const ref = useRef<HTMLButtonElement>(null);
+
+  // Aberta por toque ou clique, fecha ao tocar fora ou apertar Esc.
+  useEffect(() => {
+    if (!aberta) return;
+    const fora = (evento: Event) => {
+      if (!ref.current?.contains(evento.target as Node)) setAberta(false);
+    };
+    const tecla = (evento: KeyboardEvent) => {
+      if (evento.key === "Escape") setAberta(false);
+    };
+    document.addEventListener("pointerdown", fora);
+    document.addEventListener("keydown", tecla);
+    return () => {
+      document.removeEventListener("pointerdown", fora);
+      document.removeEventListener("keydown", tecla);
+    };
+  }, [aberta]);
+
+  return (
+    <>
+      <button
+        ref={ref}
+        type="button"
+        aria-label="O que é isto?"
+        aria-expanded={aberta}
+        onClick={() => setAberta((antes) => !antes)}
+        // Só o mouse abre ao passar por cima; no toque, quem abre é o clique.
+        onPointerEnter={(evento) => evento.pointerType === "mouse" && setAberta(true)}
+        onPointerLeave={(evento) => evento.pointerType === "mouse" && setAberta(false)}
+        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-apagado text-[10px] leading-none text-apagado hover:border-texto hover:text-texto"
+      >
+        ?
+      </button>
+      {aberta ? (
+        <span
+          role="tooltip"
+          className="absolute left-0 top-full z-20 mt-1 w-72 max-w-[80vw] rounded-lg border border-borda bg-cartao-2 p-3 text-sm leading-snug text-texto shadow-lg shadow-black/50"
+        >
+          {texto}
+        </span>
+      ) : null}
+    </>
+  );
+}
