@@ -12,13 +12,22 @@ import {
   type Tipo,
 } from "@/lib/marcos";
 import { dinheiroParaCampo, formatarInteiro, formatarReal } from "@/lib/numeros";
-import { janelaDeVendas, metasFechadasParaEstrategista } from "@/lib/urgencia";
+import {
+  janelaDeVendas,
+  metasFechadasParaEstrategista,
+  MULTIPLO_TETO_CPA,
+} from "@/lib/urgencia";
 import { Dica } from "../interacoes";
 import { salvarLancamento, type ResultadoLancamento } from "./actions";
 
 const CAMPO =
   "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power";
 const INICIAL: ResultadoLancamento = {};
+
+const EXPLICACAO_TICKET =
+  "Preço do ingresso. Se houver mais de um preço (lotes, ingresso VIP, cupons), coloque o ticket médio: o valor médio pago por ingresso. Ele define o teto de mercado do CPA: o CPA deve ficar em, no máximo, o dobro do ticket.";
+const EXPLICACAO_META_CPA =
+  "Valor máximo que se aceita gastar em anúncio por ingresso vendido. Em branco, vale a régua de mercado: o dobro do ticket do ingresso. Preencha só se este lançamento tiver uma meta diferente.";
 
 // Rótulo de um campo de data com o "?" que explica o que ela é.
 function RotuloData({ campo, children }: { campo: ChaveMarco; children: React.ReactNode }) {
@@ -220,17 +229,32 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
               />
             </div>
             <div>
-              <label className="block text-sm text-apagado" htmlFor="meta_cpa">
-                Meta de CPA (R$ máximo por ingresso)
-              </label>
+              <div className="relative flex items-center gap-1.5 text-sm text-apagado">
+                <label htmlFor="ticket_ingresso">Ticket do ingresso (R$)</label>
+                <Dica texto={EXPLICACAO_TICKET} />
+              </div>
+              <input
+                id="ticket_ingresso"
+                name="ticket_ingresso"
+                inputMode="decimal"
+                required={metasObrigatorias && !semTrafego}
+                defaultValue={dinheiroParaCampo(lancamento?.ticket_ingresso)}
+                placeholder="Ex.: 29,00"
+                className={CAMPO}
+              />
+            </div>
+            <div>
+              <div className="relative flex items-center gap-1.5 text-sm text-apagado">
+                <label htmlFor="meta_cpa">Meta de CPA (R$), opcional</label>
+                <Dica texto={EXPLICACAO_META_CPA} />
+              </div>
               <input
                 id="meta_cpa"
                 name="meta_cpa"
                 inputMode="decimal"
-                required={metasObrigatorias && !semTrafego}
                 disabled={semTrafego}
                 defaultValue={dinheiroParaCampo(lancamento?.meta_cpa)}
-                placeholder={semTrafego ? "Não se aplica" : "Ex.: 40,00"}
+                placeholder={semTrafego ? "Não se aplica" : "Em branco: o dobro do ticket"}
                 className={CAMPO}
               />
             </div>
@@ -276,8 +300,16 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
               ? "sem tráfego pago"
               : lancamento?.meta_cpa != null
                 ? `CPA até ${formatarReal(lancamento.meta_cpa)}`
-                : "CPA sem meta"}
+                : lancamento?.ticket_ingresso != null
+                  ? `CPA até ${formatarReal(lancamento.ticket_ingresso * MULTIPLO_TETO_CPA)} (o dobro do ticket)`
+                  : "CPA sem meta"}
           </span>
+          {lancamento?.ticket_ingresso != null ? (
+            <>
+              {" · ticket de "}
+              <span className="text-texto">{formatarReal(lancamento.ticket_ingresso)}</span>
+            </>
+          ) : null}
           {lancamento ? (
             <>
               {" · vendas de "}

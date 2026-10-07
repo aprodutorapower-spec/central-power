@@ -15,15 +15,16 @@ type Props = {
   dono: string;
   metaIngressos: number | null;
   metaCpa: number | null;
+  ticket: number | null;
 };
 
 // Linha de edição rápida das metas de um lançamento, sem sair da visão geral.
-export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa }: Props) {
+export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa, ticket }: Props) {
   const [resultado, acao, salvando] = useActionState(definirMetas, INICIAL);
 
   return (
     <li className="py-3">
-      <form action={acao} className="grid items-end gap-3 sm:grid-cols-[1fr_9rem_9rem_auto_auto]">
+      <form action={acao} className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_8rem_8rem_8rem_auto_auto]">
         <input type="hidden" name="id" value={id} />
         <div className="min-w-0">
           <Link href={`/lancamentos/${id}`} className="font-semibold hover:text-power-claro">
@@ -42,12 +43,22 @@ export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa }: Props) {
           />
         </label>
         <label className="block text-xs text-apagado">
+          Ticket do ingresso (R$)
+          <input
+            name="ticket_ingresso"
+            inputMode="decimal"
+            defaultValue={dinheiroParaCampo(ticket)}
+            placeholder="Ex.: 29,00"
+            className={`${CAMPO} text-base text-texto`}
+          />
+        </label>
+        <label className="block text-xs text-apagado">
           Meta de CPA (R$)
           <input
             name="meta_cpa"
             inputMode="decimal"
             defaultValue={dinheiroParaCampo(metaCpa)}
-            placeholder="Ex.: 40,00"
+            placeholder="2× o ticket"
             className={`${CAMPO} text-base text-texto`}
           />
         </label>

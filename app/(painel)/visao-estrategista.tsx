@@ -3,11 +3,16 @@ import { textoCobranca } from "@/lib/cobranca";
 import { formatarData } from "@/lib/datas";
 import { contagem, CORES, montarLinhaDoTempo, tituloDoItem } from "@/lib/linha-do-tempo";
 import { calcular, haQuanto, STATUS } from "@/lib/metricas";
-import { formatarInteiro, formatarReal } from "@/lib/numeros";
+import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
 import type { GrupoEstrategista, ItemPainel } from "@/lib/painel";
 import { BotaoCopiar, CartaoComPainel } from "./interacoes";
 import { LinhaDoTempo } from "./lancamentos/linha-do-tempo";
-import { BarraIngressos, SeloFaixa, SeloMeta } from "./lancamentos/painel-metas";
+import {
+  BarraIngressos,
+  LinhaMetaCpa,
+  SeloFaixa,
+  SeloMeta,
+} from "./lancamentos/painel-metas";
 import { Contagens, CpaDoGrupo, IngressosDoGrupo } from "./visao-geral";
 
 const BOTAO =
@@ -161,13 +166,7 @@ function CartaoLancamento({
               </span>
             ) : null}
           </p>
-          <p className="mt-1 text-xs text-apagado">
-            {urgencia.cpa.meta != null
-              ? `Meta: até ${formatarReal(urgencia.cpa.meta)}`
-              : lancamento.sem_trafego
-                ? "Sem tráfego pago"
-                : "Sem meta de CPA"}
-          </p>
+          <LinhaMetaCpa urgencia={urgencia} />
           <MiniGrafico valores={item.serieCpa} rotulo="CPA" />
         </div>
 
@@ -182,6 +181,18 @@ function CartaoLancamento({
               <dd className="font-semibold">{valor}</dd>
             </div>
           ))}
+          <div className="col-span-3 lg:col-span-1 lg:flex lg:items-baseline lg:justify-between lg:gap-3">
+            <dt className="text-xs text-apagado">
+              Grupo de WhatsApp (mínimo {formatarPercentual(urgencia.grupo.minimo)})
+            </dt>
+            <dd className="flex flex-wrap items-baseline gap-x-2 font-semibold">
+              {formatarInteiro(urgencia.grupo.pessoas)}
+              {urgencia.grupo.proporcao != null
+                ? ` (${formatarPercentual(urgencia.grupo.proporcao)})`
+                : ""}
+              <SeloMeta status={urgencia.grupo.status} />
+            </dd>
+          </div>
         </dl>
       </div>
 

@@ -14,6 +14,7 @@ const HOJE = "2026-01-16";
 const BASE: EntradaUrgencia["lancamento"] = {
   meta_ingressos: 300,
   meta_cpa: 40,
+  ticket_ingresso: null,
   inicio_vendas: null,
   fim_vendas: null,
   sem_trafego: false,
@@ -115,12 +116,57 @@ test("sem meta: pendência de gestão, logo abaixo de quem está abaixo", () => 
   assert.ok(semMeta.pontos > naMeta.pontos);
 });
 
+test("sem meta de CPA, vale o teto de mercado: o dobro do ticket, sem margem", () => {
+  // Ticket de R$ 30 => teto de R$ 60.
+  const ticket = { meta_cpa: null, ticket_ingresso: 30 };
+  const noTeto = cenario(150, 9000, ticket); // CPA R$ 60
+  assert.equal(noTeto.cpa.meta, 60);
+  assert.equal(noTeto.cpa.origemMeta, "mercado");
+  assert.equal(noTeto.cpa.status, "na_meta");
+  assert.equal(noTeto.faltaMeta, false);
+
+  const acimaDoTeto = cenario(150, 9300, ticket); // CPA R$ 62: passou do dobro
+  assert.equal(acimaDoTeto.cpa.status, "abaixo");
+  assert.equal(acimaDoTeto.faixa, "abaixo");
+  assert.match(acimaDoTeto.motivo, /acima do dobro do ticket \(R\$\s62,00 contra teto de R\$\s60,00\)/);
+
+  assert.equal(cenario(150, 7500, ticket).cpa.status, "acima"); // CPA R$ 50
+});
+
+test("meta própria mais frouxa que o mercado: passa na meta, mas avisa do teto", () => {
+  // Meta de R$ 80, ticket de R$ 30 (teto R$ 60), CPA de R$ 70.
+  const u = cenario(150, 10500, { meta_cpa: 80, ticket_ingresso: 30 });
+  assert.equal(u.cpa.status, "acima");
+  assert.equal(u.cpa.origemMeta, "lancamento");
+  assert.equal(u.cpa.acimaDoTeto, true);
+  assert.match(u.motivo, /CPA acima do dobro do ticket/);
+  assert.ok(u.pontos > cenario(150, 10500, { meta_cpa: 80 }).pontos);
+  assert.notEqual(u.faixa, "abaixo");
+});
+
+test("grupo de WhatsApp: pelo menos 95% de quem comprou ingresso", () => {
+  const com = (grupo: number | null) =>
+    calcularUrgencia({
+      lancamento: BASE,
+      foto: { ingressos_vendidos: 150, verba_investida: 6000, grupo_whatsapp: grupo },
+      atrasos: [],
+      hoje: HOJE,
+    });
+  assert.equal(com(143).grupo.status, "na_meta"); // 95,3%
+  assert.equal(com(142).grupo.status, "abaixo"); // 94,7%
+  assert.equal(com(null).grupo.status, "sem_dado");
+  assert.match(com(120).motivo, /Grupo de WhatsApp com 80% dos ingressos \(mínimo 95%\)/);
+  assert.ok(com(120).pontos > com(143).pontos);
+  // É critério de apoio: sozinho não joga o lançamento para "Abaixo da meta".
+  assert.equal(com(120).faixa, "na_meta");
+});
+
 test("só uma meta preenchida: avalia a que existe e avisa da que falta", () => {
   const u = cenario(90, 3600, { meta_cpa: null });
   assert.equal(u.faixa, "abaixo");
   assert.equal(u.cpa.status, "sem_meta");
   assert.equal(u.faltaMeta, true);
-  assert.match(u.motivos.join(" | "), /Falta a meta de CPA/);
+  assert.match(u.motivos.join(" | "), /Falta o ticket do ingresso ou a meta de CPA/);
 });
 
 test("sem tráfego pago: não cobra CPA nem conta como sem meta", () => {

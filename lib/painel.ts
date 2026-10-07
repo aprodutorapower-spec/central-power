@@ -129,18 +129,19 @@ export function resumir(itens: ItemPainel[]) {
   );
   const cpa = dividir(verba, ingressosComTrafego);
 
-  // A meta de CPA do grupo é a média das metas, pesada pelos ingressos vendidos
+  // A meta de CPA do grupo é a média das metas em uso (a do lançamento ou o
+  // teto de mercado), pesada pelos ingressos vendidos
   // (a mesma balança do CPA médio). Sem venda ainda, vale a média simples.
-  const comMetaCpa = comTrafego.filter((item) => item.lancamento.meta_cpa != null);
+  const comMetaCpa = comTrafego.filter((item) => item.urgencia.cpa.meta != null);
   const peso = comMetaCpa.reduce((t, i) => t + (i.foto?.ingressos_vendidos ?? 0), 0);
   const metaCpa = !comMetaCpa.length
     ? null
     : peso
       ? comMetaCpa.reduce(
-          (t, i) => t + i.lancamento.meta_cpa! * (i.foto?.ingressos_vendidos ?? 0),
+          (t, i) => t + i.urgencia.cpa.meta! * (i.foto?.ingressos_vendidos ?? 0),
           0,
         ) / peso
-      : comMetaCpa.reduce((t, i) => t + i.lancamento.meta_cpa!, 0) / comMetaCpa.length;
+      : comMetaCpa.reduce((t, i) => t + i.urgencia.cpa.meta!, 0) / comMetaCpa.length;
   const desvioCpa = cpa != null && metaCpa ? (cpa - metaCpa) / metaCpa : null;
 
   const abaixoIngressos = itens.filter(

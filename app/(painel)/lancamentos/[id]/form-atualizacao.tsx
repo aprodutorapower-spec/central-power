@@ -54,6 +54,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
     foto: {
       verba_investida: lerDinheiro(verba),
       ingressos_vendidos: lerInteiro(ingressos),
+      grupo_whatsapp: lerInteiro(grupo),
     },
     atrasos: [],
     hoje,
@@ -153,14 +154,26 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
           )}
         </p>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-          {lancamento.meta_cpa != null ? (
+          {metas.cpa.status === "nao_se_aplica" ? (
+            <span className="text-apagado">CPA: sem tráfego pago</span>
+          ) : metas.cpa.meta != null ? (
             <>
-              <span>CPA até {formatarReal(lancamento.meta_cpa)}</span>
+              <span>
+                CPA até {formatarReal(metas.cpa.meta)}
+                {metas.cpa.origemMeta === "mercado" ? " (o dobro do ticket)" : ""}
+              </span>
               <SeloMeta status={metas.cpa.status} />
             </>
           ) : (
             <span className="text-apagado">CPA: sem meta ainda</span>
           )}
+        </p>
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span>
+            Grupo de WhatsApp: pelo menos {formatarPercentual(metas.grupo.minimo)} dos
+            ingressos vendidos
+          </span>
+          <SeloMeta status={metas.grupo.status} />
         </p>
       </div>
 

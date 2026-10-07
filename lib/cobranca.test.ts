@@ -9,6 +9,7 @@ const HOJE = "2026-01-16";
 const BASE: EntradaUrgencia["lancamento"] = {
   meta_ingressos: 300,
   meta_cpa: 40,
+  ticket_ingresso: null,
   inicio_vendas: null,
   fim_vendas: null,
   sem_trafego: false,
@@ -55,6 +56,16 @@ test("cita ingressos, CPA e checkpoint atrasado com os números", () => {
       "Consegue me dizer o que está travando e qual é o plano para recuperar? Obrigado!",
     ].join("\n"),
   );
+});
+
+test("cita o grupo de WhatsApp abaixo de 95% e o CPA acima do dobro do ticket", () => {
+  const texto = cobranca(
+    { ingressos_vendidos: 150, verba_investida: 9750, grupo_whatsapp: 120 },
+    { meta_cpa: null, ticket_ingresso: 30 },
+  );
+  assert.match(texto!, /• CPA: R\$\s65,00, 8% acima do teto de R\$\s60,00 \(o dobro do ticket do ingresso\)\./);
+  assert.match(texto!, /• Grupo de WhatsApp: 120 pessoas, 80% dos ingressos vendidos \(o mínimo é 95%\)\./);
+  assert.match(texto!, /qual é o plano para recuperar/);
 });
 
 test("sem nada a cobrar, não há texto", () => {

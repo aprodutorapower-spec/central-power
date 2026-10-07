@@ -28,6 +28,7 @@ function lancamento(
     dfc: "2026-02-04",
     meta_ingressos: 300,
     meta_cpa: 40,
+    ticket_ingresso: null,
     inicio_vendas: null,
     fim_vendas: null,
     sem_trafego: false,

@@ -196,13 +196,14 @@ async function testar() {
   await servico.from("lancamentos").update({ dv0: "2020-01-01" }).eq("id", idComMeta);
   const { data: depoisDoInicio } = await a.cliente
     .from("lancamentos")
-    .update({ nome: `${MARCA} com meta`, meta_ingressos: 1, meta_cpa: 999, sem_trafego: true, fim_vendas: "2030-02-01" })
+    .update({ nome: `${MARCA} com meta`, meta_ingressos: 1, meta_cpa: 999, ticket_ingresso: 5, sem_trafego: true, fim_vendas: "2030-02-01" })
     .eq("id", idComMeta)
-    .select("meta_ingressos, meta_cpa, sem_trafego, fim_vendas, metas_travadas");
+    .select("meta_ingressos, meta_cpa, ticket_ingresso, sem_trafego, fim_vendas, metas_travadas");
   confere(
     "depois do início das vendas, A edita o lançamento mas não muda as metas",
     depoisDoInicio?.[0]?.meta_ingressos === 350 &&
       Number(depoisDoInicio?.[0]?.meta_cpa) === 40 &&
+      depoisDoInicio?.[0]?.ticket_ingresso === null &&
       depoisDoInicio?.[0]?.sem_trafego === false &&
       depoisDoInicio?.[0]?.fim_vendas === null &&
       depoisDoInicio?.[0]?.metas_travadas === true,

@@ -39,7 +39,19 @@ export function textoCobranca({
   }
   if (u.cpa.status === "abaixo") {
     pontos.push(
-      `CPA: ${formatarReal(u.cpa.atual)}, ${pct(u.cpa.desvio!)} acima da meta de ${formatarReal(u.cpa.meta)}.`,
+      u.cpa.origemMeta === "mercado"
+        ? `CPA: ${formatarReal(u.cpa.atual)}, ${pct(u.cpa.desvio!)} acima do teto de ${formatarReal(u.cpa.meta)} (o dobro do ticket do ingresso).`
+        : `CPA: ${formatarReal(u.cpa.atual)}, ${pct(u.cpa.desvio!)} acima da meta de ${formatarReal(u.cpa.meta)}.`,
+    );
+  }
+  if (u.cpa.acimaDoTeto) {
+    pontos.push(
+      `CPA: ${formatarReal(u.cpa.atual)}, acima do teto de ${formatarReal(u.cpa.teto)} (o dobro do ticket do ingresso).`,
+    );
+  }
+  if (u.grupo.status === "abaixo") {
+    pontos.push(
+      `Grupo de WhatsApp: ${formatarInteiro(u.grupo.pessoas)} pessoas, ${pct(u.grupo.proporcao!)} dos ingressos vendidos (o mínimo é ${pct(u.grupo.minimo)}).`,
     );
   }
   if (u.faixa === "sem_dados") {

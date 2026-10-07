@@ -1,5 +1,5 @@
 import { formatarData } from "@/lib/datas";
-import { formatarInteiro, formatarReal } from "@/lib/numeros";
+import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
 import {
   FAIXAS,
   STATUS_META,
@@ -58,11 +58,35 @@ export function BarraIngressos({ urgencia }: { urgencia: Urgencia }) {
   );
 }
 
+// De onde vem a meta de CPA em uso: do lançamento ou da régua de mercado.
+export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
+  const { cpa } = urgencia;
+  if (cpa.status === "nao_se_aplica") {
+    return <p className="mt-1 text-xs text-apagado">Sem tráfego pago</p>;
+  }
+  if (cpa.meta == null) {
+    return <p className="mt-1 text-xs text-apagado">Sem ticket nem meta de CPA</p>;
+  }
+  return (
+    <p className="mt-1 text-xs text-apagado">
+      {cpa.origemMeta === "mercado"
+        ? `Teto: até ${formatarReal(cpa.meta)} (o dobro do ticket)`
+        : `Meta: até ${formatarReal(cpa.meta)}`}
+      {cpa.acimaDoTeto ? (
+        <span className="text-power-claro">
+          {" "}
+          · acima do dobro do ticket ({formatarReal(cpa.teto)})
+        </span>
+      ) : null}
+    </p>
+  );
+}
+
 export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
-  const { ingressos, cpa, janela, diasAteD0 } = urgencia;
+  const { ingressos, cpa, grupo, janela, diasAteD0 } = urgencia;
 
   return (
-    <div className="grid gap-x-6 gap-y-4 sm:grid-cols-3">
+    <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
       <div>
         <p className="flex items-center justify-between gap-2 text-xs text-apagado">
           Ingressos contra a meta
@@ -85,9 +109,20 @@ export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
           <SeloMeta status={cpa.status} />
         </p>
         <p className="mt-0.5 font-semibold">{formatarReal(cpa.atual)}</p>
-        {cpa.meta != null ? (
-          <p className="mt-1 text-xs text-apagado">Meta: até {formatarReal(cpa.meta)}</p>
-        ) : null}
+        <LinhaMetaCpa urgencia={urgencia} />
+      </div>
+      <div>
+        <p className="flex items-center justify-between gap-2 text-xs text-apagado">
+          Grupo de WhatsApp
+          <SeloMeta status={grupo.status} />
+        </p>
+        <p className="mt-0.5 font-semibold">
+          {formatarInteiro(grupo.pessoas)}
+          {grupo.proporcao != null ? ` (${formatarPercentual(grupo.proporcao)} dos ingressos)` : ""}
+        </p>
+        <p className="mt-1 text-xs text-apagado">
+          Mínimo: {formatarPercentual(grupo.minimo)} dos ingressos vendidos
+        </p>
       </div>
       <div>
         <p className="text-xs text-apagado">Venda de ingressos</p>

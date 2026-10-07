@@ -10,6 +10,12 @@ import type { Foto } from "./metricas";
 
 // Margem em volta da meta: até 10% para cima ou para baixo conta como "Na meta".
 export const TOLERANCIA_META = 0.1;
+// Réguas de mercado (Ricardo, 07/10/2026):
+// o grupo de WhatsApp precisa ter pelo menos 95% de quem comprou ingresso...
+export const MINIMO_GRUPO_WHATSAPP = 0.95;
+// ...e o CPA pode ser no máximo o dobro do ticket do ingresso. Esse teto vale
+// como meta de CPA quando o lançamento não tem uma meta própria.
+export const MULTIPLO_TETO_CPA = 2;
 // Passou disso sem atualização do estrategista, a tela destaca.
 export const LIMITE_SEM_ATUALIZAR_DIAS = 7;
 
@@ -24,13 +30,16 @@ export const DIAS_PROXIMIDADE_D0 = 14;
 export const PESO_SEM_DADOS = 650; // vendas já começaram e não há métricas
 export const PESO_SEM_META = 600; // falta o admin definir as metas
 export const PESO_ACIMA = -50; // acima da meta vai para o fim da fila
-// Desempates. Somados chegam no máximo a 300: nunca passam um critério principal.
+// Desempates. Somados chegam no máximo a 340: nunca passam um critério principal.
 export const PESO_DIA_DE_ATRASO = 10; // por dia de atraso de cada checkpoint
-export const TETO_ATRASOS = 150;
+export const TETO_ATRASOS = 120;
 export const PESO_DIA_SEM_ATUALIZAR = 5; // por dia sem atualização do estrategista
-export const TETO_SEM_ATUALIZAR = 100; // "nunca atualizado" vale o teto
-export const PESO_STATUS_VERMELHO = 50; // estrategista marcou "Em risco"
-export const PESO_STATUS_AMARELO = 20; // estrategista marcou "Atenção"
+export const TETO_SEM_ATUALIZAR = 80; // "nunca atualizado" vale o teto
+export const PESO_STATUS_VERMELHO = 40; // estrategista marcou "Em risco"
+export const PESO_STATUS_AMARELO = 15; // estrategista marcou "Atenção"
+export const PESO_GRUPO_ABAIXO = 50; // grupo de WhatsApp abaixo dos 95%
+// CPA dentro da meta própria do lançamento, mas acima do dobro do ticket.
+export const PESO_CPA_ACIMA_DO_TETO = 50;
 
 // Situação geral do lançamento frente às metas.
 export type Faixa =
@@ -94,6 +103,7 @@ export type EntradaUrgencia = {
     Lancamento,
     | "meta_ingressos"
     | "meta_cpa"
+    | "ticket_ingresso"
     | "inicio_vendas"
     | "fim_vendas"
     | "sem_trafego"
@@ -104,7 +114,11 @@ export type EntradaUrgencia = {
     | "status_atualizado_em"
   >;
   // Última foto de métricas (null = nenhuma ainda).
-  foto: Pick<Foto, "verba_investida" | "ingressos_vendidos"> | null;
+  foto:
+    | (Pick<Foto, "verba_investida" | "ingressos_vendidos"> & {
+        grupo_whatsapp?: number | null;
+      })
+    | null;
   // Dias de atraso de cada checkpoint atrasado.
   atrasos: number[];
   hoje: string;
@@ -158,23 +172,49 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
 
   // CPA: menor é melhor. Sem ingresso vendido não há CPA, e isso não pune.
   const cpaAtual = dividir(foto?.verba_investida, vendidos);
+  // A referência é a meta do lançamento; sem ela, o teto de mercado (o dobro do
+  // ticket). O teto é um máximo: não tem a margem de 10% para cima.
+  const tetoCpa =
+    l.ticket_ingresso == null ? null : l.ticket_ingresso * MULTIPLO_TETO_CPA;
+  const metaCpa = l.sem_trafego ? null : (l.meta_cpa ?? tetoCpa);
+  const origemMetaCpa =
+    metaCpa == null ? null : l.meta_cpa != null ? ("lancamento" as const) : ("mercado" as const);
+  const margemCpa = origemMetaCpa === "lancamento" ? TOLERANCIA_META : 0;
+
   let statusCpa: StatusMeta;
   if (l.sem_trafego) statusCpa = "nao_se_aplica";
-  else if (l.meta_cpa == null) statusCpa = "sem_meta";
+  else if (metaCpa == null) statusCpa = "sem_meta";
   else if (cpaAtual == null) statusCpa = "sem_dado";
-  else if (cpaAtual <= l.meta_cpa * (1 - TOLERANCIA_META)) statusCpa = "acima";
-  else if (cpaAtual <= l.meta_cpa * (1 + TOLERANCIA_META)) statusCpa = "na_meta";
+  else if (cpaAtual <= metaCpa * (1 - TOLERANCIA_META)) statusCpa = "acima";
+  else if (cpaAtual <= metaCpa * (1 + margemCpa)) statusCpa = "na_meta";
   else statusCpa = "abaixo";
+  // Meta própria mais frouxa que o mercado: o CPA passa na meta, mas fura o teto.
+  const cpaAcimaDoTeto =
+    !l.sem_trafego &&
+    statusCpa !== "abaixo" &&
+    tetoCpa != null &&
+    cpaAtual != null &&
+    cpaAtual > tetoCpa;
+
+  // Grupo de WhatsApp: pelo menos 95% de quem comprou ingresso.
+  const noGrupo = foto?.grupo_whatsapp ?? null;
+  const proporcaoGrupo = dividir(noGrupo, vendidos);
+  const statusGrupo: StatusMeta =
+    proporcaoGrupo == null
+      ? "sem_dado"
+      : proporcaoGrupo >= MINIMO_GRUPO_WHATSAPP
+        ? "na_meta"
+        : "abaixo";
 
   // Desvios com sinal: negativo em ingressos e positivo em CPA são os lados ruins.
   const desvioIngressos =
     esperado && vendidos != null ? (vendidos - esperado) / esperado : null;
   const desvioCpa =
-    l.meta_cpa && cpaAtual != null ? (cpaAtual - l.meta_cpa) / l.meta_cpa : null;
+    metaCpa && cpaAtual != null ? (cpaAtual - metaCpa) / metaCpa : null;
 
   // Sem tráfego pago não se cobra CPA; a meta de ingressos passa a ser opcional.
   const foraDasMetas = l.sem_trafego && l.meta_ingressos == null;
-  const semMeta = !l.sem_trafego && l.meta_ingressos == null && l.meta_cpa == null;
+  const semMeta = !l.sem_trafego && l.meta_ingressos == null && metaCpa == null;
   const semDados = vendidos == null;
   const abaixo = [statusIngressos, statusCpa].filter((s) => s === "abaixo").length;
   const avaliados = [statusIngressos, statusCpa].filter(
@@ -221,6 +261,8 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
       : Math.min(diasSemAtualizar * PESO_DIA_SEM_ATUALIZAR, TETO_SEM_ATUALIZAR);
   if (l.status === "vermelho") pontos += PESO_STATUS_VERMELHO;
   if (l.status === "amarelo") pontos += PESO_STATUS_AMARELO;
+  if (statusGrupo === "abaixo") pontos += PESO_GRUPO_ABAIXO;
+  if (cpaAcimaDoTeto) pontos += PESO_CPA_ACIMA_DO_TETO;
 
   // Motivo em frases curtas, do mais grave para o menos grave.
   const motivos: string[] = [];
@@ -231,13 +273,27 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   }
   if (statusCpa === "abaixo") {
     motivos.push(
-      `CPA ${pct(desvioCpa!)} acima da meta (${formatarReal(cpaAtual)} contra ${formatarReal(l.meta_cpa)})`,
+      origemMetaCpa === "mercado"
+        ? `CPA ${pct(desvioCpa!)} acima do dobro do ticket (${formatarReal(cpaAtual)} contra teto de ${formatarReal(metaCpa)})`
+        : `CPA ${pct(desvioCpa!)} acima da meta (${formatarReal(cpaAtual)} contra ${formatarReal(metaCpa)})`,
+    );
+  }
+  if (cpaAcimaDoTeto) {
+    motivos.push(
+      `CPA acima do dobro do ticket (${formatarReal(cpaAtual)} contra teto de ${formatarReal(tetoCpa)})`,
+    );
+  }
+  if (statusGrupo === "abaixo") {
+    motivos.push(
+      `Grupo de WhatsApp com ${pct(proporcaoGrupo!)} dos ingressos (mínimo ${pct(MINIMO_GRUPO_WHATSAPP)})`,
     );
   }
   if (semMeta) motivos.push("Sem meta definida");
   else if (!l.sem_trafego && l.meta_ingressos == null) {
     motivos.push("Falta a meta de ingressos");
-  } else if (!l.sem_trafego && l.meta_cpa == null) motivos.push("Falta a meta de CPA");
+  } else if (!l.sem_trafego && metaCpa == null) {
+    motivos.push("Falta o ticket do ingresso ou a meta de CPA");
+  }
   if (semDados && vendasComecaram && !foraDasMetas) {
     motivos.push("Vendas começaram e não há métricas registradas");
   }
@@ -269,7 +325,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   return {
     faixa,
     pontos,
-    faltaMeta: !l.sem_trafego && (l.meta_ingressos == null || l.meta_cpa == null),
+    faltaMeta: !l.sem_trafego && (l.meta_ingressos == null || metaCpa == null),
     janela: { inicio, fim, vendasComecaram },
     ingressos: {
       status: statusIngressos,
@@ -278,7 +334,22 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
       esperado: esperado == null ? null : Math.round(esperado),
       desvio: desvioIngressos,
     },
-    cpa: { status: statusCpa, atual: cpaAtual, meta: l.meta_cpa, desvio: desvioCpa },
+    cpa: {
+      status: statusCpa,
+      atual: cpaAtual,
+      // Meta em uso e de onde ela vem: do lançamento ou do teto de mercado.
+      meta: metaCpa,
+      origemMeta: origemMetaCpa,
+      teto: l.sem_trafego ? null : tetoCpa,
+      acimaDoTeto: cpaAcimaDoTeto,
+      desvio: desvioCpa,
+    },
+    grupo: {
+      status: statusGrupo,
+      pessoas: noGrupo,
+      proporcao: proporcaoGrupo,
+      minimo: MINIMO_GRUPO_WHATSAPP,
+    },
     diasAteD0,
     checkpointsAtrasados: atrasos.length,
     maiorAtraso,
