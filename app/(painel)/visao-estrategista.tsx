@@ -13,7 +13,7 @@ import {
   SeloFaixa,
   SeloMeta,
 } from "./lancamentos/painel-metas";
-import { Contagens, CpaDoGrupo, IngressosDoGrupo } from "./visao-geral";
+import { Contagens, CpaDoGrupo, IngressosDoGrupo, VerbaDoGrupo } from "./visao-geral";
 
 const BOTAO =
   "rounded-lg border border-borda px-3 py-1.5 text-sm hover:border-power";
@@ -172,7 +172,15 @@ function CartaoLancamento({
 
         <dl className="grid grid-cols-3 gap-x-4 gap-y-2 self-start sm:col-span-2 lg:col-span-1 lg:grid-cols-1">
           {[
-            ["Verba investida", formatarReal(foto?.verba_investida)],
+            [
+              lancamento.verba_prevista
+                ? `Verba investida (de ${formatarReal(lancamento.verba_prevista)} previstos)`
+                : "Verba investida",
+              formatarReal(foto?.verba_investida) +
+                (lancamento.verba_prevista
+                  ? ` · ${formatarPercentual((foto?.verba_investida ?? 0) / lancamento.verba_prevista)}`
+                  : ""),
+            ],
             ["Receita de ingressos", formatarReal(foto?.receita_ingressos)],
             ["Ticket médio", formatarReal(numeros?.ticketMedio)],
           ].map(([rotulo, valor]) => (
@@ -323,8 +331,10 @@ export function VisaoDoEstrategista({
             </div>
           </div>
           <div>
-            <Rotulo>Verba investida</Rotulo>
-            <p className="mt-0.5 font-semibold">{formatarReal(resumo.verba)}</p>
+            <Rotulo>Verba investida contra a prevista</Rotulo>
+            <p className="mt-0.5">
+              <VerbaDoGrupo resumo={resumo} />
+            </p>
           </div>
           <div>
             <Rotulo>Ingressos vendidos contra a meta</Rotulo>

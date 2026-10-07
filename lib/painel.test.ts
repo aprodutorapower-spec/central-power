@@ -29,6 +29,7 @@ function lancamento(
     meta_ingressos: 300,
     meta_cpa: 40,
     ticket_ingresso: null,
+    verba_prevista: null,
     inicio_vendas: null,
     fim_vendas: null,
     sem_trafego: false,
@@ -145,6 +146,7 @@ test("resumo soma ingressos e calcula o CPA médio ponderado", () => {
   assert.equal(caio.ingressos, 270);
   assert.equal(caio.metaIngressos, 600);
   assert.equal(caio.verba, 10800);
+  assert.equal(caio.verbaPrevista, 0); // ninguém informou a verba prevista
   assert.equal(caio.cpa, 40); // 10.800 ÷ 270
   assert.equal(caio.metaCpa, 40);
 });

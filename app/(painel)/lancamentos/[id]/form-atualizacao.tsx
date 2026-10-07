@@ -92,7 +92,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
       <p className="mt-5 text-sm font-semibold">Números até agora</p>
       <div className="mt-2 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <label className="block text-sm text-apagado">
-          Verba investida (R$)
+          Verba investida até agora (R$)
           <input
             name="verba_investida"
             inputMode="decimal"
@@ -168,6 +168,14 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
             <span className="text-apagado">CPA: sem meta ainda</span>
           )}
         </p>
+        {lancamento.verba_prevista != null ? (
+          <p className="mt-1">
+            Verba total prevista: {formatarReal(lancamento.verba_prevista)}
+            {lerDinheiro(verba) != null && lancamento.verba_prevista > 0
+              ? ` (${formatarPercentual(lerDinheiro(verba)! / lancamento.verba_prevista)} já investidos)`
+              : ""}
+          </p>
+        ) : null}
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span>
             Grupo de WhatsApp: pelo menos {formatarPercentual(metas.grupo.minimo)} dos

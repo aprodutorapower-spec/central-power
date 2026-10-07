@@ -47,6 +47,9 @@ export async function salvarLancamento(
       ? null
       : lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null,
     ticket_ingresso: lerDinheiro(String(formData.get("ticket_ingresso") ?? "")) || null,
+    verba_prevista: sem_trafego
+      ? null
+      : lerDinheiro(String(formData.get("verba_prevista") ?? "")),
     fim_vendas: data(formData, "fim_vendas"),
     sem_trafego,
   };
@@ -54,6 +57,9 @@ export async function salvarLancamento(
     if (metas.meta_ingressos == null) return { erro: "Informe a meta de ingressos." };
     if (!sem_trafego && metas.ticket_ingresso == null) {
       return { erro: "Informe o ticket do ingresso (ou marque “Sem tráfego pago”)." };
+    }
+    if (!sem_trafego && metas.verba_prevista == null) {
+      return { erro: "Informe a verba total prevista (ou marque “Sem tráfego pago”)." };
     }
   }
 

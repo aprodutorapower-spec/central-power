@@ -26,8 +26,10 @@ const INICIAL: ResultadoLancamento = {};
 
 const EXPLICACAO_TICKET =
   "Preço do ingresso. Se houver mais de um preço (lotes, ingresso VIP, cupons), coloque o ticket médio: o valor médio pago por ingresso. Ele define o teto de mercado do CPA: o CPA deve ficar em, no máximo, o dobro do ticket.";
+const EXPLICACAO_VERBA =
+  "Quanto será investido em anúncios no lançamento inteiro, do começo ao fim. É diferente da verba investida até agora, que o estrategista informa em cada atualização: o sistema mostra uma contra a outra.";
 const EXPLICACAO_META_CPA =
-  "Valor máximo que se aceita gastar em anúncio por ingresso vendido. Em branco, vale a régua de mercado: o dobro do ticket do ingresso. Preencha só se este lançamento tiver uma meta diferente.";
+  "Valor máximo que se aceita gastar em anúncio por ingresso vendido. Não é obrigatória. Quando preenchida, é ela que vale. Em branco, o sistema usa a régua de mercado: o dobro do ticket do ingresso.";
 
 // Rótulo de um campo de data com o "?" que explica o que ela é.
 function RotuloData({ campo, children }: { campo: ChaveMarco; children: React.ReactNode }) {
@@ -259,6 +261,22 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
               />
             </div>
             <div>
+              <div className="relative flex items-center gap-1.5 text-sm text-apagado">
+                <label htmlFor="verba_prevista">Verba total prevista (R$)</label>
+                <Dica texto={EXPLICACAO_VERBA} />
+              </div>
+              <input
+                id="verba_prevista"
+                name="verba_prevista"
+                inputMode="decimal"
+                required={metasObrigatorias && !semTrafego}
+                disabled={semTrafego}
+                defaultValue={dinheiroParaCampo(lancamento?.verba_prevista)}
+                placeholder={semTrafego ? "Não se aplica" : "Ex.: 15.000,00"}
+                className={CAMPO}
+              />
+            </div>
+            <div>
               <label className="block text-sm text-apagado" htmlFor="fim_vendas">
                 Fim das vendas de ingressos
               </label>
@@ -308,6 +326,12 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
             <>
               {" · ticket de "}
               <span className="text-texto">{formatarReal(lancamento.ticket_ingresso)}</span>
+            </>
+          ) : null}
+          {lancamento?.verba_prevista != null ? (
+            <>
+              {" · verba total prevista de "}
+              <span className="text-texto">{formatarReal(lancamento.verba_prevista)}</span>
             </>
           ) : null}
           {lancamento ? (

@@ -148,6 +148,7 @@ export function resumir(itens: ItemPainel[]) {
     (i) => i.urgencia.ingressos.status === "abaixo",
   ).length;
   const abaixoCpa = itens.filter((i) => i.urgencia.cpa.status === "abaixo").length;
+  const abaixoGrupo = itens.filter((i) => i.urgencia.grupo.status === "abaixo").length;
 
   // "Atualizado há X dias" do lançamento mais defasado.
   const nuncaAtualizados = itens.filter(
@@ -170,6 +171,7 @@ export function resumir(itens: ItemPainel[]) {
   if (desvioCpa != null && desvioCpa > TOLERANCIA_META) {
     partes.push(`CPA ${formatarPercentual(desvioCpa)} acima da meta`);
   } else if (abaixoCpa) partes.push(`${abaixoCpa} com CPA acima da meta`);
+  if (abaixoGrupo) partes.push(`${abaixoGrupo} com grupo de WhatsApp abaixo de 95%`);
   if (porFaixa.sem_dados) partes.push(`${porFaixa.sem_dados} sem dados`);
   if (porFaixa.sem_meta) partes.push(`${porFaixa.sem_meta} sem meta`);
   if (nuncaAtualizados) partes.push(`${nuncaAtualizados} nunca atualizado${nuncaAtualizados > 1 ? "s" : ""}`);
@@ -184,7 +186,10 @@ export function resumir(itens: ItemPainel[]) {
     pior,
     abaixoIngressos,
     abaixoCpa,
+    abaixoGrupo,
     verba,
+    // Soma do que está previsto investir ao todo (só de quem informou).
+    verbaPrevista: soma((i) => i.lancamento.verba_prevista),
     ingressos: soma((i) => i.foto?.ingressos_vendidos),
     metaIngressos: soma((i) => i.lancamento.meta_ingressos),
     cpa,

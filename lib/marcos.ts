@@ -43,6 +43,7 @@ export type Lancamento = {
   meta_ingressos: number | null;
   meta_cpa: number | null;
   ticket_ingresso: number | null;
+  verba_prevista: number | null;
   inicio_vendas: string | null;
   fim_vendas: string | null;
   sem_trafego: boolean;

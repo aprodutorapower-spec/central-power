@@ -95,6 +95,17 @@ export function IngressosDoGrupo({ resumo }: { resumo: Resumo }) {
   );
 }
 
+export function VerbaDoGrupo({ resumo }: { resumo: Resumo }) {
+  return (
+    <>
+      <span className="font-semibold">{formatarReal(resumo.verba)}</span>
+      {resumo.verbaPrevista ? (
+        <span className="text-apagado"> de {formatarReal(resumo.verbaPrevista)}</span>
+      ) : null}
+    </>
+  );
+}
+
 export function CpaDoGrupo({ resumo }: { resumo: Resumo }) {
   const fora = resumo.desvioCpa != null && resumo.desvioCpa > TOLERANCIA_META;
   return (
@@ -264,8 +275,8 @@ export async function VisaoGeral() {
         >
           <Contagens resumo={operacao} />
         </Dado>
-        <Dado rotulo="Verba investida">
-          <span className="font-semibold">{formatarReal(operacao.verba)}</span>
+        <Dado rotulo="Verba investida contra a prevista">
+          <VerbaDoGrupo resumo={operacao} />
         </Dado>
         <Dado rotulo="Ingressos vendidos contra a meta">
           <IngressosDoGrupo resumo={operacao} />

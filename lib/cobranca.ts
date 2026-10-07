@@ -44,11 +44,6 @@ export function textoCobranca({
         : `CPA: ${formatarReal(u.cpa.atual)}, ${pct(u.cpa.desvio!)} acima da meta de ${formatarReal(u.cpa.meta)}.`,
     );
   }
-  if (u.cpa.acimaDoTeto) {
-    pontos.push(
-      `CPA: ${formatarReal(u.cpa.atual)}, acima do teto de ${formatarReal(u.cpa.teto)} (o dobro do ticket do ingresso).`,
-    );
-  }
   if (u.grupo.status === "abaixo") {
     pontos.push(
       `Grupo de WhatsApp: ${formatarInteiro(u.grupo.pessoas)} pessoas, ${pct(u.grupo.proporcao!)} dos ingressos vendidos (o mínimo é ${pct(u.grupo.minimo)}).`,

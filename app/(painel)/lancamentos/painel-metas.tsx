@@ -72,12 +72,6 @@ export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
       {cpa.origemMeta === "mercado"
         ? `Teto: até ${formatarReal(cpa.meta)} (o dobro do ticket)`
         : `Meta: até ${formatarReal(cpa.meta)}`}
-      {cpa.acimaDoTeto ? (
-        <span className="text-power-claro">
-          {" "}
-          · acima do dobro do ticket ({formatarReal(cpa.teto)})
-        </span>
-      ) : null}
     </p>
   );
 }

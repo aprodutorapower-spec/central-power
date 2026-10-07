@@ -170,7 +170,15 @@ export default async function LancamentoPage({
 
         {ultima && numeros ? (
           <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-4">
-            <Numero rotulo="Verba investida" valor={formatarReal(ultima.verba_investida)} />
+            <Numero
+              rotulo="Verba investida"
+              valor={
+                formatarReal(ultima.verba_investida) +
+                (lancamento.verba_prevista
+                  ? ` de ${formatarReal(lancamento.verba_prevista)} (${formatarPercentual((ultima.verba_investida ?? 0) / lancamento.verba_prevista)})`
+                  : "")
+              }
+            />
             <Numero rotulo="Receita de ingressos" valor={formatarReal(ultima.receita_ingressos)} />
             <Numero
               rotulo="No grupo de WhatsApp"
