@@ -18,38 +18,31 @@ import { Contagens, CpaDoGrupo, IngressosDoGrupo, VerbaDoGrupo } from "./visao-g
 const BOTAO =
   "rounded-lg border border-borda px-3 py-1.5 text-sm hover:border-power";
 
-// Mini gráfico de linha, só para mostrar a direção. Precisa de 2 pontos.
-function MiniGrafico({ valores, rotulo }: { valores: number[]; rotulo: string }) {
-  if (valores.length < 2) {
-    return <p className="mt-2 text-xs text-apagado">Sem histórico para o gráfico ainda</p>;
-  }
-  const L = 120;
-  const A = 28;
-  const minimo = Math.min(...valores);
-  const faixa = Math.max(...valores) - minimo || 1;
-  const pontos = valores.map((valor, i) => [
-    (i / (valores.length - 1)) * (L - 6) + 3,
-    A - 3 - ((valor - minimo) / faixa) * (A - 6),
-  ]);
-  const [ultimoX, ultimoY] = pontos[pontos.length - 1];
-
+// Bloco padrão do cartão: rótulo e selo em cima, o número no meio e um
+// detalhe embaixo. Todos têm o mesmo formato para a leitura ser em grade.
+function Bloco({
+  rotulo,
+  selo,
+  valor,
+  detalhe,
+  children,
+}: {
+  rotulo: string;
+  selo?: React.ReactNode;
+  valor: React.ReactNode;
+  detalhe?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
   return (
-    <svg
-      viewBox={`0 0 ${L} ${A}`}
-      className="mt-2 h-7 w-30 text-apagado"
-      role="img"
-      aria-label={`${rotulo}: de ${Math.round(valores[0])} para ${Math.round(valores[valores.length - 1])} em ${valores.length} atualizações`}
-    >
-      <polyline
-        points={pontos.map((p) => p.join(",")).join(" ")}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx={ultimoX} cy={ultimoY} r="2.5" className="fill-texto" />
-    </svg>
+    <div className="rounded-lg bg-cartao-2 px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-apagado">{rotulo}</p>
+        {selo}
+      </div>
+      <p className="mt-1 font-semibold">{valor}</p>
+      {children}
+      {detalhe ? <div className="mt-1 text-xs text-apagado">{detalhe}</div> : null}
+    </div>
   );
 }
 
@@ -132,140 +125,131 @@ function CartaoLancamento({
         {urgencia.motivo}
       </p>
 
-      <div className="mt-4 grid gap-x-6 gap-y-4 border-t border-borda pt-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div>
-          <div className="flex items-center justify-between gap-2">
-            <Rotulo>Ingressos contra a meta</Rotulo>
-            <SeloMeta status={urgencia.ingressos.status} />
-          </div>
-          <p className="mt-0.5 font-semibold">
-            {formatarInteiro(urgencia.ingressos.vendidos)}
-            {urgencia.ingressos.meta != null
+      {/* Oito blocos do mesmo tamanho: os três critérios e a verba em cima,
+          dinheiro e linha do tempo embaixo. */}
+      <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <Bloco
+          rotulo="Ingressos"
+          selo={<SeloMeta status={urgencia.ingressos.status} />}
+          valor={
+            formatarInteiro(urgencia.ingressos.vendidos) +
+            (urgencia.ingressos.meta != null
               ? ` de ${formatarInteiro(urgencia.ingressos.meta)}`
-              : ""}
-            {urgencia.ingressos.meta != null ? (
-              <span className="ml-2 text-xs font-normal text-apagado">
-                esperado até hoje: {formatarInteiro(urgencia.ingressos.esperado)}
-              </span>
-            ) : null}
-          </p>
+              : "")
+          }
+          detalhe={
+            urgencia.ingressos.meta != null
+              ? `Esperado até hoje: ${formatarInteiro(urgencia.ingressos.esperado)}`
+              : "Sem meta de ingressos"
+          }
+        >
           <BarraIngressos urgencia={urgencia} />
-          <MiniGrafico valores={item.serieIngressos} rotulo="Ingressos vendidos" />
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between gap-2">
-            <Rotulo>CPA contra a meta</Rotulo>
-            <SeloMeta status={urgencia.cpa.status} />
-          </div>
-          <p className="mt-0.5 font-semibold">
-            {formatarReal(urgencia.cpa.atual)}
-            {tendencia ? (
-              <span className={`ml-2 text-sm ${tendencia.cor}`}>
-                <span aria-hidden>{tendencia.icone}</span> {tendencia.texto}
-              </span>
-            ) : null}
-          </p>
-          <LinhaMetaCpa urgencia={urgencia} />
-          <MiniGrafico valores={item.serieCpa} rotulo="CPA" />
-        </div>
-
-        <dl className="grid grid-cols-3 gap-x-4 gap-y-2 self-start sm:col-span-2 lg:col-span-1 lg:grid-cols-1">
-          {[
-            [
-              lancamento.verba_prevista
-                ? `Verba investida (de ${formatarReal(lancamento.verba_prevista)} previstos)`
-                : "Verba investida",
-              formatarReal(foto?.verba_investida) +
-                (lancamento.verba_prevista
-                  ? ` · ${formatarPercentual((foto?.verba_investida ?? 0) / lancamento.verba_prevista)}`
-                  : ""),
-            ],
-            ["Receita de ingressos", formatarReal(foto?.receita_ingressos)],
-            ["Ticket médio", formatarReal(numeros?.ticketMedio)],
-          ].map(([rotulo, valor]) => (
-            <div key={rotulo} className="lg:flex lg:items-baseline lg:justify-between lg:gap-3">
-              <dt className="text-xs text-apagado">{rotulo}</dt>
-              <dd className="font-semibold">{valor}</dd>
-            </div>
-          ))}
-          <div className="col-span-3 lg:col-span-1 lg:flex lg:items-baseline lg:justify-between lg:gap-3">
-            <dt className="text-xs text-apagado">
-              Grupo de WhatsApp (mínimo {formatarPercentual(urgencia.grupo.minimo)})
-            </dt>
-            <dd className="flex flex-wrap items-baseline gap-x-2 font-semibold">
-              {formatarInteiro(urgencia.grupo.pessoas)}
-              {urgencia.grupo.proporcao != null
-                ? ` (${formatarPercentual(urgencia.grupo.proporcao)})`
-                : ""}
-              <SeloMeta status={urgencia.grupo.status} />
-            </dd>
-          </div>
-        </dl>
-      </div>
-
-      <div className="mt-4 grid gap-x-6 gap-y-4 border-t border-borda pt-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div>
-          <Rotulo>Próximo na linha do tempo</Rotulo>
-          {proximo ? (
-            <p className="mt-0.5 text-sm">
-              {tituloDoItem(proximo)}{" "}
+        </Bloco>
+        <Bloco
+          rotulo="CPA"
+          selo={<SeloMeta status={urgencia.cpa.status} />}
+          valor={
+            <>
+              {formatarReal(urgencia.cpa.atual)}
+              {tendencia ? (
+                <span className={`ml-2 text-sm font-normal ${tendencia.cor}`}>
+                  <span aria-hidden>{tendencia.icone}</span> {tendencia.texto}
+                </span>
+              ) : null}
+            </>
+          }
+          detalhe={<LinhaMetaCpa urgencia={urgencia} />}
+        />
+        <Bloco
+          rotulo="Grupo de WhatsApp"
+          selo={<SeloMeta status={urgencia.grupo.status} />}
+          valor={
+            formatarInteiro(urgencia.grupo.pessoas) +
+            (urgencia.grupo.proporcao != null
+              ? ` (${formatarPercentual(urgencia.grupo.proporcao)})`
+              : "")
+          }
+          detalhe={`Mínimo: ${formatarPercentual(urgencia.grupo.minimo)} dos ingressos`}
+        />
+        <Bloco
+          rotulo="Verba investida"
+          valor={formatarReal(foto?.verba_investida)}
+          detalhe={
+            lancamento.verba_prevista
+              ? `${formatarPercentual((foto?.verba_investida ?? 0) / lancamento.verba_prevista)} de ${formatarReal(lancamento.verba_prevista)} previstos`
+              : lancamento.sem_trafego
+                ? "Sem tráfego pago"
+                : "Sem verba total prevista"
+          }
+        />
+        <Bloco
+          rotulo="Receita de ingressos"
+          valor={formatarReal(foto?.receita_ingressos)}
+        />
+        <Bloco
+          rotulo="Ticket médio"
+          valor={formatarReal(numeros?.ticketMedio)}
+          detalhe={
+            lancamento.ticket_ingresso != null
+              ? `Ticket cadastrado: ${formatarReal(lancamento.ticket_ingresso)}`
+              : undefined
+          }
+        />
+        <Bloco
+          rotulo="Próximo na linha do tempo"
+          valor={
+            proximo ? (
+              <span className="text-sm">{tituloDoItem(proximo)}</span>
+            ) : (
+              <span className="text-sm font-normal text-apagado">Nada pela frente</span>
+            )
+          }
+          detalhe={
+            proximo ? (
               <span className={CORES[proximo.cor].texto}>
                 {formatarData(proximo.data)} · {contagem(proximo.dias)}
               </span>
-            </p>
-          ) : (
-            <p className="mt-0.5 text-sm text-apagado">Nada pela frente</p>
-          )}
-        </div>
-        <div>
-          <Rotulo>Checkpoints atrasados</Rotulo>
-          {item.atrasados.length ? (
-            <ul className="mt-0.5 text-sm">
-              {item.atrasados.map((atrasado) => (
-                <li key={atrasado.titulo}>
-                  {atrasado.titulo}{" "}
-                  <span className="text-power-claro">
-                    há {atrasado.dias} {atrasado.dias === 1 ? "dia" : "dias"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-0.5 text-sm text-apagado">Nenhum</p>
-          )}
-        </div>
-        <div>
-          <Rotulo>Estrategista</Rotulo>
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-sm">
-            {status ? (
-              <span className="inline-flex items-center gap-1.5">
-                <span className={`h-2.5 w-2.5 rounded-full ${status.ponto}`} aria-hidden />
-                {status.rotulo}
-              </span>
-            ) : null}
-            <span className={urgencia.parado ? "text-power-claro" : "text-apagado"}>
-              {urgencia.diasSemAtualizar == null
-                ? "Nunca atualizado"
-                : `Atualizado ${haQuanto(urgencia.diasSemAtualizar)}`}
-            </span>
-          </p>
-          {lancamento.bloqueio ? (
-            <p className="mt-1 text-sm">
-              <span className="text-apagado">Bloqueio: </span>
-              {lancamento.bloqueio}
-            </p>
-          ) : null}
-          {lancamento.proximo_passo ? (
-            <p className="mt-1 text-sm">
-              <span className="text-apagado">Próximo passo: </span>
-              {lancamento.proximo_passo}
-            </p>
-          ) : null}
-        </div>
+            ) : undefined
+          }
+        />
+        <Bloco
+          rotulo="Checkpoints atrasados"
+          valor={
+            item.atrasados.length ? (
+              <span className="text-power-claro">{item.atrasados.length}</span>
+            ) : (
+              <span className="text-sm font-normal text-apagado">Nenhum</span>
+            )
+          }
+          detalhe={
+            item.atrasados.length
+              ? item.atrasados
+                  .map((a) => `${a.titulo} há ${a.dias} ${a.dias === 1 ? "dia" : "dias"}`)
+                  .join(" · ")
+              : undefined
+          }
+        />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      {lancamento.bloqueio || lancamento.proximo_passo ? (
+        <p className="mt-3 text-sm">
+          {lancamento.bloqueio ? (
+            <>
+              <span className="text-apagado">Bloqueio: </span>
+              {lancamento.bloqueio}{" "}
+            </>
+          ) : null}
+          {lancamento.proximo_passo ? (
+            <>
+              <span className="text-apagado">Próximo passo: </span>
+              {lancamento.proximo_passo}
+            </>
+          ) : null}
+        </p>
+      ) : null}
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex flex-wrap items-center gap-2">
         {cobranca ? (
           <BotaoCopiar
             texto={cobranca}
@@ -280,6 +264,21 @@ function CartaoLancamento({
         <Link href={`/lancamentos/${lancamento.id}`} className={BOTAO}>
           {admin ? "Abrir lançamento" : "Atualizar lançamento"}
         </Link>
+        </div>
+        <p className="flex flex-wrap items-center gap-x-2 text-sm">
+          <span className="text-apagado">Estrategista:</span>
+          {status ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className={`h-2.5 w-2.5 rounded-full ${status.ponto}`} aria-hidden />
+              {status.rotulo}
+            </span>
+          ) : null}
+          <span className={urgencia.parado ? "text-power-claro" : "text-apagado"}>
+            {urgencia.diasSemAtualizar == null
+              ? "Nunca atualizado"
+              : `Atualizado ${haQuanto(urgencia.diasSemAtualizar)}`}
+          </span>
+        </p>
       </div>
     </CartaoComPainel>
   );

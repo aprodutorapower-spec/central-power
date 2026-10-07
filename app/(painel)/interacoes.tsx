@@ -47,8 +47,19 @@ export function LembrarRolagem() {
   const caminho = usePathname();
 
   useEffect(() => {
+    let tentativa = 0;
+    let quadro = 0;
     if (sessionStorage.getItem(RESTAURAR) === caminho) {
-      window.scrollTo(0, Number(sessionStorage.getItem(ROLAGEM + caminho) ?? 0));
+      const alvo = Number(sessionStorage.getItem(ROLAGEM + caminho) ?? 0);
+      // A página pode ainda estar terminando de se montar (ou o navegador
+      // pode jogar a rolagem para o topo logo depois): insiste por alguns
+      // instantes até a altura ficar certa.
+      const rolar = () => {
+        window.scrollTo(0, alvo);
+        tentativa += 1;
+        if (tentativa < 30) quadro = requestAnimationFrame(rolar);
+      };
+      rolar();
     }
     sessionStorage.removeItem(RESTAURAR);
 
@@ -59,7 +70,10 @@ export function LembrarRolagem() {
       sessionStorage.setItem(ROLAGEM + caminho, String(window.scrollY));
     };
     document.addEventListener("click", guardar, true);
-    return () => document.removeEventListener("click", guardar, true);
+    return () => {
+      cancelAnimationFrame(quadro);
+      document.removeEventListener("click", guardar, true);
+    };
   }, [caminho]);
 
   return null;

@@ -1,7 +1,13 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { gerarLinkDeAcesso, type ResultadoAcesso } from "./actions";
+import {
+  criarEstrategista,
+  excluirEstrategista,
+  gerarLinkDeAcesso,
+  type ResultadoAcesso,
+  type ResultadoEstrategista,
+} from "./actions";
 
 type Props = {
   id: string;
@@ -19,9 +25,46 @@ const SITUACOES = {
   ativo: { rotulo: "Ativo", cor: "border-power bg-power text-texto" },
 };
 
+const SEM_RESULTADO: ResultadoEstrategista = {};
+
+// Campo no topo da tela para incluir um estrategista novo.
+export function NovoEstrategista() {
+  const [resultado, acao, enviando] = useActionState(criarEstrategista, SEM_RESULTADO);
+
+  return (
+    <form action={acao} className="mt-6 max-w-md">
+      <div className="flex gap-2">
+        <input
+          name="nome"
+          required
+          // Limpa o campo depois de adicionar.
+          key={resultado.ok ? "limpo" : "digitando"}
+          placeholder="Nome do novo estrategista"
+          aria-label="Nome do novo estrategista"
+          className="w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power"
+        />
+        <button
+          type="submit"
+          disabled={enviando}
+          className="shrink-0 rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125 disabled:opacity-60"
+        >
+          {enviando ? "Adicionando…" : "Adicionar"}
+        </button>
+      </div>
+      {resultado.erro ? (
+        <p className="mt-2 text-sm text-power-claro" role="alert">
+          {resultado.erro}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
 export function LinhaEstrategista({ id, nome, email, situacao, experts }: Props) {
   const [resultado, acao, enviando] = useActionState(gerarLinkDeAcesso, INICIAL);
   const [copiado, setCopiado] = useState(false);
+  const [exclusao, excluir, excluindo] = useActionState(excluirEstrategista, SEM_RESULTADO);
+  const [confirmando, setConfirmando] = useState(false);
 
   async function copiar() {
     if (!resultado.link) return;
@@ -91,6 +134,51 @@ export function LinhaEstrategista({ id, nome, email, situacao, experts }: Props)
           </button>
         </div>
       ) : null}
+
+      <div className="mt-4 border-t border-borda pt-3 text-sm">
+        {confirmando ? (
+          <form action={excluir}>
+            <input type="hidden" name="perfil_id" value={id} />
+            <p>
+              Excluir {nome}? O acesso dele é apagado na hora e não dá para desfazer.{" "}
+              {experts === 0
+                ? "Ele não tem experts."
+                : experts === 1
+                  ? "O expert dele continua no sistema, sem responsável, até você escolher outro em Experts."
+                  : `Os ${experts} experts dele continuam no sistema, sem responsável, até você escolher outro em Experts.`}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                disabled={excluindo}
+                className="rounded-lg bg-power px-3 py-1.5 font-semibold hover:brightness-125 disabled:opacity-60"
+              >
+                {excluindo ? "Excluindo…" : `Sim, excluir ${nome}`}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmando(false)}
+                className="text-apagado hover:text-texto"
+              >
+                Cancelar
+              </button>
+            </div>
+            {exclusao.erro ? (
+              <p className="mt-2 text-power-claro" role="alert">
+                {exclusao.erro}
+              </p>
+            ) : null}
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmando(true)}
+            className="text-apagado hover:text-power-claro"
+          >
+            Excluir estrategista
+          </button>
+        )}
+      </div>
     </li>
   );
 }

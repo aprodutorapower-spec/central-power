@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { obterSessao } from "@/lib/sessao";
 import { criarClienteAdmin } from "@/lib/supabase/admin";
-import { LinhaEstrategista } from "./linha-estrategista";
+import { LinhaEstrategista, NovoEstrategista } from "./linha-estrategista";
 
 export default async function EstrategistasPage() {
   const { supabase, perfil } = await obterSessao();
@@ -28,9 +28,17 @@ export default async function EstrategistasPage() {
     <>
       <h1 className="text-2xl font-semibold">Estrategistas</h1>
       <p className="mt-2 max-w-2xl text-sm text-apagado">
-        Informe o e-mail e gere o link de acesso. O estrategista abre o link,
-        entra e cria a própria senha. Se ele esquecer a senha, gere um link novo.
+        Para incluir alguém, digite o nome e clique em Adicionar; depois informe
+        o e-mail no cartão dele e gere o link de acesso. O estrategista abre o
+        link, entra e cria a própria senha. Se ele esquecer a senha, gere um link
+        novo. Quem saiu da equipe pode ser excluído no próprio cartão.
       </p>
+      <NovoEstrategista />
+      {estrategistas?.length ? null : (
+        <p className="mt-6 rounded-xl border border-borda bg-cartao p-6 text-sm text-apagado">
+          Nenhum estrategista cadastrado. Adicione o primeiro acima.
+        </p>
+      )}
       <ul className="mt-6 grid gap-4 lg:grid-cols-2">
         {(estrategistas ?? []).map((estrategista) => (
           <LinhaEstrategista

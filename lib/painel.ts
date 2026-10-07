@@ -31,9 +31,6 @@ export type ItemPainel = {
   checkpoints: Checkpoint[];
   // Checkpoints atrasados, do mais antigo para o mais recente.
   atrasados: { titulo: string; dias: number }[];
-  // Evolução para os mini gráficos, uma medida por foto de métricas.
-  serieIngressos: number[];
-  serieCpa: number[];
   // Para onde o CPA foi da penúltima para a última foto (null = sem histórico).
   tendenciaCpa: "subindo" | "caindo" | "estavel" | null;
   urgencia: Urgencia;
@@ -86,10 +83,6 @@ export function montarItens(dados: {
       fotos,
       checkpoints,
       atrasados,
-      serieIngressos: fotos
-        .map((f) => f.ingressos_vendidos)
-        .filter((valor) => valor != null),
-      serieCpa,
       tendenciaCpa:
         variacao == null
           ? null
@@ -177,6 +170,16 @@ export function resumir(itens: ItemPainel[]) {
   if (nuncaAtualizados) partes.push(`${nuncaAtualizados} nunca atualizado${nuncaAtualizados > 1 ? "s" : ""}`);
   if (partes.length === 1 && itens.length) partes.push("tudo na meta ou acima");
 
+  // Só os problemas, sem a contagem de lançamentos: é a frase do "Onde começar".
+  const lancs = (n: number) => plural(n, "lançamento", "lançamentos");
+  const problemas: string[] = [];
+  if (abaixoIngressos) problemas.push(`${lancs(abaixoIngressos)} abaixo da meta de ingressos`);
+  if (desvioCpa != null && desvioCpa > TOLERANCIA_META) {
+    problemas.push(`CPA ${formatarPercentual(desvioCpa)} acima da meta`);
+  } else if (abaixoCpa) problemas.push(`${lancs(abaixoCpa)} com CPA acima da meta`);
+  if (abaixoGrupo) problemas.push(`${lancs(abaixoGrupo)} com grupo de WhatsApp abaixo de 95%`);
+  if (porFaixa.sem_dados) problemas.push(`${lancs(porFaixa.sem_dados)} sem métricas registradas`);
+
   return {
     ativos: itens.length,
     porFaixa,
@@ -188,8 +191,12 @@ export function resumir(itens: ItemPainel[]) {
     abaixoCpa,
     abaixoGrupo,
     verba,
-    // Soma do que está previsto investir ao todo (só de quem informou).
-    verbaPrevista: soma((i) => i.lancamento.verba_prevista),
+    // Soma do que está previsto investir ao todo. Só aparece quando todos os
+    // lançamentos com tráfego informaram: comparar o investido de todos com o
+    // previsto de alguns daria uma conta enganosa.
+    verbaPrevista: comTrafego.every((i) => i.lancamento.verba_prevista != null)
+      ? soma((i) => i.lancamento.verba_prevista)
+      : 0,
     ingressos: soma((i) => i.foto?.ingressos_vendidos),
     metaIngressos: soma((i) => i.lancamento.meta_ingressos),
     cpa,
@@ -198,6 +205,7 @@ export function resumir(itens: ItemPainel[]) {
     maisDefasado,
     nuncaAtualizados,
     motivo: itens.length ? partes.join(", ") : "Nenhum lançamento ativo",
+    problemas: problemas.join(", "),
   };
 }
 

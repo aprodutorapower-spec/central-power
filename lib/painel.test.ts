@@ -132,10 +132,8 @@ test("vale a foto mais recente de cada lançamento", () => {
   assert.equal(grupo("caio").itens[0].fotos.length, 2);
 });
 
-test("histórico vira série para o mini gráfico e tendência do CPA", () => {
-  const c1 = grupo("caio").itens[0];
-  assert.deepEqual(c1.serieIngressos, [60, 90]);
-  assert.deepEqual(c1.serieCpa, [30, 60]);
+test("tendência do CPA sai das duas últimas fotos de métricas", () => {
+  const c1 = grupo("caio").itens[0]; // CPA foi de R$ 30 para R$ 60
   assert.equal(c1.tendenciaCpa, "subindo");
   assert.equal(grupo("ana").itens[0].tendenciaCpa, null); // uma foto só
   assert.deepEqual(grupo("ana").itens[0].atrasados, [{ titulo: "Atrasado", dias: 6 }]);
@@ -157,6 +155,13 @@ test("frase do motivo cita o que está abaixo", () => {
     "2 lançamentos ativos, 1 abaixo da meta de ingressos",
   );
   assert.match(grupo("edu").resumo.motivo, /1 sem meta/);
+  // "Onde começar" mostra só os problemas, sem contar os lançamentos ativos.
+  assert.equal(grupo("bia").resumo.problemas, "1 lançamento abaixo da meta de ingressos");
+  assert.equal(
+    grupo("caio").resumo.problemas,
+    "1 lançamento abaixo da meta de ingressos, 1 lançamento com CPA acima da meta",
+  );
+  assert.equal(grupo("ana").resumo.problemas, "");
   assert.equal(grupo("ana").resumo.motivo, "2 lançamentos ativos, tudo na meta ou acima");
   assert.equal(grupo("duda").resumo.motivo, "Nenhum lançamento ativo");
 });

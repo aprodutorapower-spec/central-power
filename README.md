@@ -14,8 +14,7 @@ Endereço: https://central-power.vercel.app
 
 É a primeira tela do admin e responde a uma pergunta: **com quem falar primeiro, e por quê**.
 
-- **Onde começar:** o estrategista mais urgente, com o motivo em uma frase (por exemplo: "3 lançamentos ativos, 2 abaixo da meta de ingressos, CPA 34% acima da meta") e um botão para abrir os lançamentos dele.
-- **Operação:** quantos lançamentos ativos há em cada situação, verba total, ingressos vendidos contra a meta somada e CPA médio (verba total ÷ ingressos totais).
+- **Onde começar:** o estrategista mais urgente, só com os problemas em uma frase (por exemplo: "2 lançamentos abaixo da meta de ingressos, CPA 34% acima da meta, 1 lançamento com grupo de WhatsApp abaixo de 95%") e um botão para abrir os lançamentos dele.
 - **Precisam de atenção:** os estrategistas que têm algo abaixo da meta ou sem dados, do pior para o melhor. Cada cartão mostra a situação (cor, ícone e texto), quantos lançamentos estão abaixo / na meta / acima, ingressos contra a meta, CPA médio contra a meta, o pior lançamento com o motivo e o lançamento mais defasado.
 - **Sem nada abaixo da meta:** os demais, em uma linha cada, para não competir por atenção.
 - **Sem meta definida:** lançamentos que ainda precisam de meta, com preenchimento direto na lista. O botão **Sem tráfego pago** tira o lançamento da cobrança de CPA (ele deixa de aparecer como "sem meta").
@@ -26,15 +25,16 @@ O estrategista aparece com a urgência do seu pior lançamento. Clicar nele abre
 
 Todos os lançamentos ativos de um estrategista numa tela só, do pior para o melhor. Os que estão na meta ou acima ficam recolhidos em **Em dia (N)**, no fim.
 
-Cada lançamento é um cartão com:
+Cada lançamento é um cartão com o expert, o tipo, quantos dias faltam para o D0 (ou "D+N" depois dele) e o **motivo da urgência** em destaque. Abaixo, oito blocos do mesmo tamanho:
 
-- expert, tipo e quantos dias faltam para o D0 (ou "D+N" depois dele);
-- o **motivo da urgência** em uma frase, em destaque;
-- ingressos: vendidos, meta, esperado até hoje, barra com o risco do ritmo esperado e mini gráfico da evolução;
-- CPA: atual, meta, seta de tendência (subindo, caindo ou estável desde a atualização anterior) e mini gráfico;
-- verba investida, receita de ingressos e ticket médio;
-- próximo item da linha do tempo e os checkpoints atrasados, com os dias de atraso;
-- o status marcado pelo estrategista e há quanto tempo ele atualizou.
+- **Ingressos:** vendidos, meta, esperado até hoje e a barra com o risco do ritmo esperado.
+- **CPA:** atual, meta (ou o teto de mercado) e a seta de tendência desde a atualização anterior.
+- **Grupo de WhatsApp:** pessoas no grupo e o percentual dos ingressos, contra o mínimo de 95%.
+- **Verba investida:** quanto já foi, e o percentual do total previsto.
+- **Receita de ingressos** e **ticket médio**.
+- **Próximo na linha do tempo** e **checkpoints atrasados**, com os dias de atraso.
+
+No rodapé do cartão ficam os botões e o status marcado pelo estrategista, com há quanto tempo ele atualizou.
 
 Botões do cartão:
 
@@ -53,15 +53,22 @@ O estrategista vê a mesma tela dos próprios lançamentos, em **Meus lançament
 3. Clique em **Copiar cobrança** e cole no WhatsApp dele.
 4. Volte e passe para o próximo de "Precisam de atenção".
 
-## Como liberar o acesso de um estrategista
+## Estrategistas: incluir, liberar acesso e excluir
 
-1. Entre como admin e abra **Estrategistas** no menu.
-2. Digite o e-mail do estrategista e clique em **Gerar link de acesso**.
-3. Clique em **Copiar link** e envie para ele (WhatsApp, por exemplo). O link vale 24 horas e funciona uma única vez.
-4. Ele abre o link, clica em **Entrar** e cria a própria senha. A partir daí entra com e-mail e senha.
-5. Se ele esquecer a senha, gere um link novo no mesmo lugar.
+Tudo em **Estrategistas**, no menu do admin.
+
+**Incluir:** digite o nome no campo do topo e clique em **Adicionar**. Ele aparece como "Pendente", ainda sem acesso.
+
+**Liberar o acesso:**
+
+1. No cartão dele, digite o e-mail e clique em **Gerar link de acesso**.
+2. Clique em **Copiar link** e envie para ele (WhatsApp, por exemplo). O link vale 24 horas e funciona uma única vez.
+3. Ele abre o link, clica em **Entrar** e cria a própria senha. A partir daí entra com e-mail e senha.
+4. Se ele esquecer a senha, gere um link novo no mesmo lugar.
 
 Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda não entrou) e **Ativo** (já entrou).
+
+**Excluir quem saiu da equipe:** no cartão dele, clique em **Excluir estrategista** e confirme. O acesso é apagado na hora e não dá para desfazer. Os experts e lançamentos dele **continuam no sistema**, no grupo "Sem responsável", até você escolher outro estrategista em **Experts**. O nome dele permanece no histórico das atualizações e dos checkpoints já feitos.
 
 ## Como cadastrar um expert
 

@@ -237,7 +237,7 @@ export async function VisaoGeral() {
           <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-2xl font-semibold">{primeiro.nome}</p>
-              <p className="mt-1">{primeiro.resumo.motivo}.</p>
+              <p className="mt-1">{primeiro.resumo.problemas}.</p>
             </div>
             <Link
               href={enderecoDoEstrategista(primeiro.id)}
@@ -260,30 +260,6 @@ export async function VisaoGeral() {
             ) : null}
           </p>
         )}
-      </section>
-
-      <section
-        aria-label="Operação toda"
-        className="mt-3 grid gap-x-6 gap-y-3 rounded-xl border border-borda bg-cartao px-5 py-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]"
-      >
-        <Dado
-          rotulo={
-            operacao.ativos === 1
-              ? "Operação: 1 lançamento ativo"
-              : `Operação: ${operacao.ativos} lançamentos ativos`
-          }
-        >
-          <Contagens resumo={operacao} />
-        </Dado>
-        <Dado rotulo="Verba investida contra a prevista">
-          <VerbaDoGrupo resumo={operacao} />
-        </Dado>
-        <Dado rotulo="Ingressos vendidos contra a meta">
-          <IngressosDoGrupo resumo={operacao} />
-        </Dado>
-        <Dado rotulo="CPA médio">
-          <CpaDoGrupo resumo={operacao} />
-        </Dado>
       </section>
 
       {urgentes.length ? (

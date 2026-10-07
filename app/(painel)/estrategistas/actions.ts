@@ -78,3 +78,55 @@ export async function gerarLinkDeAcesso(
     link: `${protocolo}://${host}/auth/confirmar?token_hash=${token}`,
   };
 }
+
+export type ResultadoEstrategista = { erro?: string; ok?: boolean };
+
+// Novo estrategista: nasce "Pendente", sem acesso. O acesso é liberado depois,
+// gerando o link no cartão dele.
+export async function criarEstrategista(
+  _anterior: ResultadoEstrategista,
+  formData: FormData,
+): Promise<ResultadoEstrategista> {
+  const { supabase, perfil } = await obterSessao();
+  if (perfil?.papel !== "admin") return { erro: "Só o admin pode fazer isso." };
+
+  const nome = String(formData.get("nome") ?? "").trim();
+  if (!nome) return { erro: "Informe o nome." };
+
+  const { error } = await supabase
+    .from("perfis")
+    .insert({ nome, papel: "estrategista" });
+  if (error) return { erro: "Não foi possível adicionar." };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+// Exclui o estrategista e o acesso dele. Os experts e lançamentos continuam
+// no sistema, sem responsável, até o admin reatribuir. O nome dele permanece
+// no histórico (atualizações e checkpoints já feitos).
+export async function excluirEstrategista(
+  _anterior: ResultadoEstrategista,
+  formData: FormData,
+): Promise<ResultadoEstrategista> {
+  const { perfil } = await obterSessao();
+  if (perfil?.papel !== "admin") return { erro: "Só o admin pode fazer isso." };
+
+  const admin = criarClienteAdmin();
+  const { data: alvo } = await admin
+    .from("perfis")
+    .select("id, user_id, papel")
+    .eq("id", String(formData.get("perfil_id") ?? ""))
+    .maybeSingle();
+  // Nunca apaga um admin por aqui.
+  if (!alvo || alvo.papel !== "estrategista") {
+    return { erro: "Estrategista não encontrado." };
+  }
+
+  const { error } = await admin.from("perfis").delete().eq("id", alvo.id);
+  if (error) return { erro: "Não foi possível excluir." };
+  if (alvo.user_id) await admin.auth.admin.deleteUser(alvo.user_id);
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
