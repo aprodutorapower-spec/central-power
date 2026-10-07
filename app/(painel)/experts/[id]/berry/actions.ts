@@ -8,6 +8,7 @@ import {
   listarProdutos,
   type ProdutoBerry,
 } from "@/lib/berry";
+import { sincronizarBerry } from "@/lib/berry-sincronia";
 import { obterSessao } from "@/lib/sessao";
 import { criarClienteAdmin } from "@/lib/supabase/admin";
 
@@ -138,6 +139,9 @@ export async function definirProdutoBerry(
     .eq("id", lancamentoId)
     .select("id");
   if (!salvo?.length) return { erro: "Não foi possível salvar." };
+
+  // Produto escolhido: já traz ingressos e receita para o lançamento.
+  if (produto) await sincronizarBerry(lancamentoId);
 
   revalidatePath("/", "layout");
   return { ok: true };

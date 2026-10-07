@@ -36,7 +36,10 @@ export async function proxy(request: NextRequest) {
   const caminho = request.nextUrl.pathname;
   const naTelaDeLogin = caminho.startsWith("/login");
   // O link de acesso precisa abrir para quem ainda não está logado.
-  const publico = naTelaDeLogin || caminho.startsWith("/auth");
+  // A rotina automática (/api/cron) não tem login: ela se protege com o
+  // próprio segredo.
+  const publico =
+    naTelaDeLogin || caminho.startsWith("/auth") || caminho.startsWith("/api/cron");
 
   if (!user && !publico) {
     const destino = request.nextUrl.clone();

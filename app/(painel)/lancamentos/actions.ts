@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { sincronizarBerry, vendasNaBerry } from "@/lib/berry-sincronia";
 import { diasEntre, hoje, somarDias } from "@/lib/datas";
 import { calcularMarcos, type Tipo } from "@/lib/marcos";
 import { lerDinheiro, lerInteiro } from "@/lib/numeros";
@@ -186,6 +187,12 @@ export async function salvarAtualizacao(
     .select("id");
   if (!salvo?.length) return { erro: "Não foi possível salvar." };
 
+  // Com a Berry conectada, ingressos e receita vêm dela, conferidos na hora.
+  // Se a Berry não responder, vale o que está no formulário.
+  // (O "salvo" acima já provou que a pessoa enxerga o lançamento.)
+  const berry = await vendasNaBerry(lancamento_id);
+  const daBerry = berry.situacao === "ok" ? berry : null;
+
   const { error } = await supabase.from("fotos_metricas").insert({
     lancamento_id,
     data: hoje(),
@@ -193,8 +200,8 @@ export async function salvarAtualizacao(
     preenchido_por_nome: perfil.nome,
     fonte: "manual",
     verba_investida: dinheiro("verba_investida"),
-    ingressos_vendidos: inteiro("ingressos_vendidos"),
-    receita_ingressos: dinheiro("receita_ingressos"),
+    ingressos_vendidos: daBerry?.ingressos ?? inteiro("ingressos_vendidos"),
+    receita_ingressos: daBerry?.receita ?? dinheiro("receita_ingressos"),
     grupo_whatsapp: inteiro("grupo_whatsapp"),
   });
   if (error) return { erro: "O status foi salvo, mas as métricas não. Tente de novo." };
@@ -233,6 +240,34 @@ export async function definirMetas(
     .eq("id", String(formData.get("id") ?? ""))
     .select("id");
   if (!salvo?.length) return { erro: "Não foi possível salvar." };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+// Botão "Atualizar pela Berry agora".
+export async function atualizarPelaBerry(
+  _anterior: ResultadoAtualizacao,
+  formData: FormData,
+): Promise<ResultadoAtualizacao> {
+  const { supabase, perfil } = await obterSessao();
+  if (!perfil) return { erro: "Sua sessão expirou. Entre de novo." };
+
+  // A sincronia usa a chave de serviço: antes, o banco confirma que quem
+  // pediu enxerga este lançamento.
+  const id = String(formData.get("lancamento_id") ?? "");
+  const { data: lancamento } = await supabase
+    .from("lancamentos")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!lancamento) return { erro: "Lançamento não encontrado." };
+
+  const resultado = await sincronizarBerry(lancamento.id);
+  if (resultado.situacao === "erro") return { erro: resultado.erro };
+  if (resultado.situacao === "sem_berry") {
+    return { erro: "Conecte a Berry e escolha o produto do ingresso primeiro." };
+  }
 
   revalidatePath("/", "layout");
   return { ok: true };

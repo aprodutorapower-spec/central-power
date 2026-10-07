@@ -16,6 +16,7 @@ import { obterSessao } from "@/lib/sessao";
 import { calcularUrgencia, metasFechadasParaEstrategista } from "@/lib/urgencia";
 import { definirSituacao } from "../actions";
 import { PainelMetas } from "../painel-metas";
+import { BotaoBerry } from "../../interacoes";
 import { LinhaDoTempo } from "../linha-do-tempo";
 import { FormAtualizacao } from "./form-atualizacao";
 
@@ -111,6 +112,7 @@ export default async function LancamentoPage({
             ? `Berry: ${lancamento.berry_produto_nome}`
             : "Conectar Berry"}
         </Link>
+        {lancamento.berry_produto_id ? <BotaoBerry lancamentoId={lancamento.id} /> : null}
         <form action={definirSituacao}>
           <input type="hidden" name="id" value={lancamento.id} />
           <input type="hidden" name="situacao" value={encerrado ? "ativo" : "encerrado"} />
@@ -259,8 +261,7 @@ export default async function LancamentoPage({
                     <tr key={foto.id}>
                       <td className="px-4 py-3">{formatarData(foto.data)}</td>
                       <td className="px-4 py-3">
-                        {foto.preenchido_por_nome ?? "—"}
-                        {foto.fonte !== "manual" ? ` (${foto.fonte})` : ""}
+                        {foto.preenchido_por_nome ?? (foto.fonte === "manual" ? "—" : foto.fonte)}
                       </td>
                       <td className="px-4 py-3">{formatarReal(foto.verba_investida)}</td>
                       <td className="px-4 py-3">{formatarInteiro(foto.ingressos_vendidos)}</td>

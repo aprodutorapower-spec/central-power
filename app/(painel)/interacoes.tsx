@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { atualizarPelaBerry } from "./lancamentos/actions";
 
 // Pequenas peças que precisam do navegador: menu, voltar, copiar e painel lateral.
 
@@ -215,5 +216,33 @@ export function Dica({ texto }: { texto: string }) {
         </span>
       ) : null}
     </>
+  );
+}
+
+// Puxa da Berry, na hora, os ingressos e a receita do lançamento.
+export function BotaoBerry({ lancamentoId }: { lancamentoId: string }) {
+  const [resultado, acao, puxando] = useActionState(atualizarPelaBerry, {});
+
+  return (
+    <form action={acao} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <input type="hidden" name="lancamento_id" value={lancamentoId} />
+      <button
+        type="submit"
+        disabled={puxando}
+        className="rounded-lg border border-borda px-3 py-1.5 transition hover:border-power disabled:cursor-wait disabled:opacity-50"
+      >
+        {puxando ? "Consultando a Berry…" : "Atualizar pela Berry agora"}
+      </button>
+      {resultado.erro ? (
+        <span className="text-power-claro" role="alert">
+          {resultado.erro}
+        </span>
+      ) : null}
+      {resultado.ok && !puxando ? (
+        <span className="text-ok" role="status">
+          Números da Berry conferidos.
+        </span>
+      ) : null}
+    </form>
   );
 }

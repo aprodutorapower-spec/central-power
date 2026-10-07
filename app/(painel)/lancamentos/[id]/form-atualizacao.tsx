@@ -21,8 +21,12 @@ const INICIAL: ResultadoAtualizacao = {};
 
 type Props = { lancamento: Lancamento; ultima: Foto | null; hoje: string };
 
+const DA_BERRY = "Vem da Berry, atualizado sozinho.";
+
 export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
   const [resultado, acao, salvando] = useActionState(salvarAtualizacao, INICIAL);
+  // Com o produto da Berry escolhido, ingressos e receita não são digitados.
+  const berry = Boolean(lancamento.berry_produto_id);
 
   // Já vem com os valores da última foto: normalmente só os números mudam.
   const [status, setStatus] = useState<Status | "">(lancamento.status ?? "");
@@ -107,9 +111,11 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
             name="ingressos_vendidos"
             inputMode="numeric"
             value={ingressos}
+            readOnly={berry}
             onChange={(evento) => setIngressos(evento.target.value)}
-            className={`${CAMPO} text-texto`}
+            className={`${CAMPO} text-texto ${berry ? "opacity-70" : ""}`}
           />
+          {berry ? <span className="mt-1 block text-xs">{DA_BERRY}</span> : null}
         </label>
         <label className="block text-sm text-apagado">
           Receita de ingressos (R$)
@@ -117,9 +123,11 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
             name="receita_ingressos"
             inputMode="decimal"
             value={receita}
+            readOnly={berry}
             onChange={(evento) => setReceita(evento.target.value)}
-            className={`${CAMPO} text-texto`}
+            className={`${CAMPO} text-texto ${berry ? "opacity-70" : ""}`}
           />
+          {berry ? <span className="mt-1 block text-xs">{DA_BERRY}</span> : null}
         </label>
         <label className="block text-sm text-apagado">
           No grupo de WhatsApp

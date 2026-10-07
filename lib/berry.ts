@@ -102,3 +102,58 @@ export async function contarVendasPagas(
   );
   return pagination.total;
 }
+
+// Teto de páginas por consulta (100 vendas cada): protege contra laço sem fim
+// e respeita o limite de 60 chamadas por minuto da Berry.
+const MAXIMO_PAGINAS = 40;
+
+type TransacaoBerry = {
+  amounts: { subtotal: number; discount: number };
+  items: { product_id: string; quantity: number; amount: number }[];
+};
+
+// Vendas pagas do produto do ingresso desde uma data.
+// - ingressos: quantidade vendida do produto;
+// - receita: tudo o que entrou nessas compras (ingresso + order bumps, já com
+//   desconto), que é como os estrategistas lançam a "receita de ingressos";
+// - receitaSoIngressos: só a parte do ingresso, sem os order bumps.
+export async function resumoDeVendas(
+  chave: string,
+  produtoId: string,
+  desde: string | null,
+) {
+  let ingressos = 0;
+  let centavos = 0;
+  let centavosSoIngressos = 0;
+
+  for (let pagina = 1; pagina <= MAXIMO_PAGINAS; pagina += 1) {
+    const filtros = new URLSearchParams({
+      status: "paid",
+      productId: produtoId,
+      limit: "100",
+      page: String(pagina),
+    });
+    if (desde) filtros.set("startDate", desde);
+
+    const { data, pagination } = await chamar<{
+      data: TransacaoBerry[];
+      pagination: { total_pages: number };
+    }>(chave, `/transactions?${filtros}`);
+
+    for (const transacao of data) {
+      centavos += transacao.amounts.subtotal - transacao.amounts.discount;
+      for (const item of transacao.items) {
+        if (item.product_id !== produtoId) continue;
+        ingressos += item.quantity;
+        centavosSoIngressos += item.amount;
+      }
+    }
+    if (pagina >= pagination.total_pages) break;
+  }
+
+  return {
+    ingressos,
+    receita: centavos / 100,
+    receitaSoIngressos: centavosSoIngressos / 100,
+  };
+}

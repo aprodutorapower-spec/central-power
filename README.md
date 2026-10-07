@@ -146,7 +146,16 @@ As mudanças valem só para os lançamentos criados depois; os que já existem n
 
 ## Conexão com a Berry
 
-Em cada expert há o botão **Conectar Berry**. Cole a chave de API da conta Berry do expert (quem gera é o suporte da Berry; peça uma chave só de leitura) e, em cada lançamento, escolha na lista o produto que é o ingresso. A tela mostra quantas vendas pagas a Berry registra desde o DV0. A chave fica guardada cifrada e não aparece de novo para ninguém. Por enquanto a conexão só mostra a contagem; as métricas continuam sendo preenchidas na atualização do lançamento.
+Em cada expert há o botão **Conectar Berry**. Cole a chave de API da conta Berry do expert (quem gera é o suporte da Berry; peça uma chave só de leitura) e, em cada lançamento, escolha na lista o produto que é o ingresso. A chave fica guardada cifrada e não aparece de novo para ninguém.
+
+Com o produto escolhido, **ingressos vendidos e receita de ingressos passam a vir da Berry**, sem ninguém digitar:
+
+- **Sozinho, três vezes ao dia:** às 9h, 12h e 18h (horário de Brasília), para todos os lançamentos ativos com produto escolhido.
+- **Na hora:** pelo botão **Atualizar pela Berry agora**, no topo da página do lançamento; ao escolher o produto; e toda vez que o estrategista salva uma atualização.
+- No formulário de atualização, os campos de ingressos e receita ficam travados com o aviso "Vem da Berry". O estrategista continua preenchendo o status, a verba investida e o grupo de WhatsApp.
+- No histórico de métricas, as linhas trazidas pela rotina aparecem como **Berry (automático)**. Se nada mudou desde a última vez, não é criada linha nova.
+
+O que é contado: as vendas **pagas** do produto do ingresso desde o início das vendas (DV0). **Ingressos** é a quantidade vendida do produto. **Receita** é tudo o que entrou nessas compras, ou seja, o ingresso mais os order bumps comprados junto, já com desconto. Vendas reembolsadas não entram.
 
 ## Rotina de coordenação: 3 toques por semana
 
@@ -158,7 +167,7 @@ Em cada expert há o botão **Conectar Berry**. Cole a chave de API da conta Ber
 
 1. **Decidir como o Ricardo será avisado e como os estrategistas serão cobrados** (Telegram, e-mail, WhatsApp, cobrança automática pelo sistema ou apenas o painel). Adiado pelo Ricardo em 06/10/2026, para depois dos ajustes no sistema.
 2. Pauta automática da call de sexta.
-3. Integrações: Berry Pay preenchendo ingressos e receita sozinha, Meta Ads por BM em modo leitura, Asana.
+3. Integrações: Meta Ads trazendo a verba investida (com token de leitura da BM), Asana.
 4. Lançamentos perpétuos.
 5. Teste de aceite com os estrategistas.
 6. Domínio próprio.
