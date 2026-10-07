@@ -94,7 +94,11 @@ export function CartaoCheckpoint({ checkpoint, hoje, proximo, quem }: Props) {
             <button
               type="button"
               onClick={() => mudarEstado("feito")}
-              className="rounded-lg bg-power px-3 py-1.5 text-sm font-semibold hover:brightness-125"
+              className={
+                proximo || dias < 0
+                  ? "rounded-lg bg-power px-3 py-1.5 text-sm font-semibold hover:brightness-125"
+                  : BOTAO
+              }
             >
               Marcar como feito
             </button>

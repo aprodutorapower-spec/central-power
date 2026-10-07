@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { calcular, STATUS, type Foto, type Status } from "@/lib/metricas";
 import {
   dinheiroParaCampo,
@@ -40,6 +40,14 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
     grupo_whatsapp: lerInteiro(grupo),
   });
 
+  // Salvou: recolhe o formulário e volta ao topo, onde os números novos aparecem.
+  const formulario = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (!resultado.ok) return;
+    formulario.current?.closest("details")?.removeAttribute("open");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [resultado]);
+
   // Mesma conta das outras telas, com os números que estão sendo digitados.
   const metas = calcularUrgencia({
     lancamento,
@@ -52,7 +60,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
   });
 
   return (
-    <form action={acao} className="mt-4">
+    <form ref={formulario} action={acao} className="mt-4">
       <input type="hidden" name="lancamento_id" value={lancamento.id} />
 
       <fieldset>

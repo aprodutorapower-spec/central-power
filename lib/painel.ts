@@ -29,8 +29,18 @@ export type ItemPainel = {
   foto: Foto | null;
   fotos: Foto[];
   checkpoints: Checkpoint[];
+  // Checkpoints atrasados, do mais antigo para o mais recente.
+  atrasados: { titulo: string; dias: number }[];
+  // Evolução para os mini gráficos, uma medida por foto de métricas.
+  serieIngressos: number[];
+  serieCpa: number[];
+  // Para onde o CPA foi da penúltima para a última foto (null = sem histórico).
+  tendenciaCpa: "subindo" | "caindo" | "estavel" | null;
   urgencia: Urgencia;
 };
+
+// Variação de CPA menor que isso entre duas fotos conta como "estável".
+export const VARIACAO_MINIMA_CPA = 0.02;
 
 export type Resumo = ReturnType<typeof resumir>;
 export type GrupoEstrategista = {
@@ -49,7 +59,7 @@ export function montarItens(dados: {
   fotos: Foto[];
   hoje: string;
 }): ItemPainel[] {
-  const itens = dados.lancamentos.map((lancamento) => {
+  const itens: ItemPainel[] = dados.lancamentos.map((lancamento) => {
     const checkpoints = dados.checkpoints.filter(
       (c) => c.lancamento_id === lancamento.id,
     );
@@ -57,6 +67,16 @@ export function montarItens(dados: {
       .filter((f) => f.lancamento_id === lancamento.id)
       .sort((a, b) => a.criado_em.localeCompare(b.criado_em));
     const foto = fotos.at(-1) ?? null;
+    const atrasados = checkpoints
+      .filter((c) => c.estado === "pendente" && c.data < dados.hoje)
+      .map((c) => ({ titulo: c.titulo, dias: diasEntre(c.data, dados.hoje) }))
+      .sort((a, b) => b.dias - a.dias);
+
+    const serieCpa = fotos
+      .map((f) => dividir(f.verba_investida, f.ingressos_vendidos))
+      .filter((valor) => valor != null);
+    const [penultimo, ultimo] = serieCpa.slice(-2);
+    const variacao = ultimo != null && penultimo ? (ultimo - penultimo) / penultimo : null;
 
     return {
       lancamento,
@@ -65,12 +85,23 @@ export function montarItens(dados: {
       foto,
       fotos,
       checkpoints,
+      atrasados,
+      serieIngressos: fotos
+        .map((f) => f.ingressos_vendidos)
+        .filter((valor) => valor != null),
+      serieCpa,
+      tendenciaCpa:
+        variacao == null
+          ? null
+          : variacao > VARIACAO_MINIMA_CPA
+            ? ("subindo" as const)
+            : variacao < -VARIACAO_MINIMA_CPA
+              ? ("caindo" as const)
+              : ("estavel" as const),
       urgencia: calcularUrgencia({
         lancamento,
         foto,
-        atrasos: checkpoints
-          .filter((c) => c.estado === "pendente" && c.data < dados.hoje)
-          .map((c) => diasEntre(c.data, dados.hoje)),
+        atrasos: atrasados.map((a) => a.dias),
         hoje: dados.hoje,
       }),
     };

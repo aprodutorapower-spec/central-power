@@ -16,7 +16,7 @@ import { obterSessao } from "@/lib/sessao";
 import { calcularUrgencia } from "@/lib/urgencia";
 import { definirSituacao } from "../actions";
 import { PainelMetas } from "../painel-metas";
-import { CartaoCheckpoint } from "./cartao-checkpoint";
+import { LinhaDoTempo } from "../linha-do-tempo";
 import { FormAtualizacao } from "./form-atualizacao";
 
 function Numero({ rotulo, valor }: { rotulo: string; valor: string }) {
@@ -94,6 +94,30 @@ export default async function LancamentoPage({
         <span className={`rounded-full border px-3 py-1 text-sm ${fase.cor}`}>
           {fase.rotulo}
         </span>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        <Link
+          href={`/lancamentos/${lancamento.id}/editar`}
+          className="rounded-lg border border-borda px-3 py-1.5 hover:border-power"
+        >
+          Editar lançamento
+        </Link>
+        <Link
+          href={`/experts/${lancamento.expert_id}/berry`}
+          className="rounded-lg border border-borda px-3 py-1.5 hover:border-power"
+        >
+          {lancamento.berry_produto_nome
+            ? `Berry: ${lancamento.berry_produto_nome}`
+            : "Conectar Berry"}
+        </Link>
+        <form action={definirSituacao}>
+          <input type="hidden" name="id" value={lancamento.id} />
+          <input type="hidden" name="situacao" value={encerrado ? "ativo" : "encerrado"} />
+          <BotaoEnviar className="text-sm text-apagado hover:text-texto">
+            {encerrado ? "Reabrir lançamento" : "Encerrar lançamento"}
+          </BotaoEnviar>
+        </form>
       </div>
 
       <section className="mt-6 rounded-xl border border-borda bg-cartao p-5">
@@ -198,36 +222,9 @@ export default async function LancamentoPage({
 
       <section className="mt-6">
         <h2 className="font-semibold">Linha do tempo</h2>
-        <ol className="mt-3 border-l border-borda">
-          {itens.map((item) =>
-            item.tipo === "checkpoint" ? (
-              <CartaoCheckpoint
-                key={item.chave}
-                checkpoint={item.checkpoint}
-                hoje={dia}
-                proximo={item === proximo}
-                quem={perfil?.nome ?? ""}
-              />
-            ) : (
-              <li key={item.chave} className="relative pb-4 pl-6">
-                <span className="absolute -left-[5px] top-3.5 h-2.5 w-2.5 rounded-full bg-borda" />
-                <div
-                  className={`flex flex-wrap items-baseline justify-between gap-x-3 rounded-lg px-4 py-2 text-sm ${
-                    item === proximo ? "border border-power" : ""
-                  } ${item.dias < 0 ? "text-apagado" : ""}`}
-                >
-                  <span>
-                    <span className="font-semibold">{item.sigla}</span> · {item.titulo}
-                  </span>
-                  <span>
-                    {formatarData(item.data)}
-                    <span className="ml-2 text-apagado">{contagem(item.dias)}</span>
-                  </span>
-                </div>
-              </li>
-            ),
-          )}
-        </ol>
+        <div className="mt-3">
+          <LinhaDoTempo itens={itens} proximo={proximo} hoje={dia} quem={perfil?.nome ?? ""} />
+        </div>
       </section>
 
       <section className="mt-6">
@@ -280,29 +277,6 @@ export default async function LancamentoPage({
         )}
       </section>
 
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <Link
-          href={`/lancamentos/${lancamento.id}/editar`}
-          className="rounded-lg border border-borda px-4 py-2 hover:border-power"
-        >
-          Editar lançamento
-        </Link>
-        <Link
-          href={`/experts/${lancamento.expert_id}/berry`}
-          className="rounded-lg border border-borda px-4 py-2 hover:border-power"
-        >
-          {lancamento.berry_produto_nome
-            ? `Berry: ${lancamento.berry_produto_nome}`
-            : "Conectar Berry"}
-        </Link>
-        <form action={definirSituacao}>
-          <input type="hidden" name="id" value={lancamento.id} />
-          <input type="hidden" name="situacao" value={encerrado ? "ativo" : "encerrado"} />
-          <BotaoEnviar className="text-sm text-apagado hover:text-texto">
-            {encerrado ? "Reabrir lançamento" : "Encerrar lançamento"}
-          </BotaoEnviar>
-        </form>
-      </div>
     </>
   );
 }

@@ -64,7 +64,7 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
             <label
               key={opcao}
               className={`cursor-pointer rounded-lg border px-3 py-2 ${
-                tipo === opcao ? "border-power bg-cartao-2" : "border-borda"
+                tipo === opcao ? "border-texto bg-cartao-2 font-semibold" : "border-borda"
               }`}
             >
               <input

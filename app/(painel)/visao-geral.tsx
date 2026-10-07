@@ -10,6 +10,7 @@ import {
   type Faixa,
 } from "@/lib/urgencia";
 import { carregarPainel } from "./dados-painel";
+import { LembrarRolagem } from "./interacoes";
 import { SeloFaixa } from "./lancamentos/painel-metas";
 import { MetaRapida } from "./metas-rapidas";
 
@@ -208,6 +209,7 @@ export async function VisaoGeral() {
 
   return (
     <>
+      <LembrarRolagem />
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-2xl font-semibold">Visão geral</h1>
         <p className="text-sm text-apagado">Hoje, {formatarData(hoje)}</p>

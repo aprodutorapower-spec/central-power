@@ -129,6 +129,15 @@ test("vale a foto mais recente de cada lançamento", () => {
   assert.equal(grupo("caio").itens[0].fotos.length, 2);
 });
 
+test("histórico vira série para o mini gráfico e tendência do CPA", () => {
+  const c1 = grupo("caio").itens[0];
+  assert.deepEqual(c1.serieIngressos, [60, 90]);
+  assert.deepEqual(c1.serieCpa, [30, 60]);
+  assert.equal(c1.tendenciaCpa, "subindo");
+  assert.equal(grupo("ana").itens[0].tendenciaCpa, null); // uma foto só
+  assert.deepEqual(grupo("ana").itens[0].atrasados, [{ titulo: "Atrasado", dias: 6 }]);
+});
+
 test("resumo soma ingressos e calcula o CPA médio ponderado", () => {
   const caio = grupo("caio").resumo;
   assert.equal(caio.ingressos, 270);

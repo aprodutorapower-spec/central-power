@@ -5,6 +5,7 @@ import { supabaseConfigurado } from "@/lib/supabase/server";
 import { AvisoConfiguracao } from "../aviso-configuracao";
 import { sair } from "../login/actions";
 import { BotaoEnviar } from "@/app/botao-enviar";
+import { Menu } from "./interacoes";
 
 export default async function PainelLayout({ children }: LayoutProps<"/">) {
   if (!supabaseConfigurado()) return <AvisoConfiguracao />;
@@ -20,7 +21,10 @@ export default async function PainelLayout({ children }: LayoutProps<"/">) {
         { href: "/estrategistas", rotulo: "Estrategistas" },
         { href: "/modelos", rotulo: "Modelos de checkpoint" },
       ]
-    : [{ href: "/experts", rotulo: "Meus experts" }];
+    : [
+        { href: "/", rotulo: "Meus lançamentos" },
+        { href: "/experts", rotulo: "Meus experts" },
+      ];
 
   return (
     <>
@@ -45,13 +49,7 @@ export default async function PainelLayout({ children }: LayoutProps<"/">) {
             </form>
           </div>
           {perfil ? (
-            <nav className="flex w-full flex-wrap gap-x-5 gap-y-2 text-sm">
-              {menu.map((item) => (
-                <Link key={item.href} href={item.href} className="hover:text-power-claro">
-                  {item.rotulo}
-                </Link>
-              ))}
-            </nav>
+            <Menu itens={menu} />
           ) : null}
         </div>
       </header>

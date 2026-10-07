@@ -20,7 +20,38 @@ Endereço: https://central-power.vercel.app
 - **Sem nada abaixo da meta:** os demais, em uma linha cada, para não competir por atenção.
 - **Sem meta definida:** lançamentos que ainda precisam de meta, com preenchimento direto na lista. O botão **Sem tráfego pago** tira o lançamento da cobrança de CPA (ele deixa de aparecer como "sem meta").
 
-O estrategista aparece com a urgência do seu pior lançamento. Clicar nele abre a **visão do estrategista**: todos os lançamentos ativos dele, os piores primeiro, cada um com o motivo, a barra de ingressos e o CPA contra a meta.
+O estrategista aparece com a urgência do seu pior lançamento. Clicar nele abre a visão do estrategista.
+
+## Visão do estrategista
+
+Todos os lançamentos ativos de um estrategista numa tela só, do pior para o melhor. Os que estão na meta ou acima ficam recolhidos em **Em dia (N)**, no fim.
+
+Cada lançamento é um cartão com:
+
+- expert, tipo e quantos dias faltam para o D0 (ou "D+N" depois dele);
+- o **motivo da urgência** em uma frase, em destaque;
+- ingressos: vendidos, meta, esperado até hoje, barra com o risco do ritmo esperado e mini gráfico da evolução;
+- CPA: atual, meta, seta de tendência (subindo, caindo ou estável desde a atualização anterior) e mini gráfico;
+- verba investida, receita de ingressos e ticket médio;
+- próximo item da linha do tempo e os checkpoints atrasados, com os dias de atraso;
+- o status marcado pelo estrategista e há quanto tempo ele atualizou.
+
+Botões do cartão:
+
+- **Copiar cobrança:** copia um texto curto e cordial, com os números do problema, pronto para colar no WhatsApp. Só copia; não envia nada. Não aparece quando não há o que cobrar.
+- **Linha do tempo** (ou clicar em qualquer ponto do cartão): abre um painel lateral com a linha do tempo completa, sem sair da página. Dá para marcar checkpoints como feitos ali mesmo.
+- **Abrir lançamento:** vai para a página completa.
+
+**← Visão geral** volta para a visão geral na mesma altura em que ela estava.
+
+O estrategista vê a mesma tela dos próprios lançamentos, em **Meus lançamentos** (é onde ele cai ao entrar), sem o botão de cobrança.
+
+### Rotina de 5 minutos
+
+1. Abra a **Visão geral** e leia "Onde começar".
+2. Clique no estrategista. Leia o motivo de cada cartão que não está em "Em dia".
+3. Clique em **Copiar cobrança** e cole no WhatsApp dele.
+4. Volte e passe para o próximo de "Precisam de atenção".
 
 ## Como liberar o acesso de um estrategista
 
@@ -34,7 +65,7 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 ## Como cadastrar um expert
 
-- **Estrategista:** em **Meus experts**, digite o nome e clique em **Adicionar**. O expert já fica no nome dele.
+- **Estrategista:** em **Meus experts** (no menu), digite o nome e clique em **Adicionar**. O expert já fica no nome dele.
 - **Admin:** em **Experts**, digite o nome, escolha o estrategista responsável e clique em **Adicionar**. Para mudar o responsável depois, escolha outro nome na lista ao lado do expert.
 
 ## Como cadastrar um lançamento
@@ -83,7 +114,7 @@ Em cada checkpoint: **Marcar como feito** (guarda a data e quem marcou) e, em **
 
 Leva menos de 5 minutos e funciona no celular.
 
-1. Abra o lançamento e clique em **Atualizar lançamento**.
+1. Em **Meus lançamentos**, clique em **Atualizar lançamento** no cartão e depois no botão **Atualizar lançamento** da página.
 2. Escolha o status: **No trilho** (verde), **Atenção** (amarelo) ou **Em risco** (vermelho).
 3. Preencha os números até agora: **verba investida**, **ingressos vendidos**, **receita de ingressos** e quantas pessoas estão **no grupo de WhatsApp**. Eles já vêm com os valores da última vez; é só corrigir.
 4. Clique em **Salvar atualização**.
@@ -111,13 +142,12 @@ Em cada expert há o botão **Conectar Berry**. Cole a chave de API da conta Ber
 ## Próximos passos
 
 1. **Decidir como o Ricardo será avisado e como os estrategistas serão cobrados** (Telegram, e-mail, WhatsApp, cobrança automática pelo sistema ou apenas o painel). Adiado pelo Ricardo em 06/10/2026, para depois dos ajustes no sistema.
-2. Visão do estrategista completa (Etapa C): mini gráficos, painel lateral da linha do tempo e "Copiar cobrança". A lista completa de melhorias de tela está em `docs/auditoria-ux.md`.
-3. Pauta automática da call de sexta.
-4. Integrações: Berry Pay preenchendo ingressos e receita sozinha, Meta Ads por BM em modo leitura, Asana.
-5. Lançamentos perpétuos.
-6. Teste de aceite com os estrategistas.
-7. Domínio próprio.
-8. Melhorias de tela que ficaram para depois: separar experts desativados e lançamentos encerrados das listas, confirmação ao encerrar lançamento ou desconectar a Berry, busca, textos de apoio maiores nas telas antigas.
+2. Pauta automática da call de sexta.
+3. Integrações: Berry Pay preenchendo ingressos e receita sozinha, Meta Ads por BM em modo leitura, Asana.
+4. Lançamentos perpétuos.
+5. Teste de aceite com os estrategistas.
+6. Domínio próprio.
+7. Melhorias de tela que ficaram para depois (lista completa em `docs/auditoria-ux.md`): separar experts desativados e lançamentos encerrados das listas, confirmação ao encerrar lançamento ou desconectar a Berry, busca, textos de apoio maiores nas telas antigas, datas sem o ano quando for o ano atual.
 
 ## Para quem for mexer no código
 
