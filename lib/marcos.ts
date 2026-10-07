@@ -31,6 +31,9 @@ export type Lancamento = {
   dp0: string | null;
   dfc: string;
   meta_ingressos: number | null;
+  meta_cpa: number | null;
+  inicio_vendas: string | null;
+  fim_vendas: string | null;
   situacao: "ativo" | "encerrado";
   status: "verde" | "amarelo" | "vermelho" | null;
   bloqueio: string;

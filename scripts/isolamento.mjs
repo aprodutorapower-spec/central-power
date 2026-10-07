@@ -170,6 +170,40 @@ async function testar() {
     .eq("id", lancA?.[0]?.id);
   confere("A não move lançamento para expert de B", Boolean(moveu));
 
+  // Metas: só o admin define; o que o estrategista manda é ignorado
+  const { data: lancComMeta } = await a.cliente
+    .from("lancamentos")
+    .insert({ ...modelo, nome: `${MARCA} com meta indevida`, expert_id: expertA.id, meta_ingressos: 999, meta_cpa: 9 })
+    .select("id, meta_ingressos, meta_cpa");
+  confere(
+    "A não define metas ao criar lançamento",
+    lancComMeta?.length === 1 && lancComMeta[0].meta_ingressos === null && lancComMeta[0].meta_cpa === null,
+  );
+  await servico.from("lancamentos").delete().eq("id", lancComMeta?.[0]?.id);
+
+  const { data: metaDoAdmin } = await admin.cliente
+    .from("lancamentos")
+    .update({ meta_ingressos: 300, meta_cpa: 40, inicio_vendas: "2030-01-01" })
+    .eq("id", lancA?.[0]?.id)
+    .select("meta_ingressos, meta_cpa");
+  confere(
+    "admin define as metas",
+    metaDoAdmin?.[0]?.meta_ingressos === 300 && Number(metaDoAdmin?.[0]?.meta_cpa) === 40,
+  );
+
+  const { data: metaDeA } = await a.cliente
+    .from("lancamentos")
+    .update({ nome: `${MARCA} lançamento de A`, meta_ingressos: 1, meta_cpa: 999, inicio_vendas: null, fim_vendas: "2030-02-01" })
+    .eq("id", lancA?.[0]?.id)
+    .select("meta_ingressos, meta_cpa, inicio_vendas, fim_vendas");
+  confere(
+    "A edita o próprio lançamento, mas não muda as metas",
+    metaDeA?.[0]?.meta_ingressos === 300 &&
+      Number(metaDeA?.[0]?.meta_cpa) === 40 &&
+      metaDeA?.[0]?.inicio_vendas === "2030-01-01" &&
+      metaDeA?.[0]?.fim_vendas === null,
+  );
+
   // Checkpoints (seguem o lançamento) e modelos (só admin)
   const { data: cpsDeA } = await a.cliente
     .from("checkpoints")

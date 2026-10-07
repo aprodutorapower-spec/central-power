@@ -7,7 +7,7 @@ export default async function NovoLancamentoPage({
   params,
 }: PageProps<"/experts/[id]/novo">) {
   const { id } = await params;
-  const { supabase } = await obterSessao();
+  const { supabase, perfil } = await obterSessao();
 
   const { data: expert } = await supabase
     .from("experts")
@@ -25,7 +25,11 @@ export default async function NovoLancamentoPage({
         ← {expert.nome}
       </Link>
       <h1 className="mt-4 text-2xl font-semibold">Novo lançamento</h1>
-      <FormLancamento expertId={expert.id} voltar={`/experts/${expert.id}`} />
+      <FormLancamento
+        expertId={expert.id}
+        voltar={`/experts/${expert.id}`}
+        admin={perfil?.papel === "admin"}
+      />
     </>
   );
 }

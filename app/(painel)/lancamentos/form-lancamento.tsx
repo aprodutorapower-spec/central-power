@@ -2,17 +2,24 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { ehSegunda } from "@/lib/datas";
+import { ehSegunda, formatarData } from "@/lib/datas";
 import { calcularMarcos, TIPOS, type Lancamento, type Tipo } from "@/lib/marcos";
+import { dinheiroParaCampo, formatarInteiro, formatarReal } from "@/lib/numeros";
+import { janelaDeVendas } from "@/lib/urgencia";
 import { salvarLancamento, type ResultadoLancamento } from "./actions";
 
 const CAMPO =
   "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power";
 const INICIAL: ResultadoLancamento = {};
 
-type Props = { expertId: string; lancamento?: Lancamento; voltar: string };
+type Props = {
+  expertId: string;
+  lancamento?: Lancamento;
+  voltar: string;
+  admin: boolean;
+};
 
-export function FormLancamento({ expertId, lancamento, voltar }: Props) {
+export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
   const [resultado, acao, salvando] = useActionState(salvarLancamento, INICIAL);
 
   const [tipo, setTipo] = useState<Tipo>(lancamento?.tipo ?? "LPS");
@@ -100,20 +107,6 @@ export function FormLancamento({ expertId, lancamento, voltar }: Props) {
             </p>
           ) : null}
         </div>
-        <div>
-          <label className="block text-sm text-apagado" htmlFor="meta_ingressos">
-            Meta de ingressos
-          </label>
-          <input
-            id="meta_ingressos"
-            name="meta_ingressos"
-            type="number"
-            min={0}
-            inputMode="numeric"
-            defaultValue={lancamento?.meta_ingressos ?? ""}
-            className={CAMPO}
-          />
-        </div>
       </div>
 
       <p className="mt-6 text-sm font-semibold">Datas calculadas a partir do D0</p>
@@ -189,6 +182,95 @@ export function FormLancamento({ expertId, lancamento, voltar }: Props) {
           />
         </div>
       </div>
+
+
+      <p className="mt-6 text-sm font-semibold">Metas</p>
+      {admin ? (
+        <>
+          <p className="text-xs text-apagado">
+            Só você (admin) edita. O estrategista vê, mas não muda.
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm text-apagado" htmlFor="meta_ingressos">
+                Meta de ingressos (total a vender)
+              </label>
+              <input
+                id="meta_ingressos"
+                name="meta_ingressos"
+                inputMode="numeric"
+                defaultValue={lancamento?.meta_ingressos ?? ""}
+                placeholder="Ex.: 300"
+                className={CAMPO}
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-apagado" htmlFor="meta_cpa">
+                Meta de CPA (R$ máximo por ingresso)
+              </label>
+              <input
+                id="meta_cpa"
+                name="meta_cpa"
+                inputMode="decimal"
+                defaultValue={dinheiroParaCampo(lancamento?.meta_cpa)}
+                placeholder="Ex.: 40,00"
+                className={CAMPO}
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-apagado" htmlFor="inicio_vendas">
+                Início das vendas de ingressos
+              </label>
+              <input
+                id="inicio_vendas"
+                name="inicio_vendas"
+                type="date"
+                defaultValue={lancamento?.inicio_vendas ?? ""}
+                className={CAMPO}
+              />
+              <p className="mt-1 text-xs text-apagado">
+                Em branco, vale o DV0 (ou o DE0, se não houver DV0).
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm text-apagado" htmlFor="fim_vendas">
+                Fim das vendas de ingressos
+              </label>
+              <input
+                id="fim_vendas"
+                name="fim_vendas"
+                type="date"
+                defaultValue={lancamento?.fim_vendas ?? ""}
+                className={CAMPO}
+              />
+              <p className="mt-1 text-xs text-apagado">Em branco, vale o D0.</p>
+            </div>
+          </div>
+        </>
+      ) : lancamento ? (
+        <p className="mt-1 text-sm text-apagado">
+          Definidas pelo Ricardo:{" "}
+          <span className="text-texto">
+            {lancamento.meta_ingressos != null
+              ? `${formatarInteiro(lancamento.meta_ingressos)} ingressos`
+              : "ingressos sem meta"}
+          </span>
+          {" · "}
+          <span className="text-texto">
+            {lancamento.meta_cpa != null
+              ? `CPA até ${formatarReal(lancamento.meta_cpa)}`
+              : "CPA sem meta"}
+          </span>
+          {" · vendas de "}
+          {formatarData(janelaDeVendas(lancamento).inicio)} a{" "}
+          {formatarData(janelaDeVendas(lancamento).fim)}.
+        </p>
+      ) : (
+        <p className="mt-1 text-sm text-apagado">
+          As metas de ingressos e de CPA são definidas pelo Ricardo depois que o
+          lançamento é criado.
+        </p>
+      )}
 
       {resultado.erro ? (
         <p className="mt-4 text-sm text-power-claro" role="alert">

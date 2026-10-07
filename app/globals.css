@@ -25,4 +25,6 @@ html {
 body {
   background: var(--color-fundo);
   color: var(--color-texto);
+  /* Sem isto a fonte desenha o zero como a letra "o" e D0 vira "Do". */
+  font-variant-numeric: lining-nums;
 }

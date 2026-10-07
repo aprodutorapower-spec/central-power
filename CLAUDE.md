@@ -36,13 +36,25 @@ Fluxo de cada etapa: build, lint, tipos, `scripts/isolamento.mjs`, publicar, rel
 - Cores: destaque só no vermelho da logo (`power`); `power-claro` é só para texto pequeno; amarelo e verde só no semáforo (status e prazos). O Ricardo rejeitou o amarelo-alaranjado em selos.
 - Sessão: `obterSessao()` faz uma chamada só (`rpc meu_perfil`); o `proxy.ts` lê o cookie sem ida ao servidor de login. Não voltar a usar `auth.getUser()` em toda requisição: deixava os cliques lentos.
 
+- A pasta do projeto fica na Mesa, sincronizada com o iCloud, que às vezes cria cópias com " 2" no nome dentro de `.git` e `.next`. Sintomas: `git fetch` falha com "bad object refs/heads/main 2", ou o `tsc` reclama de `routes.d 2.ts`. Solução: tirar as cópias de `.git` (guardando-as) e apagar a `.next` antes de compilar.
+- No teste de navegador: o primeiro botão de enviar de toda página é o "Sair" do topo (usar seletor do formulário certo), e para substituir o texto de um campo o clique triplo é `{ count: 3 }`.
+
 ## Pendência adiada
-Como o Ricardo será avisado e como os estrategistas serão cobrados: em 06/10/2026 ele mandou jogar para frente ("ainda vou mexer no sistema antes de pensar nisso"). Não lembrar disso a cada sessão; só retomar quando ele puxar o assunto.
+Como o Ricardo será avisado e como os estrategistas serão cobrados: em 06/10/2026 ele mandou jogar para frente; em 07/10/2026 confirmou que entra em pauta depois da entrega da visão em dois níveis. Continua como primeiro item de "Próximos passos" no README. Não lembrar disso a cada sessão.
 
 ## Decisões do Ricardo
 - LPS tem sempre a mesma estrutura (D0 segunda, pitch D0+6, carrinho fecha D0+8). Está certo como está; não perguntar de novo.
 - Status do lançamento é manual por enquanto.
 - Comparecimento = pessoas no grupo de WhatsApp, campo visível. Sem bloqueio/próximo passo e sem vendas do produto principal no formulário.
+
+## Visão em dois níveis (entrega em andamento, 07/10/2026)
+Pedido do Ricardo: reconstruir a experiência do admin em Nível 1 (macro, 6 estrategistas do pior para o melhor) e Nível 2 (todos os lançamentos ativos de um estrategista numa tela, com "Copiar cobrança" e painel lateral da linha do tempo). Três etapas, cada uma publicada e com pausa para o "pode seguir".
+- **Etapa A (feita):** metas por lançamento (`meta_ingressos`, `meta_cpa`, `inicio_vendas`, `fim_vendas`), só o admin edita (gatilho `proteger_metas` no banco ignora o que vier do estrategista); cálculo de urgência em `lib/urgencia.ts` com testes (`npm test`, roda no Node puro, por isso os imports com `.ts`); auditoria em `docs/auditoria-ux.md`; bloco "Sem meta definida" na visão geral.
+- **Etapa B (a fazer):** Nível 1 substituindo a visão geral atual (sem telas duplicadas; `lib/visao.ts` e os filtros saem). Urgência do estrategista = a do pior lançamento dele.
+- **Etapa C (a fazer):** Nível 2, painel lateral, "Copiar cobrança" e os itens marcados "Etapa C" na auditoria.
+- Regra: toda tela usa `calcularUrgencia`; nenhuma recalcula status ou ordem. Pesos e `TOLERANCIA_META` ficam nomeados no topo de `lib/urgencia.ts`.
+- Decisões do Ricardo nesta entrega: janela de vendas começa no DV0 (DE0 se não houver) e vai até o D0; "bloqueio" fica fora da urgência (o campo saiu do formulário); dados fictícios de teste no banco continuam permitidos, desde que apagados no fim; avisos e cobrança automática entram em pauta só depois desta entrega.
+- A fonte Syne desenha o zero como "o": o `font-variant-numeric: lining-nums` no `globals.css` é o que mantém "D0" legível. Não tirar.
 
 ## Conexão com a Berry (07/10/2026)
 - Tela em `/experts/[id]/berry`: uma chave de API por expert (`berry_conexoes`) e o produto do ingresso por lançamento (`lancamentos.berry_produto_id` / `berry_produto_nome`). Cada edição da imersão é um produto diferente na Berry, muitas vezes já inativo: produtos inativos continuam na lista.

@@ -2,9 +2,8 @@ import { diaDe, diasEntre } from "./datas";
 import { montarLinhaDoTempo, type Checkpoint } from "./linha-do-tempo";
 import type { Lancamento } from "./marcos";
 import { calcular, type Foto, type Status } from "./metricas";
+import { LIMITE_SEM_ATUALIZAR_DIAS } from "./urgencia";
 
-// Passou disso sem atualização, o painel destaca.
-export const LIMITE_SEM_ATUALIZAR_DIAS = 7;
 
 export type Linha = ReturnType<typeof montarLinha>;
 

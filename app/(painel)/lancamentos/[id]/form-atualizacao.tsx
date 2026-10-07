@@ -4,21 +4,24 @@ import { useActionState, useState } from "react";
 import { calcular, STATUS, type Foto, type Status } from "@/lib/metricas";
 import {
   dinheiroParaCampo,
+  formatarInteiro,
   formatarPercentual,
   formatarReal,
   lerDinheiro,
   lerInteiro,
 } from "@/lib/numeros";
 import type { Lancamento } from "@/lib/marcos";
+import { calcularUrgencia } from "@/lib/urgencia";
+import { SeloMeta } from "../painel-metas";
 import { salvarAtualizacao, type ResultadoAtualizacao } from "../actions";
 
 const CAMPO =
   "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power";
 const INICIAL: ResultadoAtualizacao = {};
 
-type Props = { lancamento: Lancamento; ultima: Foto | null };
+type Props = { lancamento: Lancamento; ultima: Foto | null; hoje: string };
 
-export function FormAtualizacao({ lancamento, ultima }: Props) {
+export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
   const [resultado, acao, salvando] = useActionState(salvarAtualizacao, INICIAL);
 
   // Já vem com os valores da última foto: normalmente só os números mudam.
@@ -35,6 +38,17 @@ export function FormAtualizacao({ lancamento, ultima }: Props) {
     ingressos_vendidos: lerInteiro(ingressos),
     receita_ingressos: lerDinheiro(receita),
     grupo_whatsapp: lerInteiro(grupo),
+  });
+
+  // Mesma conta das outras telas, com os números que estão sendo digitados.
+  const metas = calcularUrgencia({
+    lancamento,
+    foto: {
+      verba_investida: lerDinheiro(verba),
+      ingressos_vendidos: lerInteiro(ingressos),
+    },
+    atrasos: [],
+    hoje,
   });
 
   return (
@@ -114,6 +128,33 @@ export function FormAtualizacao({ lancamento, ultima }: Props) {
         <span className="text-texto">{formatarReal(ticketMedio)}</span> · Comparecimento
         no grupo <span className="text-texto">{formatarPercentual(comparecimento)}</span>
       </p>
+
+      <div className="mt-4 rounded-lg border border-borda bg-cartao-2 p-3 text-sm">
+        <p className="text-xs text-apagado">Metas definidas pelo Ricardo</p>
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+          {lancamento.meta_ingressos != null ? (
+            <>
+              <span>
+                {formatarInteiro(lancamento.meta_ingressos)} ingressos (
+                {formatarInteiro(metas.ingressos.esperado)} esperados até hoje)
+              </span>
+              <SeloMeta status={metas.ingressos.status} />
+            </>
+          ) : (
+            <span className="text-apagado">Ingressos: sem meta ainda</span>
+          )}
+        </p>
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+          {lancamento.meta_cpa != null ? (
+            <>
+              <span>CPA até {formatarReal(lancamento.meta_cpa)}</span>
+              <SeloMeta status={metas.cpa.status} />
+            </>
+          ) : (
+            <span className="text-apagado">CPA: sem meta ainda</span>
+          )}
+        </p>
+      </div>
 
 
       {resultado.erro ? (

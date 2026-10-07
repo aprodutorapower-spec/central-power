@@ -13,7 +13,9 @@ import { faseDoLancamento, TIPOS, type Lancamento } from "@/lib/marcos";
 import { calcular, haQuanto, STATUS, type Foto } from "@/lib/metricas";
 import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
+import { calcularUrgencia } from "@/lib/urgencia";
 import { definirSituacao } from "../actions";
+import { PainelMetas } from "../painel-metas";
 import { CartaoCheckpoint } from "./cartao-checkpoint";
 import { FormAtualizacao } from "./form-atualizacao";
 
@@ -64,6 +66,12 @@ export default async function LancamentoPage({
     ? diasEntre(diaDe(lancamento.status_atualizado_em), dia)
     : null;
   const numeros = ultima ? calcular(ultima) : null;
+  const urgencia = calcularUrgencia({
+    lancamento,
+    foto: ultima,
+    atrasos: itens.filter((item) => item.cor === "atrasado").map((item) => -item.dias),
+    hoje: dia,
+  });
 
   return (
     <>
@@ -114,18 +122,30 @@ export default async function LancamentoPage({
           ) : null}
         </div>
 
+        <div className="mt-4 border-t border-borda pt-4">
+          <PainelMetas urgencia={urgencia} />
+          {urgencia.faltaMeta ? (
+            <p className="mt-3 text-sm text-apagado">
+              {perfil?.papel === "admin" ? (
+                <>
+                  Falta definir meta.{" "}
+                  <Link
+                    href={`/lancamentos/${lancamento.id}/editar`}
+                    className="text-texto underline hover:text-power-claro"
+                  >
+                    Definir metas
+                  </Link>
+                </>
+              ) : (
+                "O Ricardo ainda não definiu todas as metas deste lançamento."
+              )}
+            </p>
+          ) : null}
+        </div>
+
         {ultima && numeros ? (
-          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-4">
             <Numero rotulo="Verba investida" valor={formatarReal(ultima.verba_investida)} />
-            <Numero
-              rotulo="Ingressos vendidos"
-              valor={
-                formatarInteiro(ultima.ingressos_vendidos) +
-                (lancamento.meta_ingressos != null
-                  ? ` de ${formatarInteiro(lancamento.meta_ingressos)}`
-                  : "")
-              }
-            />
             <Numero rotulo="Receita de ingressos" valor={formatarReal(ultima.receita_ingressos)} />
             <Numero
               rotulo="No grupo de WhatsApp"
@@ -136,7 +156,6 @@ export default async function LancamentoPage({
                   : "")
               }
             />
-            <Numero rotulo="CPA" valor={formatarReal(numeros.cpa)} />
             <Numero rotulo="Ticket médio" valor={formatarReal(numeros.ticketMedio)} />
           </div>
         ) : null}
@@ -147,7 +166,7 @@ export default async function LancamentoPage({
               Atualizar lançamento
             </span>
           </summary>
-          <FormAtualizacao lancamento={lancamento} ultima={ultima} />
+          <FormAtualizacao lancamento={lancamento} ultima={ultima} hoje={dia} />
         </details>
       </section>
 

@@ -8,7 +8,7 @@ export default async function EditarLancamentoPage({
   params,
 }: PageProps<"/lancamentos/[id]/editar">) {
   const { id } = await params;
-  const { supabase } = await obterSessao();
+  const { supabase, perfil } = await obterSessao();
 
   const { data } = await supabase
     .from("lancamentos")
@@ -30,6 +30,7 @@ export default async function EditarLancamentoPage({
         expertId={lancamento.expert_id}
         lancamento={lancamento}
         voltar={voltar}
+        admin={perfil?.papel === "admin"}
       />
     </>
   );

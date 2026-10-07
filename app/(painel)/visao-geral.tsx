@@ -7,6 +7,7 @@ import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros
 import { obterSessao } from "@/lib/sessao";
 import { montarLinha, ordenarPrioridades, type Linha } from "@/lib/visao";
 import { FiltrosVisao } from "./filtros-visao";
+import { MetaRapida } from "./metas-rapidas";
 
 type Filtros = { modo?: string; estrategista?: string; status?: string; tipo?: string };
 
@@ -156,6 +157,10 @@ export async function VisaoGeral({ filtros }: { filtros: Filtros }) {
     ),
   );
 
+  const semMeta = todas
+    .filter((l) => l.lancamento.meta_ingressos == null || l.lancamento.meta_cpa == null)
+    .sort((a, b) => a.lancamento.d0.localeCompare(b.lancamento.d0));
+
   const porEstrategista = filtros.modo === "estrategista";
   const resumo = [
     { rotulo: "Lançamentos ativos", valor: todas.length, alerta: false },
@@ -189,6 +194,32 @@ export async function VisaoGeral({ filtros }: { filtros: Filtros }) {
           </div>
         ))}
       </div>
+
+      {semMeta.length ? (
+        <section className="mt-6 rounded-xl border border-borda bg-cartao p-5">
+          <h2 className="font-semibold">
+            Sem meta definida
+            <span className="ml-2 text-sm font-normal text-apagado">{semMeta.length}</span>
+          </h2>
+          <p className="mt-1 text-sm text-apagado">
+            Preencha a meta de ingressos e a de CPA de cada lançamento ativo. A
+            venda de ingressos conta do DV0 (ou DE0) ao D0; para mudar essas
+            datas, abra o lançamento e clique em Editar.
+          </p>
+          <ul className="mt-2 divide-y divide-borda">
+            {semMeta.map((linha) => (
+              <MetaRapida
+                key={linha.lancamento.id}
+                id={linha.lancamento.id}
+                nome={linha.lancamento.nome}
+                dono={`${linha.expert} · ${linha.estrategista} · D0 ${formatarData(linha.lancamento.d0)}`}
+                metaIngressos={linha.lancamento.meta_ingressos}
+                metaCpa={linha.lancamento.meta_cpa}
+              />
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <FiltrosVisao
         estrategistas={(estrategistas ?? []).map((e) => ({ valor: e.id, rotulo: e.nome }))}

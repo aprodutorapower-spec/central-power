@@ -35,7 +35,17 @@ export async function salvarLancamento(
   if (!d0) return { erro: "Informe a data do D0." };
 
   const sugerido = calcularMarcos(tipo, d0);
-  const meta = String(formData.get("meta_ingressos") ?? "").trim();
+
+  // Metas: só o admin define (o banco também ignora se vier de outra pessoa).
+  const metas =
+    perfil.papel === "admin"
+      ? {
+          meta_ingressos: lerInteiro(String(formData.get("meta_ingressos") ?? "")),
+          meta_cpa: lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null,
+          inicio_vendas: data(formData, "inicio_vendas"),
+          fim_vendas: data(formData, "fim_vendas"),
+        }
+      : {};
 
   const campos = {
     nome,
@@ -46,7 +56,7 @@ export async function salvarLancamento(
     de0: data(formData, "de0") ?? sugerido.de0,
     dp0: tipo === "LPS" ? (data(formData, "dp0") ?? sugerido.dp0) : null,
     dfc: data(formData, "dfc") ?? sugerido.dfc,
-    meta_ingressos: meta ? Math.max(0, Math.round(Number(meta)) || 0) : null,
+    ...metas,
     atualizado_em: new Date().toISOString(),
   };
 
@@ -160,6 +170,31 @@ export async function salvarAtualizacao(
     grupo_whatsapp: inteiro("grupo_whatsapp"),
   });
   if (error) return { erro: "O status foi salvo, mas as métricas não. Tente de novo." };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+// Edição rápida das metas pela visão geral (só admin).
+export async function definirMetas(
+  _anterior: ResultadoAtualizacao,
+  formData: FormData,
+): Promise<ResultadoAtualizacao> {
+  const { supabase, perfil } = await obterSessao();
+  if (perfil?.papel !== "admin") return { erro: "Só o admin define as metas." };
+
+  const meta_ingressos = lerInteiro(String(formData.get("meta_ingressos") ?? ""));
+  const meta_cpa = lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null;
+  if (meta_ingressos == null && meta_cpa == null) {
+    return { erro: "Preencha pelo menos uma das metas." };
+  }
+
+  const { data: salvo } = await supabase
+    .from("lancamentos")
+    .update({ meta_ingressos, meta_cpa, atualizado_em: new Date().toISOString() })
+    .eq("id", String(formData.get("id") ?? ""))
+    .select("id");
+  if (!salvo?.length) return { erro: "Não foi possível salvar." };
 
   revalidatePath("/", "layout");
   return { ok: true };
