@@ -52,8 +52,12 @@ export function LembrarRolagem() {
     }
     sessionStorage.removeItem(RESTAURAR);
 
-    const guardar = () =>
+    // O sistema pode manter esta página viva em segundo plano depois que a
+    // pessoa sai dela; só guarda a altura se ela ainda for a página na tela.
+    const guardar = () => {
+      if (window.location.pathname !== caminho) return;
       sessionStorage.setItem(ROLAGEM + caminho, String(window.scrollY));
+    };
     document.addEventListener("click", guardar, true);
     return () => document.removeEventListener("click", guardar, true);
   }, [caminho]);

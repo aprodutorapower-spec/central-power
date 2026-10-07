@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Lancamento } from "@/lib/marcos";
+import { hoje } from "@/lib/datas";
 import { obterSessao } from "@/lib/sessao";
 import { FormLancamento } from "../../form-lancamento";
 
@@ -32,6 +33,7 @@ export default async function EditarLancamentoPage({
           lancamento={lancamento}
           voltar={voltar}
           admin={perfil?.papel === "admin"}
+        hoje={hoje()}
         />
     </div>
   );

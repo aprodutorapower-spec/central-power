@@ -73,20 +73,25 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 1. Em **Experts** (ou **Meus experts**), clique no expert.
 2. Clique em **Novo lançamento**.
 3. Dê um nome, escolha o tipo (**LP**, evento único, ou **LPS**, semanal 5+1) e informe o **D0** (dia do evento; no LPS, a segunda-feira da aula 1).
-4. O sistema calcula as outras datas: **DE0** (D0-7), **DP0** (só no LPS, D0+6) e **DFC** (LP: D0+4; LPS: DP0+2). Todas podem ser ajustadas. **M0** e **DV0** são opcionais.
-5. Clique em **Salvar lançamento**. As metas são definidas pelo admin (veja abaixo).
+4. O sistema sugere as outras datas: **DP0** (só no LPS, D0+6) e **DFC** (LP: D0+4; LPS: DP0+2), que podem ser ajustadas. **M0** e **DV0** (início da venda de ingressos) são opcionais. O **DE0** não é preenchido: o sistema usa D0-7 e move junto quando o D0 muda. Cada data tem um "?" ao lado explicando o que ela é.
+5. Preencha as **metas**: meta de ingressos e meta de CPA (ou marque **Sem tráfego pago**). Para o estrategista elas são obrigatórias na criação.
+6. Clique em **Salvar lançamento**.
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
 ## Metas e status de meta
 
-Cada lançamento tem quatro campos que **só o admin edita** (o estrategista vê, mas não muda; isso é garantido no banco):
+Cada lançamento tem:
 
 - **Meta de ingressos:** total a vender.
-- **Meta de CPA:** valor máximo aceitável por ingresso.
-- **Início e fim das vendas de ingressos:** em branco, valem o DV0 (ou o DE0, se não houver DV0) e o D0.
+- **Meta de CPA:** valor máximo aceitável por ingresso (ou a marcação **Sem tráfego pago**, quando não se cobra CPA).
+- **Fim das vendas de ingressos:** em branco, vale o D0. O início é sempre o **DV0** do lançamento (ou o DE0, se não houver DV0); não há um segundo campo para isso.
 
-Onde preencher: na visão geral, no bloco **Sem meta definida** (ingressos e CPA, direto na lista), ou abrindo o lançamento e clicando em **Editar lançamento** (as quatro).
+Quem preenche:
+
+- **O estrategista define as metas ao criar o lançamento** e pode corrigir enquanto a venda de ingressos não começou.
+- **A partir do início das vendas (DV0), só o admin altera.** Adiar o DV0 depois disso não reabre as metas. Isso é garantido no banco, não só na tela.
+- O admin pode preencher ou corrigir a qualquer momento: na visão geral, no bloco **Sem meta definida**, ou em **Editar lançamento**.
 
 Com as metas, o sistema calcula sozinho, sem guardar no banco:
 

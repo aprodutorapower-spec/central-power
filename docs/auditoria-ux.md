@@ -51,7 +51,7 @@ Situação de cada item: **Feito** (resolvido nas etapas A, B ou C desta entrega
 
 | # | Achado | Situação |
 |---|--------|----------|
-| 24 | O estrategista podia alterar a meta de ingressos do próprio lançamento. | **Feito**: metas só o admin edita, garantido no banco |
+| 24 | O estrategista podia alterar a meta de ingressos do próprio lançamento. | **Feito**: o estrategista define ao criar e corrige até o início das vendas; depois só o admin altera, garantido no banco |
 | 25 | Ao salvar a atualização aparece "Atualização salva", mas o formulário continua aberto e a pessoa não vê o resultado no topo sem rolar. | **Feito** na Etapa C (recolhe e volta ao topo) |
 | 26 | "Encerrar lançamento" e "Desconectar a Berry" agem sem pedir confirmação. Os dois podem ser desfeitos (reabrir, colar a chave de novo), então o risco é baixo. | Depois |
 | 27 | Os estados vazios existem e são claros (sem experts, sem lançamentos, sem fotos de métricas). | Sem ação |

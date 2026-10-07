@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { hoje } from "@/lib/datas";
 import { obterSessao } from "@/lib/sessao";
 import { FormLancamento } from "../../../lancamentos/form-lancamento";
 
@@ -30,6 +31,7 @@ export default async function NovoLancamentoPage({
           expertId={expert.id}
           voltar={`/experts/${expert.id}`}
           admin={perfil?.papel === "admin"}
+          hoje={hoje()}
         />
     </div>
   );

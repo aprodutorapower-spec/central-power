@@ -13,7 +13,7 @@ import { faseDoLancamento, TIPOS, type Lancamento } from "@/lib/marcos";
 import { calcular, haQuanto, STATUS, type Foto } from "@/lib/metricas";
 import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
-import { calcularUrgencia } from "@/lib/urgencia";
+import { calcularUrgencia, metasFechadasParaEstrategista } from "@/lib/urgencia";
 import { definirSituacao } from "../actions";
 import { PainelMetas } from "../painel-metas";
 import { LinhaDoTempo } from "../linha-do-tempo";
@@ -150,7 +150,8 @@ export default async function LancamentoPage({
           <PainelMetas urgencia={urgencia} />
           {urgencia.faltaMeta ? (
             <p className="mt-3 text-sm text-apagado">
-              {perfil?.papel === "admin" ? (
+              {perfil?.papel === "admin" ||
+              !metasFechadasParaEstrategista(lancamento, dia) ? (
                 <>
                   Falta definir meta.{" "}
                   <Link
@@ -161,7 +162,7 @@ export default async function LancamentoPage({
                   </Link>
                 </>
               ) : (
-                "O Ricardo ainda não definiu todas as metas deste lançamento."
+                "Falta meta e as vendas já começaram: peça ao Ricardo para definir."
               )}
             </p>
           ) : null}

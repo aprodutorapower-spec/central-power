@@ -124,6 +124,19 @@ export function janelaDeVendas(
   return { inicio: l.inicio_vendas ?? l.dv0 ?? l.de0, fim: l.fim_vendas ?? l.d0 };
 }
 
+// O estrategista define as metas ao criar o lançamento e pode corrigir até o
+// início das vendas de ingressos; daí em diante só o admin altera. (O banco
+// aplica a mesma regra; isto serve para a tela mostrar ou não os campos.)
+export function metasFechadasParaEstrategista(
+  l: Pick<
+    Lancamento,
+    "inicio_vendas" | "fim_vendas" | "dv0" | "de0" | "d0" | "metas_travadas"
+  >,
+  hoje: string,
+) {
+  return l.metas_travadas || hoje >= janelaDeVendas(l).inicio;
+}
+
 export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: EntradaUrgencia) {
   // Ritmo esperado: linear do início ao fim das vendas.
   const { inicio, fim } = janelaDeVendas(l);

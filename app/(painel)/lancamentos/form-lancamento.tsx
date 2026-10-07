@@ -12,7 +12,7 @@ import {
   type Tipo,
 } from "@/lib/marcos";
 import { dinheiroParaCampo, formatarInteiro, formatarReal } from "@/lib/numeros";
-import { janelaDeVendas } from "@/lib/urgencia";
+import { janelaDeVendas, metasFechadasParaEstrategista } from "@/lib/urgencia";
 import { Dica } from "../interacoes";
 import { salvarLancamento, type ResultadoLancamento } from "./actions";
 
@@ -35,22 +35,29 @@ type Props = {
   lancamento?: Lancamento;
   voltar: string;
   admin: boolean;
+  hoje: string;
 };
 
-export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
+export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Props) {
   const [resultado, acao, salvando] = useActionState(salvarLancamento, INICIAL);
 
   const [tipo, setTipo] = useState<Tipo>(lancamento?.tipo ?? "LPS");
   const [d0, setD0] = useState(lancamento?.d0 ?? "");
-  const [de0, setDe0] = useState(lancamento?.de0 ?? "");
   const [dp0, setDp0] = useState(lancamento?.dp0 ?? "");
   const [dfc, setDfc] = useState(lancamento?.dfc ?? "");
+  const [semTrafego, setSemTrafego] = useState(lancamento?.sem_trafego ?? false);
+
+  // O estrategista define as metas ao criar e pode corrigir até o início das
+  // vendas de ingressos; depois, só o admin.
+  const podeMetas =
+    admin || !lancamento || !metasFechadasParaEstrategista(lancamento, hoje);
+  // Para o estrategista, criar um lançamento sem metas não é permitido.
+  const metasObrigatorias = !admin && !lancamento;
 
   // Mudou o D0 ou o tipo: as datas calculadas são refeitas (e seguem editáveis).
   function recalcular(novoTipo: Tipo, novoD0: string) {
     if (!novoD0) return;
     const sugerido = calcularMarcos(novoTipo, novoD0);
-    setDe0(sugerido.de0);
     setDp0(sugerido.dp0 ?? "");
     setDfc(sugerido.dfc);
   }
@@ -129,20 +136,7 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
 
       <p className="mt-6 text-sm font-semibold">Datas calculadas a partir do D0</p>
       <p className="text-xs text-apagado">Pode ajustar qualquer uma.</p>
-      <div className="mt-3 grid gap-4 sm:grid-cols-3">
-        <div>
-          <RotuloData campo="de0">
-            DE0 · pré-evento
-          </RotuloData>
-          <input
-            id="de0"
-            name="de0"
-            type="date"
-            value={de0}
-            onChange={(evento) => setDe0(evento.target.value)}
-            className={CAMPO}
-          />
-        </div>
+      <div className="mt-3 grid gap-4 sm:grid-cols-2">
         {tipo === "LPS" ? (
           <div>
             <RotuloData campo="dp0">
@@ -203,10 +197,12 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
 
 
       <p className="mt-6 text-sm font-semibold">Metas</p>
-      {admin ? (
+      {podeMetas ? (
         <>
           <p className="text-xs text-apagado">
-            Só você (admin) edita. O estrategista vê, mas não muda.
+            {admin
+              ? "O estrategista preenche ao criar e pode corrigir até o início das vendas de ingressos. Depois disso, só o admin altera."
+              : "Você define agora e pode corrigir até o início das vendas de ingressos (DV0). Depois disso, só o Ricardo altera."}
           </p>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             <div>
@@ -217,6 +213,7 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
                 id="meta_ingressos"
                 name="meta_ingressos"
                 inputMode="numeric"
+                required={metasObrigatorias}
                 defaultValue={lancamento?.meta_ingressos ?? ""}
                 placeholder="Ex.: 300"
                 className={CAMPO}
@@ -230,25 +227,12 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
                 id="meta_cpa"
                 name="meta_cpa"
                 inputMode="decimal"
+                required={metasObrigatorias && !semTrafego}
+                disabled={semTrafego}
                 defaultValue={dinheiroParaCampo(lancamento?.meta_cpa)}
-                placeholder="Ex.: 40,00"
+                placeholder={semTrafego ? "Não se aplica" : "Ex.: 40,00"}
                 className={CAMPO}
               />
-            </div>
-            <div>
-              <label className="block text-sm text-apagado" htmlFor="inicio_vendas">
-                Início das vendas de ingressos
-              </label>
-              <input
-                id="inicio_vendas"
-                name="inicio_vendas"
-                type="date"
-                defaultValue={lancamento?.inicio_vendas ?? ""}
-                className={CAMPO}
-              />
-              <p className="mt-1 text-xs text-apagado">
-                Em branco, vale o DV0 (ou o DE0, se não houver DV0).
-              </p>
             </div>
             <div>
               <label className="block text-sm text-apagado" htmlFor="fim_vendas">
@@ -261,7 +245,9 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
                 defaultValue={lancamento?.fim_vendas ?? ""}
                 className={CAMPO}
               />
-              <p className="mt-1 text-xs text-apagado">Em branco, vale o D0.</p>
+              <p className="mt-1 text-xs text-apagado">
+                Em branco, vale o D0. O início é o DV0, logo acima.
+              </p>
             </div>
           </div>
           <label className="mt-4 flex items-center gap-2 text-sm">
@@ -269,34 +255,36 @@ export function FormLancamento({ expertId, lancamento, voltar, admin }: Props) {
               type="checkbox"
               name="sem_trafego"
               value="true"
-              defaultChecked={lancamento?.sem_trafego ?? false}
+              checked={semTrafego}
+              onChange={(evento) => setSemTrafego(evento.target.checked)}
               className="h-4 w-4 accent-power"
             />
             Sem tráfego pago (não cobra CPA nem aparece como “sem meta”)
           </label>
         </>
-      ) : lancamento ? (
+      ) : (
         <p className="mt-1 text-sm text-apagado">
-          Definidas pelo Ricardo:{" "}
+          As vendas de ingressos já começaram, então só o Ricardo altera:{" "}
           <span className="text-texto">
-            {lancamento.meta_ingressos != null
+            {lancamento?.meta_ingressos != null
               ? `${formatarInteiro(lancamento.meta_ingressos)} ingressos`
               : "ingressos sem meta"}
           </span>
           {" · "}
           <span className="text-texto">
-            {lancamento.meta_cpa != null
-              ? `CPA até ${formatarReal(lancamento.meta_cpa)}`
-              : "CPA sem meta"}
+            {lancamento?.sem_trafego
+              ? "sem tráfego pago"
+              : lancamento?.meta_cpa != null
+                ? `CPA até ${formatarReal(lancamento.meta_cpa)}`
+                : "CPA sem meta"}
           </span>
-          {" · vendas de "}
-          {formatarData(janelaDeVendas(lancamento).inicio)} a{" "}
-          {formatarData(janelaDeVendas(lancamento).fim)}.
-        </p>
-      ) : (
-        <p className="mt-1 text-sm text-apagado">
-          As metas de ingressos e de CPA são definidas pelo Ricardo depois que o
-          lançamento é criado.
+          {lancamento ? (
+            <>
+              {" · vendas de "}
+              {formatarData(janelaDeVendas(lancamento).inicio)} a{" "}
+              {formatarData(janelaDeVendas(lancamento).fim)}.
+            </>
+          ) : null}
         </p>
       )}
 

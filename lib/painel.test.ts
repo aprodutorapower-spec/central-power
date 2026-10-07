@@ -31,6 +31,7 @@ function lancamento(
     inicio_vendas: null,
     fim_vendas: null,
     sem_trafego: false,
+    metas_travadas: false,
     situacao: "ativo",
     status: "verde",
     bloqueio: "",

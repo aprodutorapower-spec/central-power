@@ -138,7 +138,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
       </p>
 
       <div className="mt-4 rounded-lg border border-borda bg-cartao-2 p-3 text-sm">
-        <p className="text-xs text-apagado">Metas definidas pelo Ricardo</p>
+        <p className="text-xs text-apagado">Metas do lançamento</p>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
           {lancamento.meta_ingressos != null ? (
             <>

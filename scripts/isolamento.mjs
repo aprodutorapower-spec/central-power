@@ -170,40 +170,65 @@ async function testar() {
     .eq("id", lancA?.[0]?.id);
   confere("A não move lançamento para expert de B", Boolean(moveu));
 
-  // Metas: só o admin define; o que o estrategista manda é ignorado
+  // Metas: o estrategista define ao criar e corrige até o início das vendas;
+  // depois, só o admin (e adiar o DV0 não reabre).
   const { data: lancComMeta } = await a.cliente
     .from("lancamentos")
-    .insert({ ...modelo, nome: `${MARCA} com meta indevida`, expert_id: expertA.id, meta_ingressos: 999, meta_cpa: 9 })
+    .insert({ ...modelo, nome: `${MARCA} com meta`, expert_id: expertA.id, meta_ingressos: 300, meta_cpa: 40 })
     .select("id, meta_ingressos, meta_cpa");
+  const idComMeta = lancComMeta?.[0]?.id;
   confere(
-    "A não define metas ao criar lançamento",
-    lancComMeta?.length === 1 && lancComMeta[0].meta_ingressos === null && lancComMeta[0].meta_cpa === null,
+    "A define as metas ao criar o lançamento",
+    lancComMeta?.[0]?.meta_ingressos === 300 && Number(lancComMeta?.[0]?.meta_cpa) === 40,
   );
-  await servico.from("lancamentos").delete().eq("id", lancComMeta?.[0]?.id);
+
+  const { data: antesDoInicio } = await a.cliente
+    .from("lancamentos")
+    .update({ meta_ingressos: 350 })
+    .eq("id", idComMeta)
+    .select("meta_ingressos, metas_travadas");
+  confere(
+    "A corrige a meta antes do início das vendas",
+    antesDoInicio?.[0]?.meta_ingressos === 350 && antesDoInicio?.[0]?.metas_travadas === false,
+  );
+
+  // As vendas começaram (DV0 no passado).
+  await servico.from("lancamentos").update({ dv0: "2020-01-01" }).eq("id", idComMeta);
+  const { data: depoisDoInicio } = await a.cliente
+    .from("lancamentos")
+    .update({ nome: `${MARCA} com meta`, meta_ingressos: 1, meta_cpa: 999, sem_trafego: true, fim_vendas: "2030-02-01" })
+    .eq("id", idComMeta)
+    .select("meta_ingressos, meta_cpa, sem_trafego, fim_vendas, metas_travadas");
+  confere(
+    "depois do início das vendas, A edita o lançamento mas não muda as metas",
+    depoisDoInicio?.[0]?.meta_ingressos === 350 &&
+      Number(depoisDoInicio?.[0]?.meta_cpa) === 40 &&
+      depoisDoInicio?.[0]?.sem_trafego === false &&
+      depoisDoInicio?.[0]?.fim_vendas === null &&
+      depoisDoInicio?.[0]?.metas_travadas === true,
+  );
+
+  await a.cliente.from("lancamentos").update({ dv0: "2031-01-01" }).eq("id", idComMeta);
+  const { data: adiou } = await a.cliente
+    .from("lancamentos")
+    .update({ meta_ingressos: 1, metas_travadas: false })
+    .eq("id", idComMeta)
+    .select("meta_ingressos, metas_travadas");
+  confere(
+    "adiar o DV0 não reabre as metas para A",
+    adiou?.[0]?.meta_ingressos === 350 && adiou?.[0]?.metas_travadas === true,
+  );
 
   const { data: metaDoAdmin } = await admin.cliente
     .from("lancamentos")
-    .update({ meta_ingressos: 300, meta_cpa: 40, inicio_vendas: "2030-01-01", sem_trafego: false })
-    .eq("id", lancA?.[0]?.id)
+    .update({ meta_ingressos: 500, meta_cpa: 45 })
+    .eq("id", idComMeta)
     .select("meta_ingressos, meta_cpa");
   confere(
-    "admin define as metas",
-    metaDoAdmin?.[0]?.meta_ingressos === 300 && Number(metaDoAdmin?.[0]?.meta_cpa) === 40,
+    "admin altera as metas a qualquer momento",
+    metaDoAdmin?.[0]?.meta_ingressos === 500 && Number(metaDoAdmin?.[0]?.meta_cpa) === 45,
   );
-
-  const { data: metaDeA } = await a.cliente
-    .from("lancamentos")
-    .update({ nome: `${MARCA} lançamento de A`, meta_ingressos: 1, meta_cpa: 999, inicio_vendas: null, fim_vendas: "2030-02-01", sem_trafego: true })
-    .eq("id", lancA?.[0]?.id)
-    .select("meta_ingressos, meta_cpa, inicio_vendas, fim_vendas, sem_trafego");
-  confere(
-    "A edita o próprio lançamento, mas não muda as metas",
-    metaDeA?.[0]?.meta_ingressos === 300 &&
-      Number(metaDeA?.[0]?.meta_cpa) === 40 &&
-      metaDeA?.[0]?.inicio_vendas === "2030-01-01" &&
-      metaDeA?.[0]?.fim_vendas === null &&
-      metaDeA?.[0]?.sem_trafego === false,
-  );
+  await servico.from("lancamentos").delete().eq("id", idComMeta);
 
   // Checkpoints (seguem o lançamento) e modelos (só admin)
   const { data: cpsDeA } = await a.cliente

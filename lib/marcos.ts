@@ -22,11 +22,11 @@ export type ChaveMarco = (typeof MARCOS)[number]["chave"];
 // O que é cada data, em linguagem de quem preenche (aparece nas dicas do formulário).
 export const EXPLICACOES: Record<ChaveMarco, string> = {
   d0: "Dia do evento. No LPS é a segunda-feira da aula 1; no LP, o dia do evento único. É a data principal: as outras são sugeridas a partir dela e, se ela mudar, os checkpoints pendentes andam junto.",
-  de0: "Dia em que começa o pré-evento, a reta final antes do D0. O sistema sugere 7 dias antes do D0. Se o lançamento não tiver DV0, a meta de ingressos começa a contar daqui.",
+  de0: "Dia em que começa o pré-evento, a reta final antes do D0. Não é preenchido à mão: o sistema usa 7 dias antes do D0 e move junto quando o D0 muda.",
   dp0: "Dia do pitch: quando a oferta do produto principal é apresentada e o carrinho abre. Só existe no LPS. O sistema sugere o domingo, 6 dias depois do D0.",
   dfc: "Dia em que o carrinho fecha e a venda do produto principal termina. O sistema sugere 4 dias depois do D0 no LP e 2 dias depois do pitch no LPS. Passada essa data, o lançamento aparece como “Carrinho fechado”.",
   m0: "Dia da decisão: quando ficou decidido que o lançamento vai acontecer. É opcional e entra como o primeiro marco da linha do tempo.",
-  dv0: "Dia em que os ingressos começam a ser vendidos. É opcional, mas vale preencher: o ritmo esperado da meta de ingressos e a contagem de vendas da Berry começam nesta data.",
+  dv0: "Dia em que os ingressos começam a ser vendidos. É opcional, mas vale preencher: o ritmo esperado da meta de ingressos e a contagem de vendas da Berry começam nesta data. Em branco, o sistema conta a partir do início do pré-evento (7 dias antes do D0).",
 };
 
 export type Lancamento = {
@@ -45,6 +45,7 @@ export type Lancamento = {
   inicio_vendas: string | null;
   fim_vendas: string | null;
   sem_trafego: boolean;
+  metas_travadas: boolean;
   situacao: "ativo" | "encerrado";
   status: "verde" | "amarelo" | "vermelho" | null;
   bloqueio: string;

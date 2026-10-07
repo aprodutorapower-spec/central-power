@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { hoje } from "@/lib/datas";
+import { diasEntre, hoje, somarDias } from "@/lib/datas";
 import { calcularMarcos, type Tipo } from "@/lib/marcos";
 import { lerDinheiro, lerInteiro } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
+import { metasFechadasParaEstrategista } from "@/lib/urgencia";
 
 export type ResultadoLancamento = { erro?: string };
 
@@ -36,17 +37,24 @@ export async function salvarLancamento(
 
   const sugerido = calcularMarcos(tipo, d0);
 
-  // Metas: só o admin define (o banco também ignora se vier de outra pessoa).
-  const metas =
-    perfil.papel === "admin"
-      ? {
-          meta_ingressos: lerInteiro(String(formData.get("meta_ingressos") ?? "")),
-          meta_cpa: lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null,
-          inicio_vendas: data(formData, "inicio_vendas"),
-          fim_vendas: data(formData, "fim_vendas"),
-          sem_trafego: formData.get("sem_trafego") === "true",
-        }
-      : {};
+  // Metas: o estrategista define ao criar e pode corrigir até o início das
+  // vendas; depois, só o admin (o banco aplica a mesma regra).
+  const admin = perfil.papel === "admin";
+  const sem_trafego = formData.get("sem_trafego") === "true";
+  const metas = {
+    meta_ingressos: lerInteiro(String(formData.get("meta_ingressos") ?? "")),
+    meta_cpa: sem_trafego
+      ? null
+      : lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null,
+    fim_vendas: data(formData, "fim_vendas"),
+    sem_trafego,
+  };
+  if (!id && !admin) {
+    if (metas.meta_ingressos == null) return { erro: "Informe a meta de ingressos." };
+    if (!sem_trafego && metas.meta_cpa == null) {
+      return { erro: "Informe a meta de CPA (ou marque “Sem tráfego pago”)." };
+    }
+  }
 
   const campos = {
     nome,
@@ -54,25 +62,37 @@ export async function salvarLancamento(
     d0,
     m0: data(formData, "m0"),
     dv0: data(formData, "dv0"),
-    de0: data(formData, "de0") ?? sugerido.de0,
     dp0: tipo === "LPS" ? (data(formData, "dp0") ?? sugerido.dp0) : null,
     dfc: data(formData, "dfc") ?? sugerido.dfc,
-    ...metas,
     atualizado_em: new Date().toISOString(),
   };
 
   let destino = id;
   if (id) {
+    // O DE0 não é mais preenchido à mão: fica como está e só anda junto
+    // quando o D0 muda, mantendo a mesma distância.
+    const { data: antes } = await supabase
+      .from("lancamentos")
+      .select("d0, de0, dv0, inicio_vendas, fim_vendas, metas_travadas")
+      .eq("id", id)
+      .maybeSingle();
+    if (!antes) return { erro: "Não foi possível salvar." };
+    const podeMetas = admin || !metasFechadasParaEstrategista(antes, hoje());
+
     const { data: salvo } = await supabase
       .from("lancamentos")
-      .update(campos)
+      .update({
+        ...campos,
+        ...(podeMetas ? metas : {}),
+        de0: somarDias(antes.de0, diasEntre(antes.d0, d0)),
+      })
       .eq("id", id)
       .select("id");
     if (!salvo?.length) return { erro: "Não foi possível salvar." };
   } else {
     const { data: criado, error } = await supabase
       .from("lancamentos")
-      .insert({ ...campos, expert_id, criado_por: perfil.id })
+      .insert({ ...campos, ...metas, de0: sugerido.de0, expert_id, criado_por: perfil.id })
       .select("id")
       .single();
     if (error || !criado) return { erro: "Não foi possível criar o lançamento." };
