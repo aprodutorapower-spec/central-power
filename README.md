@@ -39,7 +39,7 @@ Cada lançamento é um cartão com:
 Botões do cartão:
 
 - **Copiar cobrança:** copia um texto curto e cordial, com os números do problema, pronto para colar no WhatsApp. Só copia; não envia nada. Não aparece quando não há o que cobrar.
-- **Linha do tempo** (ou clicar em qualquer ponto do cartão): abre um painel lateral com a linha do tempo completa, sem sair da página. Dá para marcar checkpoints como feitos ali mesmo.
+- **Linha do tempo** (ou clicar em qualquer ponto do cartão): abre uma janela no meio da tela com a linha do tempo completa, sem sair da página. Dá para marcar checkpoints como feitos ali mesmo.
 - **Abrir lançamento:** vai para a página completa.
 
 **← Visão geral** volta para a visão geral na mesma altura em que ela estava.

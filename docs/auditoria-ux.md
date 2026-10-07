@@ -13,7 +13,7 @@ Situação de cada item: **Feito** (resolvido nas etapas A, B ou C desta entrega
 | 3 | A visão geral mostra lançamentos, não estrategistas. Para saber quem cobrar, é preciso ler todos os cartões e agrupar mentalmente. | A pergunta do Ricardo é "com quem eu falo primeiro". | **Feito** na Etapa B |
 | 4 | Todos os cartões têm o mesmo peso visual, com 8 números cada, estejam bem ou mal. | O que está bem compete por atenção com o que está mal. | **Feito** |
 | 5 | Não há o motivo em palavras. O Ricardo vê números e precisa concluir sozinho o que cobrar. | A frase do motivo é o que vira a cobrança. | **Feito** |
-| 6 | Para ver a linha do tempo é preciso sair da visão geral, abrir o lançamento e voltar. | Cada ida e volta custa tempo e perde a posição na lista. | **Feito** na Etapa C |
+| 6 | Para ver a linha do tempo é preciso sair da visão geral, abrir o lançamento e voltar. | Cada ida e volta custa tempo e perde a posição na lista. | **Feito** na Etapa C (janela no meio da tela) |
 | 7 | O histórico de métricas é só uma tabela; não dá para ver tendência (melhorando ou piorando). | Um CPA ruim caindo é diferente de um CPA ruim subindo. | **Feito** na Etapa C |
 | 8 | Lançamento sem meta não aparecia como pendência em lugar nenhum. | Sem meta não há como avaliar. | **Feito**: bloco "Sem meta definida" com preenchimento rápido |
 

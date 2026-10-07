@@ -99,9 +99,8 @@ export function BotaoCopiar({
   );
 }
 
-// Cartão que, ao ser clicado, abre um painel que desliza da direita, sem
-// trocar de página. Cartão e painel vêm prontos do servidor; aqui só abre e
-// fecha. Links, botões e campos dentro do cartão continuam funcionando; um
+// Cartão que, ao ser clicado, abre uma janela no meio da tela, sem trocar de
+// página. Cartão e janela vêm prontos do servidor; aqui só abre e fecha. Links, botões e campos dentro do cartão continuam funcionando; um
 // botão com data-abre-painel também abre o painel.
 export function CartaoComPainel({
   titulo,
@@ -129,11 +128,11 @@ export function CartaoComPainel({
       <dialog
         ref={ref}
         aria-label={titulo}
-        // Clique no fundo escuro (fora do painel) fecha.
+        // Clique no fundo escuro (fora da janela) fecha.
         onClick={(evento) => {
           if (evento.target === ref.current) ref.current?.close();
         }}
-        className="fixed inset-y-0 left-auto right-0 m-0 h-dvh max-h-dvh w-full max-w-xl cursor-auto overflow-y-auto border-l border-borda bg-fundo p-0 text-texto backdrop:bg-black/70"
+        className="fixed inset-0 m-auto h-fit max-h-[85dvh] w-[calc(100%-2rem)] max-w-3xl cursor-auto overflow-y-auto rounded-xl border border-borda bg-fundo p-0 text-texto backdrop:bg-black/70"
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-borda bg-cartao px-5 py-4">
           <h2 className="font-semibold">{titulo}</h2>
