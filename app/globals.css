@@ -20,6 +20,17 @@
 
 html {
   color-scheme: dark;
+  /* Reserva o espaço da barra de rolagem para a página não "pular" ao travar. */
+  scrollbar-gutter: stable;
+}
+
+/* Com um pop-up aberto, a página de trás não rola; só o pop-up. */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+dialog {
+  overscroll-behavior: contain;
 }
 
 body {
