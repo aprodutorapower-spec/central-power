@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { textoCobranca } from "@/lib/cobranca";
+import { avisosDeConexao } from "@/lib/conexoes";
 import { formatarData } from "@/lib/datas";
 import { contagem, CORES, montarLinhaDoTempo, tituloDoItem } from "@/lib/linha-do-tempo";
 import { calcular, haQuanto, STATUS } from "@/lib/metricas";
@@ -86,6 +87,7 @@ function CartaoLancamento({
     : null;
   const titulo = `${item.expert} · ${lancamento.nome}`;
   const grave = urgencia.faixa === "abaixo" || urgencia.faixa === "sem_dados";
+  const conexoes = avisosDeConexao(lancamento, hoje, new Date());
 
   return (
     <CartaoComPainel
@@ -243,6 +245,18 @@ function CartaoLancamento({
             </>
           ) : null}
         </p>
+      ) : null}
+
+      {/* Só aparece quando algo que deveria atualizar sozinho não está. */}
+      {conexoes.length ? (
+        <div className="mt-3 rounded-lg border border-borda bg-cartao-2 px-3 py-2.5">
+          <p className="text-xs text-apagado">Atualização automática com problema</p>
+          <ul className="mt-1 text-sm">
+            {conexoes.map((aviso) => (
+              <li key={aviso}>{aviso}</li>
+            ))}
+          </ul>
+        </div>
       ) : null}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">

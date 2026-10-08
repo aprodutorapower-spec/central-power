@@ -54,6 +54,18 @@ export async function vendasNaBerry(lancamentoId: string): Promise<Consulta> {
 export async function sincronizarBerry(lancamentoId: string): Promise<ResultadoSincronia> {
   const admin = criarClienteAdmin();
   const consulta = await vendasNaBerry(lancamentoId);
+  // Guarda o resultado de toda consulta (mesmo sem número novo), para a tela
+  // avisar quando a Berry para de atualizar.
+  if (consulta.situacao !== "sem_berry") {
+    await admin
+      .from("lancamentos")
+      .update(
+        consulta.situacao === "erro"
+          ? { berry_erro: consulta.erro }
+          : { berry_conferido_em: new Date().toISOString(), berry_erro: null },
+      )
+      .eq("id", lancamentoId);
+  }
   if (consulta.situacao !== "ok") return consulta;
   const vendas = { ingressos: consulta.ingressos, receita: consulta.receita };
 

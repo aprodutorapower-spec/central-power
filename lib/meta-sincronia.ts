@@ -53,9 +53,24 @@ export async function gravarVerbaDoMeta(
     return { situacao: "sem_meta" };
   }
 
+  // Guarda o resultado de toda entrega da rotina, para a tela avisar quando
+  // o Meta Ads para de atualizar.
+  const registrar = (erro: string | null) =>
+    admin
+      .from("lancamentos")
+      .update(
+        erro
+          ? { meta_erro: erro }
+          : { meta_conferido_em: new Date().toISOString(), meta_erro: null },
+      )
+      .eq("id", lancamentoId);
+
   const { verba, campanhas: quantas } = somarVerba(campanhas, lancamento.meta_filtro);
   // Nenhuma campanha bateu: pode ser falha da consulta. Não grava zero.
-  if (!quantas) return { situacao: "sem_campanhas" };
+  if (!quantas) {
+    await registrar("nenhuma campanha com gasto bate com o filtro");
+    return { situacao: "sem_campanhas" };
+  }
 
   const { data: ultima } = await admin
     .from("fotos_metricas")
@@ -66,6 +81,7 @@ export async function gravarVerbaDoMeta(
     .maybeSingle();
 
   if (ultima && Number(ultima.verba_investida) === verba) {
+    await registrar(null);
     return { situacao: "sem_mudanca", verba, campanhas: quantas };
   }
 
@@ -81,7 +97,11 @@ export async function gravarVerbaDoMeta(
     receita_ingressos: ultima?.receita_ingressos ?? null,
     grupo_whatsapp: ultima?.grupo_whatsapp ?? null,
   });
-  if (error) return { situacao: "erro", erro: "Não foi possível gravar a verba." };
+  if (error) {
+    await registrar("não foi possível gravar a verba");
+    return { situacao: "erro", erro: "Não foi possível gravar a verba." };
+  }
 
+  await registrar(null);
   return { situacao: "atualizado", verba, campanhas: quantas };
 }

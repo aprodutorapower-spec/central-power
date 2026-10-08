@@ -92,6 +92,10 @@ Só o admin configura. Em **Editar lançamento**, no bloco **Verba pelo Meta Ads
 
 Com isso preenchido, a verba investida é atualizada sozinha três vezes ao dia (9h10, 12h10 e 18h10 de Brasília) por uma rotina agendada do Claude, que usa o conector do Meta Ads da conta do Ricardo. A rotina aparece em https://claude.ai/code/routines. Se o conector for desconectado, a verba para de atualizar.
 
+## Aviso de atualização automática
+
+Cada lançamento ativo deveria receber sozinho os ingressos e a receita (Berry) e a verba (Meta Ads), três vezes ao dia. Quando isso não acontece, o cartão do lançamento mostra a faixa **Atualização automática com problema**, dizendo o que houve: Berry ou Meta Ads não conectado, erro na última tentativa, ou sem atualizar desde tal dia e hora. Com tudo em dia, a faixa não aparece. Lançamento marcado como **Sem tráfego pago** não cobra Meta Ads.
+
 ## Metas e status de meta
 
 Cada lançamento tem:

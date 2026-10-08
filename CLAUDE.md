@@ -82,6 +82,8 @@ Pedido do Ricardo: reconstruir a experiência do admin em Nível 1 (macro, 6 est
 - Ao criar qualquer integração nova, seguir o mesmo desenho: nada de botão ou script que grave dados sem o lançamento entrar na rotina.
 - Ao ligar a Berry ou o Meta de um lançamento, conferir na execução seguinte que ele apareceu na rotina (resposta em `net._http_response` para a Berry; foto com fonte `meta` para o Meta).
 
+- Aviso de conexão (aprovado pelo Ricardo em 08/10/2026): o cartão do lançamento mostra a faixa "Atualização automática com problema" só quando há algo errado (Berry ou Meta Ads não conectado, com erro, ou sem rodar há mais de 16 horas); em dia, não aparece nada. Regra em `lib/conexoes.ts` (testada). As rotinas gravam `berry_conferido_em` / `berry_erro` / `meta_conferido_em` / `meta_erro` em `lancamentos` a cada consulta, mesmo sem número novo; o gatilho `proteger_estado_conexoes` só deixa o servidor escrever. É a exceção combinada à regra "informação nova entra como bloco".
+
 ## Próximos passos (fora do v1)
 Pauta automática da call de sexta, integrações (Meta Ads por BM em modo leitura, Berry Pay preenchendo as métricas sozinha, Asana), lançamentos perpétuos, teste de aceite com os estrategistas, domínio próprio.
 
