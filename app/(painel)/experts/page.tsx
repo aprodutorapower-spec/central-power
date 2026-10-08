@@ -108,12 +108,16 @@ export default async function ExpertsPage({
       nome: estrategista.nome as string,
     })),
     { id: null, nome: "Sem responsável" },
-  ]
-    .map((grupo) => ({
-      ...grupo,
-      experts: experts.filter((expert) => expert.estrategista_id === grupo.id),
-    }))
-    .filter((grupo) => grupo.id !== null || grupo.experts.length > 0);
+  ].map((grupo) => ({
+    ...grupo,
+    experts: experts.filter((expert) => expert.estrategista_id === grupo.id),
+  }));
+  // Só vira cartão quem tem expert; quem não tem vai para uma faixa única no
+  // fim, para a grade nunca ter cartão vazio de tamanho diferente dos outros.
+  const comExperts = grupos.filter((grupo) => grupo.experts.length > 0);
+  const semExperts = grupos.filter(
+    (grupo) => grupo.id !== null && grupo.experts.length === 0,
+  );
 
   return (
     <>
@@ -151,11 +155,14 @@ export default async function ExpertsPage({
         </BotaoEnviar>
       </form>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        {grupos.map((grupo) => (
+      {/* A lista tem altura fixa (cabem 3 experts) e rola por dentro, então
+          todo cartão tem o mesmo tamanho, tenha 1 expert ou 20. No celular a
+          linha empilha e a altura fica livre. */}
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {comExperts.map((grupo) => (
           <section
             key={grupo.id ?? "sem"}
-            className="rounded-xl border border-borda bg-cartao p-5"
+            className="min-w-0 rounded-xl border border-borda bg-cartao p-5"
           >
             <h2 className="font-semibold">
               {grupo.nome}
@@ -163,52 +170,73 @@ export default async function ExpertsPage({
                 {grupo.experts.length}
               </span>
             </h2>
-            {grupo.experts.length ? (
-              <ul className="mt-3 divide-y divide-borda">
-                {grupo.experts.map((expert) => (
-                  <li
-                    key={expert.id}
-                    className="flex flex-wrap items-center justify-between gap-2 py-3"
+            <ul className="-mr-2 mt-3 divide-y divide-borda pr-2 sm:h-52 sm:overflow-y-auto">
+              {grupo.experts.map((expert) => (
+                <li
+                  key={expert.id}
+                  className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-3"
+                >
+                  <Link
+                    href={`/experts/${expert.id}`}
+                    className="min-w-0 flex-1 hover:text-power-claro"
                   >
-                    <Link
-                      href={`/experts/${expert.id}`}
-                      className={`hover:text-power-claro ${
+                    <span
+                      className={`block truncate ${
                         expert.ativo ? "" : "text-apagado line-through"
                       }`}
                     >
                       {expert.nome}
-                      <span className="ml-2 text-xs text-apagado">
-                        {resumo(expert.id)}
-                      </span>
-                    </Link>
-                    <div className="flex items-center gap-3">
-                      <SeletorResponsavel
-                        expertId={expert.id}
-                        expertNome={expert.nome}
-                        atual={expert.estrategista_id}
-                        estrategistas={estrategistas}
+                    </span>
+                    <span className="block truncate text-xs text-apagado">
+                      {resumo(expert.id)}
+                    </span>
+                  </Link>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <SeletorResponsavel
+                      expertId={expert.id}
+                      expertNome={expert.nome}
+                      atual={expert.estrategista_id}
+                      estrategistas={estrategistas}
+                    />
+                    <form action={definirExpertAtivo}>
+                      <input type="hidden" name="id" value={expert.id} />
+                      <input
+                        type="hidden"
+                        name="ativo"
+                        value={String(!expert.ativo)}
                       />
-                      <form action={definirExpertAtivo}>
-                        <input type="hidden" name="id" value={expert.id} />
-                        <input
-                          type="hidden"
-                          name="ativo"
-                          value={String(!expert.ativo)}
-                        />
-                        <BotaoEnviar className="text-xs text-apagado hover:text-texto">
-                          {expert.ativo ? "Desativar" : "Reativar"}
-                        </BotaoEnviar>
-                      </form>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-3 text-sm text-apagado">Nenhum expert ainda.</p>
-            )}
+                      <BotaoEnviar className="w-16 text-right text-xs text-apagado hover:text-texto">
+                        {expert.ativo ? "Desativar" : "Reativar"}
+                      </BotaoEnviar>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
         ))}
       </div>
+
+      {semExperts.length > 0 && (
+        <section className="mt-6 rounded-xl border border-borda bg-cartao p-5">
+          <h2 className="font-semibold">
+            Estrategistas sem experts
+            <span className="ml-2 text-sm font-normal text-apagado">
+              {semExperts.length}
+            </span>
+          </h2>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {semExperts.map((grupo) => (
+              <li
+                key={grupo.id}
+                className="rounded-lg border border-borda bg-cartao-2 px-3 py-1 text-sm text-apagado"
+              >
+                {grupo.nome}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }
