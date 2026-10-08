@@ -13,8 +13,10 @@ export async function entrar(formData: FormData) {
     password: senha,
   });
 
-  if (error) redirect("/login?erro=1");
-  redirect("/");
+  const primeiro = formData.get("primeiro") === "sim";
+  if (error) redirect(primeiro ? "/login?erro=1&aviso=senha" : "/login?erro=1");
+  // Primeiro acesso (acabou de criar a senha): começa pelos experts.
+  redirect(primeiro ? "/experts" : "/");
 }
 
 export async function sair() {

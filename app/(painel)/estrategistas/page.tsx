@@ -30,7 +30,7 @@ export default async function EstrategistasPage() {
       <p className="mt-2 max-w-2xl text-sm text-apagado">
         Para incluir alguém, digite o nome e clique em Adicionar; depois informe
         o e-mail no cartão dele e gere o link de acesso. O estrategista abre o
-        link, entra e cria a própria senha. Se ele esquecer a senha, gere um link
+        link, cria a própria senha e entra com e-mail e senha. Se ele esquecer a senha, gere um link
         novo. Quem saiu da equipe pode ser excluído no próprio cartão.
       </p>
       <NovoEstrategista />

@@ -59,7 +59,7 @@ Tudo em **Estrategistas**, no menu do admin.
 
 1. No cartão dele, digite o e-mail e clique em **Gerar link de acesso**.
 2. Clique em **Copiar link** e envie para ele (WhatsApp, por exemplo). O link vale 24 horas e funciona uma única vez.
-3. Ele abre o link, clica em **Entrar** e cria a própria senha. A partir daí entra com e-mail e senha.
+3. Ele abre o link e **cria a própria senha** ali mesmo. Em seguida o sistema leva ao login: ele entra com e-mail e senha e cai em **Meus experts**. O link só é gasto quando a senha é salva: abrir o link e fechar sem terminar não o invalida.
 4. Se ele esquecer a senha, gere um link novo no mesmo lugar.
 
 Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda não entrou) e **Ativo** (já entrou).

@@ -6,7 +6,8 @@ import { BotaoEnviar } from "@/app/botao-enviar";
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (!supabaseConfigurado()) return <AvisoConfiguracao />;
 
-  const { erro } = await searchParams;
+  const { erro, aviso, email } = await searchParams;
+  const senhaCriada = aviso === "senha";
 
   return (
     <main className="flex flex-1 items-center justify-center p-6">
@@ -18,6 +19,12 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         <img src="/logo-power.png" alt="Power" className="h-8 w-auto" />
         <h1 className="mt-6 text-xl font-semibold">Controle de Lançamentos</h1>
         <p className="mt-1 text-sm text-apagado">Entre com seu e-mail e senha.</p>
+        {senhaCriada ? <input type="hidden" name="primeiro" value="sim" /> : null}
+        {senhaCriada && !erro ? (
+          <p className="mt-4 text-sm text-ok" role="status">
+            Senha criada. Agora entre com seu e-mail e essa senha.
+          </p>
+        ) : null}
 
         <label className="mt-6 block text-sm text-apagado" htmlFor="email">
           E-mail
@@ -27,6 +34,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
           name="email"
           type="email"
           required
+          defaultValue={typeof email === "string" ? email : ""}
           autoComplete="email"
           className="mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power"
         />
