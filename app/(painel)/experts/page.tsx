@@ -15,9 +15,13 @@ type Expert = {
 const CAMPO =
   "rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power";
 
-export default async function ExpertsPage() {
+export default async function ExpertsPage({
+  searchParams,
+}: PageProps<"/experts">) {
   const { supabase, perfil } = await obterSessao();
   if (!perfil) redirect("/login");
+
+  const { aviso } = await searchParams;
 
   const admin = perfil.papel === "admin";
 
@@ -56,6 +60,11 @@ export default async function ExpertsPage() {
     return (
       <>
         <h1 className="text-2xl font-semibold">Meus experts</h1>
+        {aviso === "senha" && (
+          <p className="mt-4 max-w-md rounded-lg border border-borda bg-cartao-2 px-3 py-2 text-sm">
+            Senha salva. Agora cadastre seus experts para começar.
+          </p>
+        )}
         <form action={criarExpert} className="mt-6 flex max-w-md gap-2">
           <input
             name="nome"

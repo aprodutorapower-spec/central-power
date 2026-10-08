@@ -15,7 +15,6 @@ import { dinheiroParaCampo, formatarInteiro, formatarReal } from "@/lib/numeros"
 import {
   janelaDeVendas,
   metasFechadasParaEstrategista,
-  MULTIPLO_TETO_CPA,
 } from "@/lib/urgencia";
 import { Dica } from "../interacoes";
 import { salvarLancamento, type ResultadoLancamento } from "./actions";
@@ -24,12 +23,10 @@ const CAMPO =
   "mt-1 w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power";
 const INICIAL: ResultadoLancamento = {};
 
-const EXPLICACAO_TICKET =
-  "Quanto entra, em média, por ingresso vendido, contando o ingresso e os order bumps comprados junto. Se houver mais de um preço (lotes, ingresso VIP, cupons), coloque o ticket médio. Ele define o teto de mercado do CPA: o CPA deve ficar em, no máximo, o dobro do ticket.";
 const EXPLICACAO_VERBA =
   "Quanto será investido em anúncios no lançamento inteiro, do começo ao fim. É diferente da verba investida até agora, que o estrategista informa em cada atualização: o sistema mostra uma contra a outra.";
 const EXPLICACAO_META_CPA =
-  "Valor máximo que se aceita gastar em anúncio por ingresso vendido. Não é obrigatória. Quando preenchida, é ela que vale. Em branco, o sistema usa a régua de mercado: o dobro do ticket do ingresso.";
+  "Valor máximo que se aceita gastar em anúncio por ingresso vendido. Não é obrigatória. Quando preenchida, é ela que vale. Em branco, o sistema usa a régua de mercado: o dobro do ticket médio do ingresso (ingresso + order bumps), calculado sozinho conforme as vendas saem.";
 
 // Rótulo de um campo de data com o "?" que explica o que ela é.
 function RotuloData({ campo, children }: { campo: ChaveMarco; children: React.ReactNode }) {
@@ -232,21 +229,6 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
             </div>
             <div>
               <div className="relative flex items-center gap-1.5 text-sm text-apagado">
-                <label htmlFor="ticket_ingresso">Ticket médio do ingresso (R$)</label>
-                <Dica texto={EXPLICACAO_TICKET} />
-              </div>
-              <input
-                id="ticket_ingresso"
-                name="ticket_ingresso"
-                inputMode="decimal"
-                required={metasObrigatorias && !semTrafego}
-                defaultValue={dinheiroParaCampo(lancamento?.ticket_ingresso)}
-                placeholder="Ex.: 29,00"
-                className={CAMPO}
-              />
-            </div>
-            <div>
-              <div className="relative flex items-center gap-1.5 text-sm text-apagado">
                 <label htmlFor="meta_cpa">Meta de CPA (R$), opcional</label>
                 <Dica texto={EXPLICACAO_META_CPA} />
               </div>
@@ -262,14 +244,13 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
             </div>
             <div>
               <div className="relative flex items-center gap-1.5 text-sm text-apagado">
-                <label htmlFor="verba_prevista">Verba total prevista (R$)</label>
+                <label htmlFor="verba_prevista">Verba total prevista (R$), opcional</label>
                 <Dica texto={EXPLICACAO_VERBA} />
               </div>
               <input
                 id="verba_prevista"
                 name="verba_prevista"
                 inputMode="decimal"
-                required={metasObrigatorias && !semTrafego}
                 disabled={semTrafego}
                 defaultValue={dinheiroParaCampo(lancamento?.verba_prevista)}
                 placeholder={semTrafego ? "Não se aplica" : "Ex.: 15.000,00"}
@@ -318,16 +299,8 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
               ? "sem tráfego pago"
               : lancamento?.meta_cpa != null
                 ? `CPA até ${formatarReal(lancamento.meta_cpa)}`
-                : lancamento?.ticket_ingresso != null
-                  ? `CPA até ${formatarReal(lancamento.ticket_ingresso * MULTIPLO_TETO_CPA)} (o dobro do ticket)`
-                  : "CPA sem meta"}
+                : "CPA até o dobro do ticket médio das vendas"}
           </span>
-          {lancamento?.ticket_ingresso != null ? (
-            <>
-              {" · ticket de "}
-              <span className="text-texto">{formatarReal(lancamento.ticket_ingresso)}</span>
-            </>
-          ) : null}
           {lancamento?.verba_prevista != null ? (
             <>
               {" · verba total prevista de "}

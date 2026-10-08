@@ -58,6 +58,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
     foto: {
       verba_investida: lerDinheiro(verba),
       ingressos_vendidos: lerInteiro(ingressos),
+      receita_ingressos: lerDinheiro(receita),
       grupo_whatsapp: lerInteiro(grupo),
     },
     atrasos: [],

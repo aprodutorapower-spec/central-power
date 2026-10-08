@@ -47,7 +47,6 @@ export async function salvarLancamento(
     meta_cpa: sem_trafego
       ? null
       : lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null,
-    ticket_ingresso: lerDinheiro(String(formData.get("ticket_ingresso") ?? "")) || null,
     verba_prevista: sem_trafego
       ? null
       : lerDinheiro(String(formData.get("verba_prevista") ?? "")),
@@ -56,12 +55,6 @@ export async function salvarLancamento(
   };
   if (!id && !admin) {
     if (metas.meta_ingressos == null) return { erro: "Informe a meta de ingressos." };
-    if (!sem_trafego && metas.ticket_ingresso == null) {
-      return { erro: "Informe o ticket do ingresso (ou marque “Sem tráfego pago”)." };
-    }
-    if (!sem_trafego && metas.verba_prevista == null) {
-      return { erro: "Informe a verba total prevista (ou marque “Sem tráfego pago”)." };
-    }
   }
 
   const campos = {
@@ -220,11 +213,9 @@ export async function definirMetas(
 
   const meta_ingressos = lerInteiro(String(formData.get("meta_ingressos") ?? ""));
   const meta_cpa = lerDinheiro(String(formData.get("meta_cpa") ?? "")) || null;
-  const ticket_ingresso =
-    lerDinheiro(String(formData.get("ticket_ingresso") ?? "")) || null;
   // Botão "Sem tráfego pago": tira o lançamento da cobrança de CPA.
   const sem_trafego = formData.get("sem_trafego") === "true";
-  if (!sem_trafego && meta_ingressos == null && meta_cpa == null && ticket_ingresso == null) {
+  if (!sem_trafego && meta_ingressos == null && meta_cpa == null) {
     return { erro: "Preencha pelo menos um dos campos." };
   }
 
@@ -233,7 +224,6 @@ export async function definirMetas(
     .update({
       meta_ingressos,
       meta_cpa: sem_trafego ? null : meta_cpa,
-      ticket_ingresso,
       ...(sem_trafego ? { sem_trafego } : {}),
       atualizado_em: new Date().toISOString(),
     })

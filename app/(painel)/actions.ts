@@ -45,8 +45,10 @@ export async function trocarSenha(formData: FormData) {
   if (senha.length < 8) redirect("/conta?aviso=curta");
   if (senha !== confirmacao) redirect("/conta?aviso=diferente");
 
-  const { supabase } = await obterSessao();
+  const { supabase, perfil } = await obterSessao();
   const { error } = await supabase.auth.updateUser({ password: senha });
 
-  redirect(error ? "/conta?aviso=erro" : "/conta?aviso=ok");
+  if (error) redirect("/conta?aviso=erro");
+  // O estrategista sai da senha direto para os experts, onde começa a preencher.
+  redirect(perfil?.papel === "admin" ? "/conta?aviso=ok" : "/experts?aviso=senha");
 }

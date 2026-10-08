@@ -15,7 +15,8 @@ export const TOLERANCIA_META = 0.1;
 export const MINIMO_GRUPO_WHATSAPP = 0.95;
 // ...e o CPA pode ser no máximo o dobro do ticket do ingresso. Esse teto só
 // vale quando o lançamento não tem meta de CPA cadastrada: havendo meta, ela
-// é a regra.
+// é a regra. O ticket não é digitado no cadastro (Ricardo, 08/10/2026): é o
+// ticket médio real, receita ÷ ingressos, que chega com as vendas (Berry).
 export const MULTIPLO_TETO_CPA = 2;
 // Passou disso sem atualização do estrategista, a tela destaca.
 export const LIMITE_SEM_ATUALIZAR_DIAS = 7;
@@ -114,6 +115,7 @@ export type EntradaUrgencia = {
   // Última foto de métricas (null = nenhuma ainda).
   foto:
     | (Pick<Foto, "verba_investida" | "ingressos_vendidos"> & {
+        receita_ingressos?: number | null;
         grupo_whatsapp?: number | null;
       })
     | null;
@@ -172,8 +174,11 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   const cpaAtual = dividir(foto?.verba_investida, vendidos);
   // Com meta de CPA cadastrada, ela é a regra. Sem ela, vale o teto de mercado
   // (o dobro do ticket), que é um máximo: não tem a margem de 10% para cima.
-  const tetoCpa =
-    l.ticket_ingresso == null ? null : l.ticket_ingresso * MULTIPLO_TETO_CPA;
+  // O ticket é o médio real das vendas; o do cadastro (lançamentos antigos)
+  // só vale enquanto não há receita registrada.
+  const ticket =
+    (dividir(foto?.receita_ingressos, vendidos) || null) ?? l.ticket_ingresso;
+  const tetoCpa = ticket == null ? null : ticket * MULTIPLO_TETO_CPA;
   const metaCpa = l.sem_trafego ? null : (l.meta_cpa ?? tetoCpa);
   const origemMetaCpa =
     metaCpa == null ? null : l.meta_cpa != null ? ("lancamento" as const) : ("mercado" as const);
@@ -181,8 +186,8 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
 
   let statusCpa: StatusMeta;
   if (l.sem_trafego) statusCpa = "nao_se_aplica";
-  else if (metaCpa == null) statusCpa = "sem_meta";
   else if (cpaAtual == null) statusCpa = "sem_dado";
+  else if (metaCpa == null) statusCpa = "sem_meta";
   else if (cpaAtual <= metaCpa * (1 - TOLERANCIA_META)) statusCpa = "acima";
   else if (cpaAtual <= metaCpa * (1 + margemCpa)) statusCpa = "na_meta";
   else statusCpa = "abaixo";
@@ -287,8 +292,6 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   if (semMeta) motivos.push("Sem meta definida");
   else if (!l.sem_trafego && l.meta_ingressos == null) {
     motivos.push("Falta a meta de ingressos");
-  } else if (!l.sem_trafego && metaCpa == null) {
-    motivos.push("Falta o ticket do ingresso ou a meta de CPA");
   }
   if (semDados && vendasComecaram && !foraDasMetas) {
     motivos.push("Vendas começaram e não há métricas registradas");
@@ -321,7 +324,8 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   return {
     faixa,
     pontos,
-    faltaMeta: !l.sem_trafego && (l.meta_ingressos == null || metaCpa == null),
+    // O teto do CPA vem sozinho com as vendas: só a meta de ingressos é cobrada.
+    faltaMeta: !l.sem_trafego && l.meta_ingressos == null,
     janela: { inicio, fim, vendasComecaram },
     ingressos: {
       status: statusIngressos,
@@ -330,6 +334,8 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
       esperado: esperado == null ? null : Math.round(esperado),
       desvio: desvioIngressos,
     },
+    // Ticket em uso na régua do CPA (null = ainda sem vendas com receita).
+    ticket,
     cpa: {
       status: statusCpa,
       atual: cpaAtual,

@@ -174,11 +174,7 @@ function CartaoLancamento({
         <Bloco
           rotulo="Ticket médio"
           valor={formatarReal(numeros?.ticketMedio)}
-          detalhe={
-            lancamento.ticket_ingresso != null
-              ? `Receita ÷ ingressos · previsto: ${formatarReal(lancamento.ticket_ingresso)}`
-              : "Receita ÷ ingressos"
-          }
+          detalhe="Receita ÷ ingressos"
         />
         <Bloco
           rotulo="Verba investida"

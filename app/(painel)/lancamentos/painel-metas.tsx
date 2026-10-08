@@ -65,7 +65,7 @@ export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
     return <p className="mt-1 text-xs text-apagado">Sem tráfego pago</p>;
   }
   if (cpa.meta == null) {
-    return <p className="mt-1 text-xs text-apagado">Sem ticket nem meta de CPA</p>;
+    return <p className="mt-1 text-xs text-apagado">Teto do CPA aparece com as primeiras vendas</p>;
   }
   return (
     <p className="mt-1 text-xs text-apagado">

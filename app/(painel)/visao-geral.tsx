@@ -299,8 +299,8 @@ export async function VisaoGeral() {
             <span className="ml-2 text-sm font-normal">{semMeta.length}</span>
           </h2>
           <p className="mt-1 text-sm text-apagado">
-            Com o ticket do ingresso preenchido, a meta de CPA pode ficar em branco:
-            vale o dobro do ticket. Se houver mais de um preço, use o ticket médio.
+            Falta a meta de ingressos. A meta de CPA pode ficar em branco: vale o
+            dobro do ticket médio, que o sistema calcula conforme as vendas saem.
           </p>
           <ul className="mt-3 divide-y divide-borda rounded-xl border border-borda bg-cartao px-5">
             {semMeta.map((item) => (
@@ -311,7 +311,6 @@ export async function VisaoGeral() {
                 dono={`${item.expert} · D0 ${formatarData(item.lancamento.d0)}`}
                 metaIngressos={item.lancamento.meta_ingressos}
                 metaCpa={item.lancamento.meta_cpa}
-                ticket={item.lancamento.ticket_ingresso}
               />
             ))}
           </ul>

@@ -77,7 +77,7 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 2. Clique em **Novo lançamento**.
 3. Dê um nome, escolha o tipo (**LP**, evento único, ou **LPS**, semanal 5+1) e informe o **D0** (dia do evento; no LPS, a segunda-feira da aula 1).
 4. O sistema sugere as outras datas: **DP0** (só no LPS, D0+6) e **DFC** (LP: D0+4; LPS: DP0+2), que podem ser ajustadas. **M0** e **DV0** (início da venda de ingressos) são opcionais. O **DE0** não é preenchido: o sistema usa D0-7 e move junto quando o D0 muda. Cada data tem um "?" ao lado explicando o que ela é.
-5. Preencha as **metas**: meta de ingressos, **ticket do ingresso** e **verba total prevista** (ou marque **Sem tráfego pago**). Para o estrategista esses campos são obrigatórios na criação. A meta de CPA não é obrigatória: em branco, vale o dobro do ticket.
+5. Preencha as **metas**: a **meta de ingressos** é obrigatória para o estrategista na criação. A **verba total prevista** e a **meta de CPA** são opcionais (em branco, o CPA usa o dobro do ticket médio). O ticket médio não é digitado: o sistema calcula conforme as vendas saem.
 6. Clique em **Salvar lançamento**.
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
@@ -87,8 +87,8 @@ Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em
 Cada lançamento tem:
 
 - **Meta de ingressos:** total a vender.
-- **Ticket médio do ingresso:** quanto entra, em média, por ingresso vendido, contando o ingresso e os order bumps comprados junto. Se houver mais de um preço (lotes, VIP, cupons), use o ticket médio. É a base da régua de mercado do CPA.
-- **Verba total prevista:** quanto será investido em anúncios no lançamento inteiro. As telas mostram a verba investida até agora contra esse total.
+- **Ticket médio do ingresso:** não é preenchido no cadastro. É a receita de ingressos (ingresso + order bumps) dividida pelos ingressos vendidos, atualizada sozinha pela Berry conforme as vendas saem. É a base da régua de mercado do CPA; antes da primeira venda ainda não há teto.
+- **Verba total prevista (não obrigatória):** quanto será investido em anúncios no lançamento inteiro. As telas mostram a verba investida até agora contra esse total.
 - **Meta de CPA (não obrigatória):** valor máximo aceitável por ingresso. Quando cadastrada, é ela que vale. Em branco, o sistema usa a régua de mercado: **o dobro do ticket do ingresso**. Com a marcação **Sem tráfego pago**, não se cobra CPA.
 - **Fim das vendas de ingressos:** em branco, vale o D0. O início é sempre o **DV0** do lançamento (ou o DE0, se não houver DV0); não há um segundo campo para isso.
 
@@ -104,7 +104,7 @@ Com as metas, o sistema calcula sozinho, sem guardar no banco:
 - **Status de ingressos:** **Acima** (10% ou mais acima do esperado), **Na meta** (até 10% para cima ou para baixo) ou **Abaixo**.
 - **Status de CPA:** **Acima** quando o CPA está 10% ou mais abaixo da meta (gastando menos), **Na meta** na faixa de 10%, **Abaixo** quando passa da meta em mais de 10%. Sem ingresso vendido, fica "Sem dado".
 - **Status do grupo de WhatsApp:** a régua de mercado é ter no grupo **pelo menos 95%** de quem comprou ingresso. Abaixo disso o lançamento fica **Abaixo da meta**, mesmo com ingressos e CPA em ordem: conta como critério principal, entra no motivo e no texto da cobrança. Sem o número do grupo informado, não pune.
-- **Sem meta** (falta preencher a meta de ingressos, ou o ticket e a meta de CPA), **Sem dados** (as vendas começaram e não há métricas), **Vendas não começaram** e **Sem tráfego pago** (marcado pelo admin: não se cobra CPA).
+- **Sem meta** (falta preencher a meta de ingressos), **Sem dados** (as vendas começaram e não há métricas), **Vendas não começaram** e **Sem tráfego pago** (marcado pelo admin: não se cobra CPA).
 
 A página do lançamento mostra a barra de ingressos com um risco marcando onde deveria estar hoje, e o formulário de atualização mostra as metas e o status enquanto o estrategista digita.
 

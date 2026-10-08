@@ -176,12 +176,37 @@ test("grupo de WhatsApp: pelo menos 95% de quem comprou ingresso", () => {
   assert.ok(com(90).pontos > com(135).pontos);
 });
 
-test("só uma meta preenchida: avalia a que existe e avisa da que falta", () => {
+test("sem meta de CPA e sem ticket: avalia os ingressos e não cobra o que falta", () => {
   const u = cenario(90, 3600, { meta_cpa: null });
   assert.equal(u.faixa, "abaixo");
   assert.equal(u.cpa.status, "sem_meta");
-  assert.equal(u.faltaMeta, true);
-  assert.match(u.motivos.join(" | "), /Falta o ticket do ingresso ou a meta de CPA/);
+  assert.equal(u.faltaMeta, false);
+  assert.doesNotMatch(u.motivos.join(" | "), /ticket/);
+
+  const semIngressos = cenario(90, 3600, { meta_ingressos: null });
+  assert.equal(semIngressos.faltaMeta, true);
+  assert.match(semIngressos.motivos.join(" | "), /Falta a meta de ingressos/);
+});
+
+test("o ticket da régua do CPA é o médio real das vendas (receita ÷ ingressos)", () => {
+  const com = (receita: number | null, verba: number, ticket_ingresso: number | null = null) =>
+    calcularUrgencia({
+      lancamento: { ...BASE, meta_cpa: null, ticket_ingresso },
+      foto: { ingressos_vendidos: 150, verba_investida: verba, receita_ingressos: receita },
+      atrasos: [],
+      hoje: HOJE,
+    });
+  // Receita de R$ 4.500 em 150 ingressos: ticket de R$ 30, teto de R$ 60.
+  const noTeto = com(4500, 9000);
+  assert.equal(noTeto.ticket, 30);
+  assert.equal(noTeto.cpa.meta, 60);
+  assert.equal(noTeto.cpa.status, "na_meta");
+  assert.equal(com(4500, 9300).cpa.status, "abaixo");
+  // O ticket real passa na frente do que foi digitado em lançamentos antigos.
+  assert.equal(com(4500, 9000, 50).cpa.meta, 60);
+  // Sem receita registrada, vale o do cadastro; sem nenhum, não há teto.
+  assert.equal(com(null, 9000, 50).cpa.meta, 100);
+  assert.equal(com(null, 9000).cpa.meta, null);
 });
 
 test("sem tráfego pago: não cobra CPA nem conta como sem meta", () => {
