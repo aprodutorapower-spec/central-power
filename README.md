@@ -82,6 +82,16 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
+## Verba pelo Meta Ads (automática)
+
+Só o admin configura. Em **Editar lançamento**, no bloco **Verba pelo Meta Ads**:
+
+- **Conta de anúncios (número):** o número da conta no Gerenciador de Anúncios.
+- **Palavras no nome das campanhas:** separadas por vírgula. Só entram as campanhas cujo nome tem todas elas. Exemplo: `Vendas, 31/10 - LCTO`.
+- **Contar a verba a partir de:** em branco, vale o início das vendas.
+
+Com isso preenchido, a verba investida é atualizada sozinha três vezes ao dia (9h10, 12h10 e 18h10 de Brasília) por uma rotina agendada do Claude, que usa o conector do Meta Ads da conta do Ricardo. A rotina aparece em https://claude.ai/code/routines. Se o conector for desconectado, a verba para de atualizar.
+
 ## Metas e status de meta
 
 Cada lançamento tem:

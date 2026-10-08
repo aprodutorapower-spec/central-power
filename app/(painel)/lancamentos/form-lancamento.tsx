@@ -317,6 +317,57 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
         </p>
       )}
 
+      {admin ? (
+        <>
+          <p className="mt-6 text-sm font-semibold">Verba pelo Meta Ads</p>
+          <p className="text-xs text-apagado">
+            Preenchido, a verba investida é atualizada sozinha 3x ao dia. Só o
+            admin vê e altera.
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm text-apagado" htmlFor="meta_conta_id">
+                Conta de anúncios (número)
+              </label>
+              <input
+                id="meta_conta_id"
+                name="meta_conta_id"
+                inputMode="numeric"
+                defaultValue={lancamento?.meta_conta_id ?? ""}
+                placeholder="Ex.: 553760696950014"
+                className={CAMPO}
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-apagado" htmlFor="meta_desde">
+                Contar a verba a partir de
+              </label>
+              <input
+                id="meta_desde"
+                name="meta_desde"
+                type="date"
+                defaultValue={lancamento?.meta_desde ?? ""}
+                className={CAMPO}
+              />
+              <p className="mt-1 text-xs text-apagado">Em branco, vale o início das vendas.</p>
+            </div>
+            <div className="sm:col-span-2">
+              <div className="relative flex items-center gap-1.5 text-sm text-apagado">
+                <label htmlFor="meta_filtro">Palavras no nome das campanhas</label>
+                <Dica texto="Separe por vírgula. Só entram na verba as campanhas cujo nome tem todas as palavras. Exemplo: “Vendas, 31/10 - LCTO” soma as campanhas de venda desse lançamento e deixa de fora as de outros produtos, posts impulsionados e campanhas de visualização." />
+              </div>
+              <input
+                id="meta_filtro"
+                name="meta_filtro"
+                defaultValue={lancamento?.meta_filtro ?? ""}
+                placeholder="Ex.: Vendas, 31/10 - LCTO"
+                className={CAMPO}
+              />
+            </div>
+          </div>
+        </>
+      ) : null}
+
       {resultado.erro ? (
         <p className="mt-4 text-sm text-power-claro" role="alert">
           {resultado.erro}

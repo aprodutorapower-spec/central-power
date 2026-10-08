@@ -57,7 +57,18 @@ export async function salvarLancamento(
     if (metas.meta_ingressos == null) return { erro: "Informe a meta de ingressos." };
   }
 
+  // De onde vem a verba no Meta Ads: só o admin define.
+  const meta = admin
+    ? {
+        meta_conta_id:
+          String(formData.get("meta_conta_id") ?? "").replace(/\D/g, "") || null,
+        meta_filtro: String(formData.get("meta_filtro") ?? "").trim() || null,
+        meta_desde: data(formData, "meta_desde"),
+      }
+    : {};
+
   const campos = {
+    ...meta,
     nome,
     tipo,
     d0,
