@@ -125,8 +125,8 @@ function CartaoLancamento({
         {urgencia.motivo}
       </p>
 
-      {/* Oito blocos do mesmo tamanho: os três critérios e a verba em cima,
-          dinheiro e linha do tempo embaixo. */}
+      {/* Oito blocos do mesmo tamanho. Em cima: os três critérios e o ticket
+          médio. Embaixo: o investido ao lado do que entrou, e a linha do tempo. */}
       <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
         <Bloco
           rotulo="Ingressos"
@@ -172,6 +172,15 @@ function CartaoLancamento({
           detalhe={`Mínimo: ${formatarPercentual(urgencia.grupo.minimo)} dos ingressos`}
         />
         <Bloco
+          rotulo="Ticket médio"
+          valor={formatarReal(numeros?.ticketMedio)}
+          detalhe={
+            lancamento.ticket_ingresso != null
+              ? `Receita ÷ ingressos · previsto: ${formatarReal(lancamento.ticket_ingresso)}`
+              : "Receita ÷ ingressos"
+          }
+        />
+        <Bloco
           rotulo="Verba investida"
           valor={formatarReal(foto?.verba_investida)}
           detalhe={
@@ -183,17 +192,9 @@ function CartaoLancamento({
           }
         />
         <Bloco
-          rotulo="Receita (ingressos + order bumps)"
+          rotulo="Ingressos + order bumps"
           valor={formatarReal(foto?.receita_ingressos)}
-        />
-        <Bloco
-          rotulo="Ticket médio"
-          valor={formatarReal(numeros?.ticketMedio)}
-          detalhe={
-            lancamento.ticket_ingresso != null
-              ? `Receita ÷ ingressos · previsto: ${formatarReal(lancamento.ticket_ingresso)}`
-              : "Receita ÷ ingressos"
-          }
+          detalhe="Receita das vendas"
         />
         <Bloco
           rotulo="Próximo na linha do tempo"
@@ -258,9 +259,6 @@ function CartaoLancamento({
             Copiar cobrança
           </BotaoCopiar>
         ) : null}
-        <button type="button" data-abre-painel className={BOTAO}>
-          Linha do tempo
-        </button>
         <Link href={`/lancamentos/${lancamento.id}`} className={BOTAO}>
           {admin ? "Abrir lançamento" : "Atualizar lançamento"}
         </Link>

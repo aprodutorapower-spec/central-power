@@ -27,19 +27,15 @@ Todos os lançamentos ativos de um estrategista numa tela só, do pior para o me
 
 Cada lançamento é um cartão com o expert, o tipo, quantos dias faltam para o D0 (ou "D+N" depois dele) e o **motivo da urgência** em destaque. Abaixo, oito blocos do mesmo tamanho:
 
-- **Ingressos:** vendidos, meta, esperado até hoje e a barra com o risco do ritmo esperado.
-- **CPA:** atual, meta (ou o teto de mercado) e a seta de tendência desde a atualização anterior.
-- **Grupo de WhatsApp:** pessoas no grupo e o percentual dos ingressos, contra o mínimo de 95%.
-- **Verba investida:** quanto já foi, e o percentual do total previsto.
-- **Receita de ingressos** e **ticket médio**.
-- **Próximo na linha do tempo** e **checkpoints atrasados**, com os dias de atraso.
+- Em cima: **Ingressos** (vendidos, meta, esperado até hoje e a barra com o risco do ritmo), **CPA** (atual, meta ou teto de mercado, e a seta de tendência), **Grupo de WhatsApp** (contra o mínimo de 95%) e **Ticket médio** (receita ÷ ingressos).
+- Embaixo: **Verba investida** (com o percentual do total previsto) ao lado de **Ingressos + order bumps** (a receita das vendas), depois **Próximo na linha do tempo** e **Checkpoints atrasados**.
 
 No rodapé do cartão ficam os botões e o status marcado pelo estrategista, com há quanto tempo ele atualizou.
 
 Botões do cartão:
 
 - **Copiar cobrança:** copia um texto curto e cordial, com os números do problema, pronto para colar no WhatsApp. Só copia; não envia nada. Não aparece quando não há o que cobrar.
-- **Linha do tempo** (ou clicar em qualquer ponto do cartão): abre uma janela no meio da tela com a linha do tempo completa, sem sair da página. Dá para marcar checkpoints como feitos ali mesmo.
+- **Clicar em qualquer ponto do cartão** abre uma janela no meio da tela com a linha do tempo completa, sem sair da página. Dá para marcar checkpoints como feitos ali mesmo.
 - **Abrir lançamento:** vai para a página completa.
 
 **← Visão geral** volta para a visão geral na mesma altura em que ela estava.
