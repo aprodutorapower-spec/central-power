@@ -390,6 +390,20 @@ async function testar() {
     .in("expert_id", [expertA.id, expertB.id]);
   confere("admin vê a situação da Berry de todos", berryDoAdmin?.length === 2);
 
+  // Vigia das rotinas e avisos: só o admin lê, ninguém logado escreve.
+  for (const tabela of ["rotinas", "avisos"]) {
+    const { data: deA } = await a.cliente.from(tabela).select("*");
+    confere(`A não lê ${tabela}`, !deA?.length);
+    const { data: deAnon } = await anonimo.from(tabela).select("*");
+    confere(`sem login não lê ${tabela}`, !deAnon?.length);
+    const { error: doAdmin } = await admin.cliente.from(tabela).select("*");
+    confere(`admin lê ${tabela}`, !doAdmin);
+  }
+  const { error: rotinaIndevida } = await admin.cliente
+    .from("rotinas")
+    .insert({ nome: `${MARCA} rotina` });
+  confere("nem o admin grava em rotinas direto no banco", Boolean(rotinaIndevida));
+
   const { data: anonPerfil, error: anonPerfilErro } = await anonimo.rpc("meu_perfil");
   confere("sem login não consulta perfil", Boolean(anonPerfilErro) || !anonPerfil?.length);
 

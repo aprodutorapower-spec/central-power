@@ -10,6 +10,12 @@ import type { Lancamento } from "./marcos";
 // de 15 horas (das 18h às 9h). Passou disso, uma rodada foi perdida.
 export const HORAS_SEM_ROTINA = 16;
 
+export type AvisoConexao = {
+  fonte: "berry" | "meta";
+  tipo: "desconectado" | "erro" | "aguardando" | "parado";
+  texto: string;
+};
+
 type Entrada = Pick<
   Lancamento,
   | "sem_trafego"
@@ -28,7 +34,8 @@ type Entrada = Pick<
   | "d0"
 >;
 
-function quando(instante: string) {
+// "08/10 às 14h28", no horário de Brasília.
+export function quando(instante: string) {
   const partes = new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
     day: "2-digit",
@@ -40,34 +47,54 @@ function quando(instante: string) {
   return `${parte("day")}/${parte("month")} às ${parte("hour")}h${parte("minute")}`;
 }
 
+export function horasDesde(instante: string, agora: Date) {
+  return (agora.getTime() - new Date(instante).getTime()) / 3_600_000;
+}
+
 function situacao(
+  fonte: AvisoConexao["fonte"],
   nome: string,
   conferidoEm: string | null,
   erro: string | null,
   agora: Date,
-) {
-  if (erro) return `${nome} com erro: ${erro}`;
-  if (!conferidoEm) return `${nome}: aguardando a primeira atualização automática`;
-  const horas = (agora.getTime() - new Date(conferidoEm).getTime()) / 3_600_000;
-  return horas > HORAS_SEM_ROTINA ? `${nome} sem atualizar desde ${quando(conferidoEm)}` : null;
+): AvisoConexao | null {
+  if (erro) return { fonte, tipo: "erro", texto: `${nome} com erro: ${erro}` };
+  if (!conferidoEm) {
+    return {
+      fonte,
+      tipo: "aguardando",
+      texto: `${nome}: aguardando a primeira atualização automática`,
+    };
+  }
+  return horasDesde(conferidoEm, agora) > HORAS_SEM_ROTINA
+    ? { fonte, tipo: "parado", texto: `${nome} sem atualizar desde ${quando(conferidoEm)}` }
+    : null;
 }
 
 // `hoje` é o dia de calendário ("AAAA-MM-DD"); `agora`, o instante da consulta.
-export function avisosDeConexao(l: Entrada, hoje: string, agora: Date): string[] {
-  const avisos: (string | null)[] = [];
+export function avisosDeConexao(l: Entrada, hoje: string, agora: Date): AvisoConexao[] {
+  const avisos: (AvisoConexao | null)[] = [];
 
   if (!l.berry_produto_id) {
-    avisos.push("Berry não conectada: ingressos e receita não atualizam sozinhos");
+    avisos.push({
+      fonte: "berry",
+      tipo: "desconectado",
+      texto: "Berry não conectada: ingressos e receita não atualizam sozinhos",
+    });
   } else {
-    avisos.push(situacao("Berry", l.berry_conferido_em, l.berry_erro, agora));
+    avisos.push(situacao("berry", "Berry", l.berry_conferido_em, l.berry_erro, agora));
   }
 
   if (!l.sem_trafego) {
     if (!l.meta_conta_id || !l.meta_filtro?.trim()) {
-      avisos.push("Meta Ads não conectado: a verba não atualiza sozinha");
+      avisos.push({
+        fonte: "meta",
+        tipo: "desconectado",
+        texto: "Meta Ads não conectado: a verba não atualiza sozinha",
+      });
     } else if ((l.meta_desde ?? janelaDeVendas(l).inicio) <= hoje) {
       // Antes do início do período a rotina ainda não consulta: sem aviso.
-      avisos.push(situacao("Meta Ads", l.meta_conferido_em, l.meta_erro, agora));
+      avisos.push(situacao("meta", "Meta Ads", l.meta_conferido_em, l.meta_erro, agora));
     }
   }
 

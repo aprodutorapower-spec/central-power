@@ -63,6 +63,7 @@ export type Lancamento = {
   berry_erro: string | null;
   meta_conferido_em: string | null;
   meta_erro: string | null;
+  meta_campanhas: number | null;
 };
 
 // Datas sugeridas a partir do D0. LP: carrinho fecha em D0+4.

@@ -55,17 +55,21 @@ export async function gravarVerbaDoMeta(
 
   // Guarda o resultado de toda entrega da rotina, para a tela avisar quando
   // o Meta Ads para de atualizar.
+  const { verba, campanhas: quantas } = somarVerba(campanhas, lancamento.meta_filtro);
   const registrar = (erro: string | null) =>
     admin
       .from("lancamentos")
       .update(
         erro
           ? { meta_erro: erro }
-          : { meta_conferido_em: new Date().toISOString(), meta_erro: null },
+          : {
+              meta_conferido_em: new Date().toISOString(),
+              meta_erro: null,
+              meta_campanhas: quantas,
+            },
       )
       .eq("id", lancamentoId);
 
-  const { verba, campanhas: quantas } = somarVerba(campanhas, lancamento.meta_filtro);
   // Nenhuma campanha bateu: pode ser falha da consulta. Não grava zero.
   if (!quantas) {
     await registrar("nenhuma campanha com gasto bate com o filtro");
@@ -104,4 +108,15 @@ export async function gravarVerbaDoMeta(
 
   await registrar(null);
   return { situacao: "atualizado", verba, campanhas: quantas };
+}
+
+// A rotina não conseguiu consultar o Meta (conta sem acesso pelo conector,
+// por exemplo): guarda o motivo para a tela e o Asana avisarem.
+export async function registrarErroDoMeta(lancamentoId: string, erro: string) {
+  await criarClienteAdmin()
+    .from("lancamentos")
+    .update({ meta_erro: erro.trim().replace(/\s+/g, " ").slice(0, 200) })
+    .eq("id", lancamentoId)
+    .eq("situacao", "ativo")
+    .not("meta_conta_id", "is", null);
 }

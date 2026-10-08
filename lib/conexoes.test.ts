@@ -1,7 +1,11 @@
 // Testes dos avisos de conexão (Berry e Meta Ads). Rodar com: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { avisosDeConexao } from "./conexoes.ts";
+import { avisosDeConexao as avisos } from "./conexoes.ts";
+
+// Os testes olham só o texto que aparece na tela.
+const avisosDeConexao = (...entrada: Parameters<typeof avisos>) =>
+  avisos(...entrada).map((aviso) => aviso.texto);
 
 const AGORA = new Date("2026-10-08T18:00:00Z"); // 15h em Brasília
 const HOJE = "2026-10-08";

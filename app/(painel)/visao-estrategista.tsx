@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { BotaoEnviar } from "@/app/botao-enviar";
+import { podeEncerrar } from "@/lib/avisos";
 import { textoCobranca } from "@/lib/cobranca";
 import { avisosDeConexao } from "@/lib/conexoes";
 import { formatarData } from "@/lib/datas";
@@ -7,6 +9,7 @@ import { calcular, haQuanto, STATUS } from "@/lib/metricas";
 import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
 import type { GrupoEstrategista, ItemPainel } from "@/lib/painel";
 import { BotaoCopiar, CartaoComPainel } from "./interacoes";
+import { definirSituacao } from "./lancamentos/actions";
 import { LinhaDoTempo } from "./lancamentos/linha-do-tempo";
 import {
   BarraIngressos,
@@ -87,7 +90,9 @@ function CartaoLancamento({
     : null;
   const titulo = `${item.expert} · ${lancamento.nome}`;
   const grave = urgencia.faixa === "abaixo" || urgencia.faixa === "sem_dados";
-  const conexoes = avisosDeConexao(lancamento, hoje, new Date());
+  const terminou = podeEncerrar(lancamento, item.checkpoints, hoje);
+  // Lançamento terminado não cobra conexão: a sugestão é encerrar.
+  const conexoes = terminou ? [] : avisosDeConexao(lancamento, hoje, new Date());
 
   return (
     <CartaoComPainel
@@ -253,9 +258,30 @@ function CartaoLancamento({
           <p className="text-xs text-apagado">Atualização automática com problema</p>
           <ul className="mt-1 text-sm">
             {conexoes.map((aviso) => (
-              <li key={aviso}>{aviso}</li>
+              <li key={aviso.texto}>{aviso.texto}</li>
             ))}
           </ul>
+        </div>
+      ) : null}
+
+      {/* Só aparece depois do último marco: encerrar é o que desliga as
+          atualizações automáticas deste lançamento. */}
+      {terminou ? (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border border-borda bg-cartao-2 px-3 py-2.5">
+          <div>
+            <p className="text-xs text-apagado">Lançamento terminado</p>
+            <p className="mt-1 text-sm">
+              O último marco foi em {formatarData(terminou)}. Encerrar para sair do painel
+              e parar as atualizações automáticas?
+            </p>
+          </div>
+          <form action={definirSituacao}>
+            <input type="hidden" name="id" value={lancamento.id} />
+            <input type="hidden" name="situacao" value="encerrado" />
+            <BotaoEnviar className={BOTAO} enviando="Encerrando…">
+              Encerrar lançamento
+            </BotaoEnviar>
+          </form>
         </div>
       ) : null}
 

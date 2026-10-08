@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { registrarRotina } from "@/lib/avisos-sincronia";
 import { sincronizarTodos } from "@/lib/berry-sincronia";
 
 // Rotina automática: puxa da Berry os ingressos e a receita de todos os
@@ -14,6 +15,7 @@ export async function GET(request: Request) {
   }
 
   const resultados = await sincronizarTodos();
+  await registrarRotina("berry");
   revalidatePath("/", "layout");
 
   // Só situação e contagem: nada de dados de compradores.

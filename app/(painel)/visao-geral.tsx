@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { rotinasParadas, type Rotina } from "@/lib/avisos";
 import { formatarData } from "@/lib/datas";
 import { haQuanto } from "@/lib/metricas";
 import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
 import { precisaDeAtencao, type GrupoEstrategista, type Resumo } from "@/lib/painel";
+import { obterSessao } from "@/lib/sessao";
 import {
   FAIXAS,
   LIMITE_SEM_ATUALIZAR_DIAS,
@@ -212,7 +214,12 @@ function LinhaEstrategista({ grupo }: { grupo: GrupoEstrategista }) {
 }
 
 export async function VisaoGeral() {
-  const { hoje, estrategistas, operacao, semMeta } = await carregarPainel();
+  const { supabase } = await obterSessao();
+  const [{ hoje, estrategistas, operacao, semMeta }, { data: rotinas }] = await Promise.all([
+    carregarPainel(),
+    supabase.from("rotinas").select("nome, ultima_execucao"),
+  ]);
+  const paradas = rotinasParadas((rotinas ?? []) as Rotina[], new Date());
 
   const urgentes = estrategistas.filter((grupo) => precisaDeAtencao(grupo.resumo));
   const emDia = estrategistas.filter((grupo) => !precisaDeAtencao(grupo.resumo));
@@ -225,6 +232,18 @@ export async function VisaoGeral() {
         <h1 className="text-2xl font-semibold">Visão geral</h1>
         <p className="text-sm text-apagado">Hoje, {formatarData(hoje)}</p>
       </div>
+
+      {/* Só aparece quando uma rotina perde uma rodada. */}
+      {paradas.length ? (
+        <div role="alert" className="mt-6 rounded-xl border border-power bg-cartao px-5 py-3">
+          <p className="text-xs text-apagado">Atualização automática parada</p>
+          <ul className="mt-1 text-sm">
+            {paradas.map((rotina) => (
+              <li key={rotina.nome}>{rotina.texto}.</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <section
         aria-label="Onde começar"

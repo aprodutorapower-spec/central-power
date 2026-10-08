@@ -36,6 +36,7 @@ function lancamento(
     berry_erro: null,
     meta_conferido_em: null,
     meta_erro: null,
+    meta_campanhas: null,
     verba_prevista: null,
     inicio_vendas: null,
     fim_vendas: null,

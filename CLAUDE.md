@@ -84,6 +84,14 @@ Pedido do Ricardo: reconstruir a experiência do admin em Nível 1 (macro, 6 est
 
 - Aviso de conexão (aprovado pelo Ricardo em 08/10/2026): o cartão do lançamento mostra a faixa "Atualização automática com problema" só quando há algo errado (Berry ou Meta Ads não conectado, com erro, ou sem rodar há mais de 16 horas); em dia, não aparece nada. Regra em `lib/conexoes.ts` (testada). As rotinas gravam `berry_conferido_em` / `berry_erro` / `meta_conferido_em` / `meta_erro` em `lancamentos` a cada consulta, mesmo sem número novo; o gatilho `proteger_estado_conexoes` só deixa o servidor escrever. É a exceção combinada à regra "informação nova entra como bloco".
 
+## Vigia das conexões e avisos no Asana (Ricardo, 08/10/2026)
+- Cada rotina marca que rodou na tabela `rotinas` (`berry`, `meta`, `avisos`). Mais de 16 horas sem rodar: faixa "Atualização automática parada" no topo da visão geral (só admin, só quando há problema).
+- Avisos viram tarefa no Asana dele, projeto "Power Interno" (gid `1215606464571182`), atribuída a ele. O site não tem token do Asana: uma segunda rotina na nuvem do Claude ("Central Power: avisos no Asana", 12h25, 15h25 e 21h25 UTC, com o conector do Asana) faz GET em `/api/cron/avisos`, cria uma tarefa por item e confirma com POST. Usa o mesmo `META_ROTINA_SEGREDO`. Regra do que vira tarefa em `lib/avisos.ts` (testada): rotina parada (uma tarefa só, não uma por lançamento), conexão com erro, lançamento que perdeu rodada, e Berry/Meta não conectado em lançamento que já vende e ainda não fechou o carrinho. A tabela `avisos` evita tarefa repetida; problema resolvido sai dela (se voltar, gera tarefa nova).
+- A rotina de avisos não consegue avisar de si mesma: se ela parar, só a faixa da visão geral mostra.
+- Rotina do Meta: quando não consegue ler uma conta, manda `{lancamento_id, erro}` para `/api/cron/meta`; o motivo aparece no cartão, no bloco do Meta em Editar lançamento ("Última leitura em…: N campanhas somadas" ou o erro) e vira tarefa. O site não consegue testar conta/filtro do Meta na hora de salvar, só na rodada seguinte. Trocar conta ou filtro zera a leitura anterior (gatilho).
+- Berry: ao escolher o produto, a tela confirma na hora quantos ingressos e quanta receita achou.
+- Encerramento sugerido: depois do último marco e do último checkpoint, o cartão mostra "Lançamento terminado" com o botão de encerrar (`podeEncerrar`); não encerra sozinho.
+
 ## Próximos passos (fora do v1)
 Pauta automática da call de sexta, integrações (Meta Ads por BM em modo leitura, Berry Pay preenchendo as métricas sozinha, Asana), lançamentos perpétuos, teste de aceite com os estrategistas, domínio próprio.
 

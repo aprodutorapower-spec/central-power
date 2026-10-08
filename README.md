@@ -96,6 +96,13 @@ Com isso preenchido, a verba investida é atualizada sozinha três vezes ao dia 
 
 Cada lançamento ativo deveria receber sozinho os ingressos e a receita (Berry) e a verba (Meta Ads), três vezes ao dia. Quando isso não acontece, o cartão do lançamento mostra a faixa **Atualização automática com problema**, dizendo o que houve: Berry ou Meta Ads não conectado, erro na última tentativa, ou sem atualizar desde tal dia e hora. Com tudo em dia, a faixa não aparece. Lançamento marcado como **Sem tráfego pago** não cobra Meta Ads.
 
+Outras proteções, todas silenciosas quando está tudo certo:
+
+- **Rotina parada:** se a rotina da Berry, a do Meta Ads ou a de avisos ficar mais de 16 horas sem rodar, a visão geral mostra a faixa **Atualização automática parada**.
+- **Tarefa no Asana:** rotina parada, conexão com erro e lançamento vendendo sem Berry ou sem Meta Ads viram tarefa no projeto **Power Interno**, atribuída ao Ricardo (uma por problema, sem repetir). Quem cria é a rotina "Central Power: avisos no Asana", em https://claude.ai/code/routines, às 9h25, 12h25 e 18h25.
+- **Conferência na hora de conectar:** ao escolher o produto da Berry, a tela diz quantos ingressos e quanta receita encontrou. No Meta Ads, o bloco de **Editar lançamento** mostra a última leitura (quantas campanhas entraram na soma) ou o erro; a primeira leitura vem na rodada seguinte.
+- **Lançamento terminado:** depois do último marco e do último checkpoint, o cartão sugere **Encerrar lançamento**, que tira o lançamento do painel e desliga as atualizações automáticas dele.
+
 ## Metas e status de meta
 
 Cada lançamento tem:

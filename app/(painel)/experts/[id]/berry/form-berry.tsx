@@ -92,6 +92,11 @@ export function SeletorProduto({
           {resultado.erro}
         </p>
       ) : null}
+      {resultado.conferido ? (
+        <p className="mt-2 text-sm text-ok" role="status">
+          {resultado.conferido}
+        </p>
+      ) : null}
     </form>
   );
 }

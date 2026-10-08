@@ -1,5 +1,6 @@
 "use client";
 
+import { quando } from "@/lib/conexoes";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { ehSegunda, formatarData } from "@/lib/datas";
@@ -365,6 +366,30 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
               />
             </div>
           </div>
+          {lancamento?.meta_conta_id && lancamento.meta_filtro ? (
+            <p className="mt-3 rounded-lg bg-cartao-2 px-3 py-2 text-sm" role="status">
+              {lancamento.meta_erro ? (
+                <>
+                  <span className="text-power-claro">Última tentativa com erro:</span>{" "}
+                  {lancamento.meta_erro}.
+                </>
+              ) : lancamento.meta_conferido_em ? (
+                <>
+                  Última leitura em {quando(lancamento.meta_conferido_em)}
+                  {lancamento.meta_campanhas != null
+                    ? `: ${lancamento.meta_campanhas} ${
+                        lancamento.meta_campanhas === 1
+                          ? "campanha somada"
+                          : "campanhas somadas"
+                      }`
+                    : ""}
+                  .
+                </>
+              ) : (
+                "Ainda sem leitura. A primeira vem na próxima rodada (9h10, 12h10 ou 18h10); se a conta ou o filtro estiverem errados, o motivo aparece aqui."
+              )}
+            </p>
+          ) : null}
         </>
       ) : null}
 

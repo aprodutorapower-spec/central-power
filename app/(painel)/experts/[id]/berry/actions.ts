@@ -1,5 +1,6 @@
 "use server";
 
+import { formatarInteiro, formatarReal } from "@/lib/numeros";
 import { revalidatePath } from "next/cache";
 import {
   chaveDoExpert,
@@ -12,7 +13,7 @@ import { sincronizarBerry } from "@/lib/berry-sincronia";
 import { obterSessao } from "@/lib/sessao";
 import { criarClienteAdmin } from "@/lib/supabase/admin";
 
-export type ResultadoBerry = { erro?: string; ok?: boolean };
+export type ResultadoBerry = { erro?: string; ok?: boolean; conferido?: string };
 
 const SEM_ACESSO = "Você não tem acesso a esse expert.";
 
@@ -141,8 +142,20 @@ export async function definirProdutoBerry(
   if (!salvo?.length) return { erro: "Não foi possível salvar." };
 
   // Produto escolhido: já traz ingressos e receita para o lançamento.
-  if (produto) await sincronizarBerry(lancamentoId);
+  // O resultado volta para a tela: quem conectou vê na hora se funcionou.
+  const puxada = produto ? await sincronizarBerry(lancamentoId) : null;
 
   revalidatePath("/", "layout");
+  if (puxada?.situacao === "erro") {
+    return { erro: `Produto salvo, mas a Berry não respondeu: ${puxada.erro}` };
+  }
+  if (puxada?.situacao === "atualizado" || puxada?.situacao === "sem_mudanca") {
+    return {
+      ok: true,
+      conferido: `Conectado: ${formatarInteiro(puxada.ingressos)} ${
+        puxada.ingressos === 1 ? "ingresso" : "ingressos"
+      } e ${formatarReal(puxada.receita)} encontrados na Berry. A partir de agora atualiza sozinho 3 vezes ao dia.`,
+    };
+  }
   return { ok: true };
 }
