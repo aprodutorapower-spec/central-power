@@ -20,6 +20,7 @@ export type Foto = {
   ingressos_vendidos: number | null;
   receita_ingressos: number | null;
   grupo_whatsapp: number | null;
+  compras_trafego: number | null;
   comp_evento: number | null;
   comp_aula1: number | null;
   comp_aula2: number | null;
@@ -33,16 +34,26 @@ export type Foto = {
 
 // CPA = verba ÷ ingressos; ticket médio = receita de ingressos ÷ ingressos;
 // comparecimento = pessoas no grupo de WhatsApp ÷ ingressos.
+// CAC = verba ÷ vendas que vieram do tráfego (Ricardo, 09/10/2026); as vendas
+// orgânicas são os ingressos que sobram depois de tirar as do tráfego.
 export function calcular(
   foto: Pick<
     Foto,
     "verba_investida" | "ingressos_vendidos" | "receita_ingressos" | "grupo_whatsapp"
-  >,
+  > &
+    Partial<Pick<Foto, "compras_trafego">>,
 ) {
+  const doTrafego = foto.compras_trafego ?? null;
   return {
     cpa: dividir(foto.verba_investida, foto.ingressos_vendidos),
     ticketMedio: dividir(foto.receita_ingressos, foto.ingressos_vendidos),
     comparecimento: dividir(foto.grupo_whatsapp, foto.ingressos_vendidos),
+    cac: dividir(foto.verba_investida, doTrafego),
+    doTrafego,
+    organicas:
+      doTrafego != null && foto.ingressos_vendidos != null
+        ? Math.max(foto.ingressos_vendidos - doTrafego, 0)
+        : null,
   };
 }
 
@@ -85,6 +96,7 @@ export function herdarDaUltima(ultima: Partial<Foto> | null | undefined) {
     ingressos_vendidos: ultima?.ingressos_vendidos ?? null,
     receita_ingressos: ultima?.receita_ingressos ?? null,
     grupo_whatsapp: ultima?.grupo_whatsapp ?? null,
+    compras_trafego: ultima?.compras_trafego ?? null,
     ...(Object.fromEntries(
       CAMPOS_COMPARECIMENTO.map((campo) => [campo, ultima?.[campo] ?? null]),
     ) as Record<CampoComparecimento, number | null>),

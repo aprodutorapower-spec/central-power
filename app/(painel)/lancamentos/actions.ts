@@ -218,6 +218,8 @@ export async function salvarAtualizacao(
 
   const { error } = await supabase.from("fotos_metricas").insert({
     ...comparecimento,
+    // Vem da rotina do Meta: a atualização manual só repassa.
+    compras_trafego: herdado.compras_trafego,
     lancamento_id,
     data: hoje(),
     preenchido_por: perfil.id,

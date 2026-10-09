@@ -2,7 +2,9 @@
 // palavras do filtro do lançamento (sem diferenciar maiúsculas nem acentos).
 // Fica aqui, sem depender do servidor, para os testes rodarem no Node puro.
 
-export type CampanhaMeta = { nome: string; gasto: number };
+// `compras`: quantas compras o Meta atribui à campanha (ausente quando a
+// rotina ainda não manda esse número).
+export type CampanhaMeta = { nome: string; gasto: number; compras?: number | null };
 
 const simples = (texto: string) =>
   texto
@@ -29,5 +31,11 @@ export function somarVerba(campanhas: CampanhaMeta[], filtro: string | null) {
     );
   });
   const centavos = contam.reduce((soma, c) => soma + Math.round(c.gasto * 100), 0);
-  return { verba: centavos / 100, campanhas: contam.length };
+  // Vendas do tráfego: só quando a rotina informou compras em alguma campanha
+  // (campanha com gasto e sem compra conta como zero).
+  const informou = contam.some((c) => c.compras != null && Number.isFinite(c.compras));
+  const compras = informou
+    ? contam.reduce((soma, c) => soma + (Number.isFinite(c.compras) ? Math.round(c.compras!) : 0), 0)
+    : null;
+  return { verba: centavos / 100, campanhas: contam.length, compras };
 }

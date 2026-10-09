@@ -82,6 +82,10 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
+## CAC e vendas orgânicas
+
+O **CPA** continua sendo a verba dividida por todos os ingressos vendidos. O **CAC** é a mesma verba dividida só pelas vendas que vieram do tráfego pago. Hoje esse número é o de compras que o Meta Ads atribui às campanhas do lançamento (as mesmas que entram na verba); o restante dos ingressos conta como venda **orgânica**. Os três aparecem no bloco do CPA do cartão: "CAC R$ 62,50 · 40 do tráfego, 17 orgânicas". Como o Meta conta pelo pixel, o número pode diferir um pouco da Berry; quando a Berry passar a informar a origem de cada venda, a fonte será trocada.
+
 ## Comparecimento no evento
 
 A partir do dia do evento (D0), a atualização do lançamento ganha o bloco **Comparecimento no evento**: quantas pessoas estiveram presentes. No **LP** é um número só; no **LPS** são seis, um por aula e um para o pitch, preenchidos conforme forem acontecendo. O cartão mostra cada número e a porcentagem sobre os ingressos vendidos. É um número separado do **grupo de WhatsApp**, que continua existindo.

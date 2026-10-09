@@ -45,6 +45,10 @@ export async function POST(request: Request) {
   const campanhas = corpo.campanhas.map((c) => ({
     nome: String((c as { nome?: unknown })?.nome ?? ""),
     gasto: Number((c as { gasto?: unknown })?.gasto),
+    compras:
+      (c as { compras?: unknown })?.compras == null
+        ? null
+        : Number((c as { compras?: unknown }).compras),
   }));
 
   const resultado = await gravarVerbaDoMeta(id, campanhas);

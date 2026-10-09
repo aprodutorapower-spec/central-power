@@ -36,7 +36,12 @@ export async function lancamentosDoMeta() {
 }
 
 export type ResultadoMeta =
-  | { situacao: "atualizado" | "sem_mudanca"; verba: number; campanhas: number }
+  | {
+      situacao: "atualizado" | "sem_mudanca";
+      verba: number;
+      campanhas: number;
+      compras: number | null;
+    }
   | { situacao: "sem_meta" | "sem_campanhas" }
   | { situacao: "erro"; erro: string };
 
@@ -56,7 +61,7 @@ export async function gravarVerbaDoMeta(
 
   // Guarda o resultado de toda entrega da rotina, para a tela avisar quando
   // o Meta Ads para de atualizar.
-  const { verba, campanhas: quantas } = somarVerba(campanhas, lancamento.meta_filtro);
+  const { verba, campanhas: quantas, compras } = somarVerba(campanhas, lancamento.meta_filtro);
   const registrar = (erro: string | null) =>
     admin
       .from("lancamentos")
@@ -85,9 +90,15 @@ export async function gravarVerbaDoMeta(
     .limit(1)
     .maybeSingle();
 
-  if (ultima && Number(ultima.verba_investida) === verba) {
+  // Se a rotina não informou as compras, vale o último número conhecido.
+  const comprasTrafego = compras ?? ultima?.compras_trafego ?? null;
+  if (
+    ultima &&
+    Number(ultima.verba_investida) === verba &&
+    (ultima.compras_trafego ?? null) === comprasTrafego
+  ) {
     await registrar(null);
-    return { situacao: "sem_mudanca", verba, campanhas: quantas };
+    return { situacao: "sem_mudanca", verba, campanhas: quantas, compras: comprasTrafego };
   }
 
   // A foto é o retrato completo do momento: o que o Meta não informa segue
@@ -99,6 +110,7 @@ export async function gravarVerbaDoMeta(
     fonte: "meta",
     preenchido_por_nome: QUEM_META,
     verba_investida: verba,
+    compras_trafego: comprasTrafego,
   });
   if (error) {
     await registrar("não foi possível gravar a verba");
@@ -106,7 +118,7 @@ export async function gravarVerbaDoMeta(
   }
 
   await registrar(null);
-  return { situacao: "atualizado", verba, campanhas: quantas };
+  return { situacao: "atualizado", verba, campanhas: quantas, compras: comprasTrafego };
 }
 
 // A rotina não conseguiu consultar o Meta (conta sem acesso pelo conector,

@@ -27,3 +27,19 @@ test("sem filtro não soma nada (nunca a conta inteira por engano)", () => {
   assert.equal(somarVerba(CAMPANHAS, null).verba, 0);
   assert.equal(somarVerba(CAMPANHAS, " , ").campanhas, 0);
 });
+
+test("vendas do tráfego: soma as compras das campanhas que entram na verba", () => {
+  const campanhas = [
+    { nome: "[VENDAS][CBO][12/10-18/10]", gasto: 1273.57, compras: 35 },
+    { nome: "[VENDAS][Q][12/10-18/10]", gasto: 515.07, compras: 9 },
+    { nome: "--[VENDAS][US][12/10-18/10]", gasto: 212.78, compras: null },
+    { nome: "[VENDAS][TESTE-DE-CRIATIVO]", gasto: 12.08, compras: 1 },
+  ];
+  const { compras, campanhas: quantas } = somarVerba(campanhas, "VENDAS, 12/10-18/10");
+  assert.equal(quantas, 3);
+  assert.equal(compras, 44);
+});
+
+test("rotina que ainda não manda compras: vendas do tráfego ficam em branco, não zero", () => {
+  assert.equal(somarVerba(CAMPANHAS, "Vendas, 31/10 - LCTO").compras, null);
+});

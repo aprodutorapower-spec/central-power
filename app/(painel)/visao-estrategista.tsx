@@ -166,7 +166,17 @@ function CartaoLancamento({
             </>
           }
           detalhe={<LinhaMetaCpa urgencia={urgencia} />}
-        />
+        >
+          {/* CAC: a mesma verba, só sobre as vendas que vieram do tráfego. */}
+          {numeros?.doTrafego != null ? (
+            <p className="mt-1 text-xs text-apagado">
+              CAC <span className="text-texto">{formatarReal(numeros.cac)}</span> ·{" "}
+              {formatarInteiro(numeros.doTrafego)} do tráfego,{" "}
+              {formatarInteiro(numeros.organicas)}{" "}
+              {numeros.organicas === 1 ? "orgânica" : "orgânicas"}
+            </p>
+          ) : null}
+        </Bloco>
         <Bloco
           rotulo="Grupo de WhatsApp"
           selo={<SeloMeta status={urgencia.grupo.status} />}
