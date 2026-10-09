@@ -82,6 +82,10 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
+## Comparecimento no evento
+
+A partir do dia do evento (D0), a atualização do lançamento ganha o bloco **Comparecimento no evento**: quantas pessoas estiveram presentes. No **LP** é um número só; no **LPS** são seis, um por aula e um para o pitch, preenchidos conforme forem acontecendo. O cartão mostra cada número e a porcentagem sobre os ingressos vendidos. É um número separado do **grupo de WhatsApp**, que continua existindo.
+
 ## Verba pelo Meta Ads (automática)
 
 Só o admin configura. Em **Editar lançamento**, no bloco **Verba pelo Meta Ads**:

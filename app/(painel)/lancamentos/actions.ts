@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sincronizarBerry, vendasNaBerry } from "@/lib/berry-sincronia";
+import { CAMPOS_COMPARECIMENTO, herdarDaUltima } from "@/lib/metricas";
 import { dispararRotinaDoMeta } from "@/lib/meta-disparo";
 import { diasEntre, hoje, somarDias } from "@/lib/datas";
 import { calcularMarcos, type Tipo } from "@/lib/marcos";
@@ -198,7 +199,25 @@ export async function salvarAtualizacao(
   const berry = await vendasNaBerry(lancamento_id);
   const daBerry = berry.situacao === "ok" ? berry : null;
 
+  // Comparecimento no evento: os campos só aparecem a partir do D0. O que o
+  // formulário não trouxe continua com o valor da foto anterior.
+  const { data: anterior } = await supabase
+    .from("fotos_metricas")
+    .select("*")
+    .eq("lancamento_id", lancamento_id)
+    .order("criado_em", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const herdado = herdarDaUltima(anterior);
+  const comparecimento = Object.fromEntries(
+    CAMPOS_COMPARECIMENTO.map((campo) => [
+      campo,
+      formData.has(campo) ? inteiro(campo) : herdado[campo],
+    ]),
+  );
+
   const { error } = await supabase.from("fotos_metricas").insert({
+    ...comparecimento,
     lancamento_id,
     data: hoje(),
     preenchido_por: perfil.id,

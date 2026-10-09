@@ -1,5 +1,6 @@
 import { chaveDoExpert, ErroBerry, resumoDeVendas } from "./berry";
 import { hoje } from "./datas";
+import { herdarDaUltima } from "./metricas";
 import { criarClienteAdmin } from "./supabase/admin";
 import { janelaDeVendas } from "./urgencia";
 
@@ -71,7 +72,7 @@ export async function sincronizarBerry(lancamentoId: string): Promise<ResultadoS
 
   const { data: ultima } = await admin
     .from("fotos_metricas")
-    .select("verba_investida, ingressos_vendidos, receita_ingressos, grupo_whatsapp")
+    .select("*")
     .eq("lancamento_id", lancamentoId)
     .order("criado_em", { ascending: false })
     .limit(1)
@@ -86,15 +87,14 @@ export async function sincronizarBerry(lancamentoId: string): Promise<ResultadoS
     return { situacao: "sem_mudanca", ...vendas };
   }
 
-  // A foto é o retrato completo do momento: o que a Berry não informa (verba
-  // e grupo de WhatsApp) segue com o último valor que o estrategista lançou.
+  // A foto é o retrato completo do momento: o que a Berry não informa (verba,
+  // grupo de WhatsApp e comparecimento) segue com o último valor lançado.
   const { error } = await admin.from("fotos_metricas").insert({
+    ...herdarDaUltima(ultima),
     lancamento_id: lancamentoId,
     data: hoje(),
     fonte: "berry",
     preenchido_por_nome: QUEM_BERRY,
-    verba_investida: ultima?.verba_investida ?? null,
-    grupo_whatsapp: ultima?.grupo_whatsapp ?? null,
     ingressos_vendidos: vendas.ingressos,
     receita_ingressos: vendas.receita,
   });

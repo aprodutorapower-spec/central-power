@@ -5,7 +5,7 @@ import { textoCobranca } from "@/lib/cobranca";
 import { avisosDeConexao } from "@/lib/conexoes";
 import { formatarData } from "@/lib/datas";
 import { contagem, CORES, montarLinhaDoTempo, tituloDoItem } from "@/lib/linha-do-tempo";
-import { calcular, haQuanto, STATUS } from "@/lib/metricas";
+import { calcular, COMPARECIMENTO, haQuanto, STATUS } from "@/lib/metricas";
 import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
 import type { GrupoEstrategista, ItemPainel } from "@/lib/painel";
 import { BotaoCopiar, CartaoComPainel } from "./interacoes";
@@ -234,6 +234,48 @@ function CartaoLancamento({
           }
         />
       </div>
+
+      {/* A partir do dia do evento: quantos compareceram, contra os ingressos. */}
+      {hoje >= lancamento.d0 ? (
+        <div className="mt-2 rounded-lg bg-cartao-2 px-3 py-2.5">
+          <p className="text-xs text-apagado">Comparecimento no evento</p>
+          <dl
+            className={`mt-1 grid gap-x-4 gap-y-2 ${
+              lancamento.tipo === "LPS" ? "grid-cols-3 lg:grid-cols-6" : "grid-cols-1"
+            }`}
+          >
+            {COMPARECIMENTO[lancamento.tipo].map(({ campo, rotulo }) => {
+              const presentes = foto?.[campo] ?? null;
+              const proporcao =
+                presentes != null && foto?.ingressos_vendidos
+                  ? presentes / foto.ingressos_vendidos
+                  : null;
+              return (
+                <div key={campo}>
+                  {lancamento.tipo === "LPS" ? (
+                    <dt className="text-xs text-apagado">{rotulo}</dt>
+                  ) : null}
+                  <dd className="font-semibold">
+                    {presentes == null ? (
+                      <span className="text-sm font-normal text-apagado">Não preenchido</span>
+                    ) : (
+                      <>
+                        {formatarInteiro(presentes)}
+                        {proporcao != null ? (
+                          <span className="ml-1.5 text-sm font-normal text-apagado">
+                            {formatarPercentual(proporcao)}
+                            {lancamento.tipo === "LP" ? " dos ingressos" : ""}
+                          </span>
+                        ) : null}
+                      </>
+                    )}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </div>
+      ) : null}
 
       {lancamento.bloqueio || lancamento.proximo_passo ? (
         <p className="mt-3 text-sm">

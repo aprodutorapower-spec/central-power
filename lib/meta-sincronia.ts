@@ -1,4 +1,5 @@
 import { hoje } from "./datas";
+import { herdarDaUltima } from "./metricas";
 import { palavrasDoFiltro, somarVerba, type CampanhaMeta } from "./meta";
 import { criarClienteAdmin } from "./supabase/admin";
 import { janelaDeVendas } from "./urgencia";
@@ -78,7 +79,7 @@ export async function gravarVerbaDoMeta(
 
   const { data: ultima } = await admin
     .from("fotos_metricas")
-    .select("verba_investida, ingressos_vendidos, receita_ingressos, grupo_whatsapp")
+    .select("*")
     .eq("lancamento_id", lancamentoId)
     .order("criado_em", { ascending: false })
     .limit(1)
@@ -92,14 +93,12 @@ export async function gravarVerbaDoMeta(
   // A foto é o retrato completo do momento: o que o Meta não informa segue
   // com o último valor registrado.
   const { error } = await admin.from("fotos_metricas").insert({
+    ...herdarDaUltima(ultima),
     lancamento_id: lancamentoId,
     data: hoje(),
     fonte: "meta",
     preenchido_por_nome: QUEM_META,
     verba_investida: verba,
-    ingressos_vendidos: ultima?.ingressos_vendidos ?? null,
-    receita_ingressos: ultima?.receita_ingressos ?? null,
-    grupo_whatsapp: ultima?.grupo_whatsapp ?? null,
   });
   if (error) {
     await registrar("não foi possível gravar a verba");

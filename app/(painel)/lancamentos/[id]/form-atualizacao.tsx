@@ -1,7 +1,13 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { calcular, STATUS, type Foto, type Status } from "@/lib/metricas";
+import {
+  calcular,
+  COMPARECIMENTO,
+  STATUS,
+  type Foto,
+  type Status,
+} from "@/lib/metricas";
 import {
   dinheiroParaCampo,
   formatarInteiro,
@@ -150,6 +156,32 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
         <span className="text-texto">{formatarReal(ticketMedio)}</span> · Comparecimento
         no grupo <span className="text-texto">{formatarPercentual(comparecimento)}</span>
       </p>
+
+      {/* Só a partir do dia do evento: antes disso não há o que preencher. */}
+      {hoje >= lancamento.d0 ? (
+        <>
+          <p className="mt-5 text-sm font-semibold">Comparecimento no evento</p>
+          <p className="text-xs text-apagado">
+            {lancamento.tipo === "LPS"
+              ? "Quantas pessoas estiveram em cada aula e no pitch. Preencha conforme forem acontecendo."
+              : "Quantas pessoas estiveram no evento."}{" "}
+            É outro número, diferente do grupo de WhatsApp.
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {COMPARECIMENTO[lancamento.tipo].map(({ campo, rotulo }) => (
+              <label key={campo} className="block text-sm text-apagado">
+                {rotulo}
+                <input
+                  name={campo}
+                  inputMode="numeric"
+                  defaultValue={ultima?.[campo]?.toString() ?? ""}
+                  className={`${CAMPO} text-texto`}
+                />
+              </label>
+            ))}
+          </div>
+        </>
+      ) : null}
 
       <div className="mt-4 rounded-lg border border-borda bg-cartao-2 p-3 text-sm">
         <p className="text-xs text-apagado">Metas do lançamento</p>
