@@ -16,7 +16,8 @@ import { obterSessao } from "@/lib/sessao";
 import { calcularUrgencia, metasFechadasParaEstrategista } from "@/lib/urgencia";
 import { definirSituacao } from "../actions";
 import { PainelMetas } from "../painel-metas";
-import { BotaoBerry } from "../../interacoes";
+import { disparoDoMetaLigado } from "@/lib/meta-disparo";
+import { BotaoBerry, BotaoMeta } from "../../interacoes";
 import { LinhaDoTempo } from "../linha-do-tempo";
 import { FormAtualizacao } from "./form-atualizacao";
 
@@ -113,6 +114,13 @@ export default async function LancamentoPage({
             : "Conectar Berry"}
         </Link>
         {lancamento.berry_produto_id ? <BotaoBerry lancamentoId={lancamento.id} /> : null}
+        {!encerrado &&
+        !lancamento.sem_trafego &&
+        lancamento.meta_conta_id &&
+        lancamento.meta_filtro &&
+        disparoDoMetaLigado() ? (
+          <BotaoMeta lancamentoId={lancamento.id} />
+        ) : null}
         <form action={definirSituacao}>
           <input type="hidden" name="id" value={lancamento.id} />
           <input type="hidden" name="situacao" value={encerrado ? "ativo" : "encerrado"} />

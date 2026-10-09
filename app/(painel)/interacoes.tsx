@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { atualizarPelaBerry } from "./lancamentos/actions";
+import { atualizarPelaBerry, atualizarPeloMeta } from "./lancamentos/actions";
 
 // Pequenas peças que precisam do navegador: menu, voltar, copiar e painel lateral.
 
@@ -241,6 +241,47 @@ export function BotaoBerry({ lancamentoId }: { lancamentoId: string }) {
       {resultado.ok && !puxando ? (
         <span className="text-ok" role="status">
           Números da Berry conferidos.
+        </span>
+      ) : null}
+    </form>
+  );
+}
+
+// Pede uma rodada fora de hora à rotina do Meta Ads. Ela leva cerca de um
+// minuto: a tela se atualiza sozinha algumas vezes até a verba chegar.
+export function BotaoMeta({ lancamentoId }: { lancamentoId: string }) {
+  const [resultado, acao, pedindo] = useActionState(atualizarPeloMeta, {});
+  const router = useRouter();
+  const aguardando = Boolean(resultado.pedido || resultado.recente) && !pedindo;
+
+  useEffect(() => {
+    if (!aguardando) return;
+    const esperas = [45_000, 75_000, 120_000].map((ms) =>
+      setTimeout(() => router.refresh(), ms),
+    );
+    return () => esperas.forEach(clearTimeout);
+  }, [aguardando, resultado, router]);
+
+  return (
+    <form action={acao} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+      <input type="hidden" name="lancamento_id" value={lancamentoId} />
+      <button
+        type="submit"
+        disabled={pedindo}
+        className="rounded-lg border border-borda px-3 py-1.5 transition hover:border-power disabled:cursor-wait disabled:opacity-50"
+      >
+        {pedindo ? "Pedindo ao Meta Ads…" : "Atualizar pelo Meta Ads agora"}
+      </button>
+      {resultado.erro ? (
+        <span className="text-power-claro" role="alert">
+          {resultado.erro}
+        </span>
+      ) : null}
+      {aguardando ? (
+        <span className="text-ok" role="status">
+          {resultado.recente
+            ? "Já foi pedida há instantes. A verba chega em cerca de 1 minuto."
+            : "Atualização pedida. A verba chega em cerca de 1 minuto."}
         </span>
       ) : null}
     </form>

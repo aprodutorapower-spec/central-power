@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sincronizarBerry, vendasNaBerry } from "@/lib/berry-sincronia";
+import { dispararRotinaDoMeta } from "@/lib/meta-disparo";
 import { diasEntre, hoje, somarDias } from "@/lib/datas";
 import { calcularMarcos, type Tipo } from "@/lib/marcos";
 import { lerDinheiro, lerInteiro } from "@/lib/numeros";
@@ -272,4 +273,32 @@ export async function atualizarPelaBerry(
 
   revalidatePath("/", "layout");
   return { ok: true };
+}
+
+export type ResultadoMetaAgora = { erro?: string; pedido?: boolean; recente?: boolean };
+
+// Pede à rotina do Meta Ads uma rodada fora de hora. A verba chega em cerca
+// de um minuto, para todos os lançamentos com Meta ligado.
+export async function atualizarPeloMeta(
+  _anterior: ResultadoMetaAgora,
+  formData: FormData,
+): Promise<ResultadoMetaAgora> {
+  const { supabase, perfil } = await obterSessao();
+  if (!perfil) return { erro: "Sua sessão expirou. Entre de novo." };
+
+  // O banco confirma que quem pediu enxerga este lançamento.
+  const id = String(formData.get("lancamento_id") ?? "");
+  const { data: lancamento } = await supabase
+    .from("lancamentos")
+    .select("id, meta_conta_id, meta_filtro, situacao")
+    .eq("id", id)
+    .maybeSingle();
+  if (!lancamento) return { erro: "Lançamento não encontrado." };
+  if (!lancamento.meta_conta_id || !lancamento.meta_filtro || lancamento.situacao !== "ativo") {
+    return { erro: "Este lançamento não está ligado ao Meta Ads." };
+  }
+
+  const resultado = await dispararRotinaDoMeta();
+  if (resultado.situacao === "erro") return { erro: resultado.erro };
+  return resultado.situacao === "recente" ? { recente: true } : { pedido: true };
 }
