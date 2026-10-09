@@ -2,7 +2,12 @@
 // Rodar com: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { montarPainel, precisaDeAtencao, type LancamentoDoPainel } from "./painel.ts";
+import {
+  montarItens,
+  montarPainel,
+  precisaDeAtencao,
+  type LancamentoDoPainel,
+} from "./painel.ts";
 import type { Checkpoint } from "./linha-do-tempo";
 import type { Foto } from "./metricas";
 
@@ -215,7 +220,7 @@ test("lançamento sem tráfego pago não entra no CPA nem na lista de sem meta",
 });
 
 test("tendência do CPA: a troca para vendas do tráfego não conta como subida", () => {
-  const ontem = "2026-01-19";
+  const ontem = "2026-01-15";
   const itens = (fotos: Foto[]) =>
     montarItens({ lancamentos: [lancamento("t", "e1")], checkpoints: [], fotos, hoje: HOJE });
 
