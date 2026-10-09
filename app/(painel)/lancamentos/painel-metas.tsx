@@ -68,11 +68,21 @@ export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
     return <p className="mt-1 text-xs text-apagado">Teto do CPA aparece com as primeiras vendas</p>;
   }
   return (
-    <p className="mt-1 text-xs text-apagado">
-      {cpa.origemMeta === "mercado"
-        ? `Teto: até ${formatarReal(cpa.meta)} (o dobro do ticket)`
-        : `Meta: até ${formatarReal(cpa.meta)}`}
-    </p>
+    <>
+      <p className="mt-1 text-xs text-apagado">
+        {cpa.origemMeta === "mercado"
+          ? `Teto: até ${formatarReal(cpa.meta)} (o dobro do ticket)`
+          : `Meta: até ${formatarReal(cpa.meta)}`}
+      </p>
+      {/* Sobre quais vendas o CPA foi calculado. */}
+      {cpa.atual != null ? (
+        <p className="mt-0.5 text-xs text-apagado">
+          {cpa.base === "trafego"
+            ? `Verba ÷ ${formatarInteiro(cpa.vendas)} vendas do tráfego`
+            : "Verba ÷ todos os ingressos (sem dado do tráfego)"}
+        </p>
+      ) : null}
+    </>
   );
 }
 

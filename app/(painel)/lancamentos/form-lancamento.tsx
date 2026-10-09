@@ -27,7 +27,7 @@ const INICIAL: ResultadoLancamento = {};
 const EXPLICACAO_VERBA =
   "Quanto será investido em anúncios no lançamento inteiro, do começo ao fim. É diferente da verba investida até agora, que o estrategista informa em cada atualização: o sistema mostra uma contra a outra.";
 const EXPLICACAO_META_CPA =
-  "Valor máximo que se aceita gastar em anúncio por ingresso vendido. Não é obrigatória. Quando preenchida, é ela que vale. Em branco, o sistema usa a régua de mercado: o dobro do ticket médio do ingresso (ingresso + order bumps), calculado sozinho conforme as vendas saem.";
+  "Valor máximo que se aceita gastar em anúncio por ingresso vendido pelo tráfego (as vendas orgânicas não entram na conta). Não é obrigatória. Quando preenchida, é ela que vale. Em branco, o sistema usa a régua de mercado: o dobro do ticket médio do ingresso (ingresso + order bumps), calculado sozinho conforme as vendas saem.";
 
 // Rótulo de um campo de data com o "?" que explica o que ela é.
 function RotuloData({ campo, children }: { campo: ChaveMarco; children: React.ReactNode }) {

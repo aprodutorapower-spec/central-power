@@ -48,6 +48,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
     ingressos_vendidos: lerInteiro(ingressos),
     receita_ingressos: lerDinheiro(receita),
     grupo_whatsapp: lerInteiro(grupo),
+    compras_trafego: ultima?.compras_trafego,
   });
 
   // Salvou: recolhe o formulário e volta ao topo, onde os números novos aparecem.
@@ -66,6 +67,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
       ingressos_vendidos: lerInteiro(ingressos),
       receita_ingressos: lerDinheiro(receita),
       grupo_whatsapp: lerInteiro(grupo),
+      compras_trafego: ultima?.compras_trafego,
     },
     atrasos: [],
     hoje,

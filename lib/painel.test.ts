@@ -213,3 +213,25 @@ test("lançamento sem tráfego pago não entra no CPA nem na lista de sem meta",
   assert.equal(p.semMeta.length, 0);
   assert.equal(p.estrategistas[0].resumo.faixa, "na_meta");
 });
+
+test("tendência do CPA: a troca para vendas do tráfego não conta como subida", () => {
+  const ontem = "2026-01-19";
+  const itens = (fotos: Foto[]) =>
+    montarItens({ lancamentos: [lancamento("t", "e1")], checkpoints: [], fotos, hoje: HOJE });
+
+  // Ontem sem o número do tráfego (R$ 4.000 ÷ 100 = 40); hoje com ele
+  // (R$ 4.000 ÷ 80 = 50). É a conta que mudou, não o CPA: sem seta.
+  const troca = itens([
+    foto("t", 100, 4000, ontem),
+    { ...foto("t", 100, 4000), compras_trafego: 80 },
+  ]);
+  assert.equal(troca[0].urgencia.cpa.atual, 50);
+  assert.equal(troca[0].tendenciaCpa, null);
+
+  // Duas fotos na mesma base: aí sim compara (50 para 60).
+  const sobe = itens([
+    { ...foto("t", 100, 4000, ontem), compras_trafego: 80 },
+    { ...foto("t", 110, 4800), compras_trafego: 80 },
+  ]);
+  assert.equal(sobe[0].tendenciaCpa, "subindo");
+});

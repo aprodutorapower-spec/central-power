@@ -38,3 +38,16 @@ export function dinheiroParaCampo(valor: number | null | undefined) {
 export function dividir(a: number | null | undefined, b: number | null | undefined) {
   return a == null || !b ? null : a / b;
 }
+
+// CPA = verba ÷ vendas de ingresso que vieram do tráfego (Ricardo, 09/10/2026);
+// as vendas orgânicas só somam no total de ingressos. Quando o lançamento não
+// tem esse número (Meta Ads não ligado, verba digitada à mão), a conta usa o
+// total de ingressos, como era antes.
+export function vendasParaCpa(
+  foto:
+    | { ingressos_vendidos?: number | null; compras_trafego?: number | null }
+    | null
+    | undefined,
+) {
+  return foto?.compras_trafego ?? foto?.ingressos_vendidos ?? null;
+}

@@ -292,3 +292,28 @@ test("ordenação: do pior para o melhor", () => {
     ["abaixo nos dois", "abaixo em um", "sem dados", "sem meta", "na meta", "acima"],
   );
 });
+
+test("CPA é sobre as vendas do tráfego; as orgânicas só somam no total", () => {
+  const com = (compras_trafego: number | null | undefined) =>
+    calcularUrgencia({
+      lancamento: { ...BASE, meta_cpa: 50 },
+      foto: { ingressos_vendidos: 150, verba_investida: 6000, compras_trafego },
+      atrasos: [],
+      hoje: HOJE,
+    });
+
+  // 150 ingressos, 100 deles do tráfego: R$ 6.000 ÷ 100 = R$ 60, acima da meta de R$ 50.
+  const separado = com(100);
+  assert.equal(separado.cpa.atual, 60);
+  assert.equal(separado.cpa.base, "trafego");
+  assert.equal(separado.cpa.vendas, 100);
+  assert.equal(separado.cpa.status, "abaixo");
+  // O total de ingressos continua 150 (as 50 orgânicas contam para a meta de ingressos).
+  assert.equal(separado.ingressos.vendidos, 150);
+
+  // Sem o número do tráfego (Meta Ads não ligado), vale o total: R$ 6.000 ÷ 150 = R$ 40.
+  const junto = com(undefined);
+  assert.equal(junto.cpa.atual, 40);
+  assert.equal(junto.cpa.base, "todos");
+  assert.equal(junto.cpa.status, "acima");
+});

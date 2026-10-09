@@ -4,7 +4,7 @@
 // Os imports têm ".ts" no final para os testes rodarem direto no Node
 // (npm test), sem ferramenta extra.
 import { diaDe, diasEntre, formatarData } from "./datas.ts";
-import { dividir, formatarInteiro, formatarReal } from "./numeros.ts";
+import { dividir, formatarInteiro, formatarReal, vendasParaCpa } from "./numeros.ts";
 import type { Lancamento } from "./marcos";
 import type { Foto } from "./metricas";
 
@@ -117,6 +117,7 @@ export type EntradaUrgencia = {
     | (Pick<Foto, "verba_investida" | "ingressos_vendidos"> & {
         receita_ingressos?: number | null;
         grupo_whatsapp?: number | null;
+        compras_trafego?: number | null;
       })
     | null;
   // Dias de atraso de cada checkpoint atrasado.
@@ -171,7 +172,10 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   else statusIngressos = "abaixo";
 
   // CPA: menor é melhor. Sem ingresso vendido não há CPA, e isso não pune.
-  const cpaAtual = dividir(foto?.verba_investida, vendidos);
+  // A conta é sobre as vendas do tráfego; sem esse número, sobre todos os ingressos.
+  const baseCpa = foto?.compras_trafego != null ? ("trafego" as const) : ("todos" as const);
+  const vendasCpa = vendasParaCpa(foto);
+  const cpaAtual = dividir(foto?.verba_investida, vendasCpa);
   // Com meta de CPA cadastrada, ela é a regra. Sem ela, vale o teto de mercado
   // (o dobro do ticket), que é um máximo: não tem a margem de 10% para cima.
   // O ticket é o médio real das vendas; o do cadastro (lançamentos antigos)
@@ -339,6 +343,9 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
     cpa: {
       status: statusCpa,
       atual: cpaAtual,
+      // Sobre quantas vendas a conta foi feita, e de onde veio esse número.
+      vendas: vendasCpa,
+      base: baseCpa,
       // Meta em uso e de onde ela vem: do lançamento ou do teto de mercado.
       meta: metaCpa,
       origemMeta: origemMetaCpa,

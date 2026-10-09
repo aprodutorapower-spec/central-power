@@ -1,4 +1,4 @@
-import { dividir } from "./numeros";
+import { dividir, vendasParaCpa } from "./numeros";
 import type { Tipo } from "./marcos";
 
 export type Status = "verde" | "amarelo" | "vermelho";
@@ -32,10 +32,10 @@ export type Foto = {
   faturamento_produto: number | null;
 };
 
-// CPA = verba ÷ ingressos; ticket médio = receita de ingressos ÷ ingressos;
-// comparecimento = pessoas no grupo de WhatsApp ÷ ingressos.
-// CAC = verba ÷ vendas que vieram do tráfego (Ricardo, 09/10/2026); as vendas
-// orgânicas são os ingressos que sobram depois de tirar as do tráfego.
+// CPA = verba ÷ vendas que vieram do tráfego (sem esse número, ÷ todos os
+// ingressos); ticket médio = receita de ingressos ÷ ingressos; comparecimento
+// = pessoas no grupo de WhatsApp ÷ ingressos. As vendas orgânicas são os
+// ingressos que sobram depois de tirar as do tráfego: só somam no total.
 export function calcular(
   foto: Pick<
     Foto,
@@ -49,10 +49,9 @@ export function calcular(
       ? Math.max(foto.ingressos_vendidos - doTrafego, 0)
       : null;
   return {
-    cpa: dividir(foto.verba_investida, foto.ingressos_vendidos),
+    cpa: dividir(foto.verba_investida, vendasParaCpa(foto)),
     ticketMedio: dividir(foto.receita_ingressos, foto.ingressos_vendidos),
     comparecimento: dividir(foto.grupo_whatsapp, foto.ingressos_vendidos),
-    cac: dividir(foto.verba_investida, doTrafego),
     doTrafego,
     organicas,
     // Fatia de cada origem no total de ingressos.

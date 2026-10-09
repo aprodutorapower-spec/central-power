@@ -236,21 +236,17 @@ function CartaoLancamento({
       </div>
 
       {/* Tráfego x orgânico: aparece quando o Meta informa as compras das
-          campanhas. CAC = verba ÷ vendas que vieram do tráfego. */}
+          campanhas. O CPA é sobre as do tráfego; as orgânicas só somam no total. */}
       {numeros?.doTrafego != null ? (
         <div className="mt-2 rounded-lg bg-cartao-2 px-3 py-2.5">
           <p className="text-xs text-apagado">Tráfego x orgânico</p>
-          <dl className="mt-1 grid grid-cols-3 gap-x-4">
-            <div>
-              <dt className="text-xs text-apagado">CAC (verba ÷ vendas do tráfego)</dt>
-              <dd className="font-semibold">{formatarReal(numeros.cac)}</dd>
-            </div>
+          <dl className="mt-1 grid grid-cols-2 gap-x-4">
             <div>
               <dt className="text-xs text-apagado">Vendas do tráfego</dt>
               <dd className="font-semibold">
                 {formatarInteiro(numeros.doTrafego)}
                 <span className="ml-1.5 text-sm font-normal text-apagado">
-                  {formatarPercentual(numeros.parteDoTrafego)}
+                  {formatarPercentual(numeros.parteDoTrafego)} dos ingressos
                 </span>
               </dd>
             </div>
@@ -259,7 +255,7 @@ function CartaoLancamento({
               <dd className="font-semibold">
                 {formatarInteiro(numeros.organicas)}
                 <span className="ml-1.5 text-sm font-normal text-apagado">
-                  {formatarPercentual(numeros.parteOrganica)}
+                  {formatarPercentual(numeros.parteOrganica)} dos ingressos
                 </span>
               </dd>
             </div>

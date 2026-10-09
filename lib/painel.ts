@@ -4,7 +4,7 @@
 //
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
 import { diasEntre } from "./datas.ts";
-import { dividir, formatarPercentual } from "./numeros.ts";
+import { dividir, formatarPercentual, vendasParaCpa } from "./numeros.ts";
 import {
   calcularUrgencia,
   ORDEM_FAIXAS,
@@ -69,8 +69,12 @@ export function montarItens(dados: {
       .map((c) => ({ titulo: c.titulo, dias: diasEntre(c.data, dados.hoje) }))
       .sort((a, b) => b.dias - a.dias);
 
+    // Só compara fotos calculadas na mesma base da última (vendas do tráfego
+    // ou todos os ingressos): a troca de base não é o CPA subindo nem caindo.
+    const comTrafego = foto?.compras_trafego != null;
     const serieCpa = fotos
-      .map((f) => dividir(f.verba_investida, f.ingressos_vendidos))
+      .filter((f) => (f.compras_trafego != null) === comTrafego)
+      .map((f) => dividir(f.verba_investida, vendasParaCpa(f)))
       .filter((valor) => valor != null);
     const [penultimo, ultimo] = serieCpa.slice(-2);
     const variacao = ultimo != null && penultimo ? (ultimo - penultimo) / penultimo : null;
@@ -113,25 +117,23 @@ export function resumir(itens: ItemPainel[]) {
   const soma = (valor: (item: ItemPainel) => number | null | undefined) =>
     itens.reduce((total, item) => total + (valor(item) ?? 0), 0);
 
-  // CPA médio ponderado: verba total ÷ ingressos totais, só de quem tem tráfego.
+  // CPA médio ponderado: verba total ÷ vendas do tráfego (a mesma base do CPA
+  // de cada lançamento), só de quem tem tráfego.
   const comTrafego = itens.filter((item) => !item.lancamento.sem_trafego);
   const verba = comTrafego.reduce((t, i) => t + (i.foto?.verba_investida ?? 0), 0);
-  const ingressosComTrafego = comTrafego.reduce(
-    (t, i) => t + (i.foto?.ingressos_vendidos ?? 0),
-    0,
-  );
-  const cpa = dividir(verba, ingressosComTrafego);
+  const vendasDoCpa = comTrafego.reduce((t, i) => t + (vendasParaCpa(i.foto) ?? 0), 0);
+  const cpa = dividir(verba, vendasDoCpa);
 
   // A meta de CPA do grupo é a média das metas em uso (a do lançamento ou o
-  // teto de mercado), pesada pelos ingressos vendidos
+  // teto de mercado), pesada pelas vendas que entram na conta do CPA
   // (a mesma balança do CPA médio). Sem venda ainda, vale a média simples.
   const comMetaCpa = comTrafego.filter((item) => item.urgencia.cpa.meta != null);
-  const peso = comMetaCpa.reduce((t, i) => t + (i.foto?.ingressos_vendidos ?? 0), 0);
+  const peso = comMetaCpa.reduce((t, i) => t + (vendasParaCpa(i.foto) ?? 0), 0);
   const metaCpa = !comMetaCpa.length
     ? null
     : peso
       ? comMetaCpa.reduce(
-          (t, i) => t + i.urgencia.cpa.meta! * (i.foto?.ingressos_vendidos ?? 0),
+          (t, i) => t + i.urgencia.cpa.meta! * (vendasParaCpa(i.foto) ?? 0),
           0,
         ) / peso
       : comMetaCpa.reduce((t, i) => t + i.urgencia.cpa.meta!, 0) / comMetaCpa.length;

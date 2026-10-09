@@ -82,9 +82,13 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
-## CAC e vendas orgânicas
+## CPA, vendas do tráfego e vendas orgânicas
 
-O **CPA** continua sendo a verba dividida por todos os ingressos vendidos. O **CAC** é a mesma verba dividida só pelas vendas que vieram do tráfego pago. Hoje esse número é o de compras que o Meta Ads atribui às campanhas do lançamento (as mesmas que entram na verba); o restante dos ingressos conta como venda **orgânica**. Os três aparecem na faixa **Tráfego x orgânico** do cartão, na página do lançamento (ao lado do CPA, para comparar) e no histórico de métricas. Como o Meta conta pelo pixel, o número pode diferir um pouco da Berry; quando a Berry passar a informar a origem de cada venda, a fonte será trocada.
+O **CPA** é a verba investida dividida pelas vendas de ingresso que vieram do tráfego pago. As vendas **orgânicas** não entram nessa conta: só somam no total de ingressos. A meta de CPA, o teto do dobro do ticket e o "abaixo da meta" olham para esse CPA.
+
+As vendas do tráfego são, por enquanto, as compras que o Meta Ads atribui às campanhas do lançamento (as mesmas que entram na verba); o restante dos ingressos é orgânico. O cartão mostra a divisão na faixa **Tráfego x orgânico**, e a página do lançamento e o histórico também. Como o Meta conta pelo pixel, o número pode diferir um pouco da Berry; quando a Berry passar a informar a origem de cada venda, a fonte será trocada.
+
+Lançamento sem Meta Ads ligado não tem como separar as vendas: nele o CPA continua sendo a verba dividida por todos os ingressos, e a tela avisa ("sem dado do tráfego").
 
 ## Comparecimento no evento
 
@@ -133,7 +137,7 @@ Com as metas, o sistema calcula sozinho, sem guardar no banco:
 
 - **Ritmo esperado:** quantos ingressos deveriam estar vendidos hoje, em linha reta do início ao fim das vendas.
 - **Status de ingressos:** **Acima** (10% ou mais acima do esperado), **Na meta** (até 10% para cima ou para baixo) ou **Abaixo**.
-- **Status de CPA:** **Acima** quando o CPA está 10% ou mais abaixo da meta (gastando menos), **Na meta** na faixa de 10%, **Abaixo** quando passa da meta em mais de 10%. Sem ingresso vendido, fica "Sem dado".
+- **Status de CPA** (verba ÷ vendas do tráfego): **Acima** quando o CPA está 10% ou mais abaixo da meta (gastando menos), **Na meta** na faixa de 10%, **Abaixo** quando passa da meta em mais de 10%. Sem ingresso vendido, fica "Sem dado".
 - **Status do grupo de WhatsApp:** a régua de mercado é ter no grupo **pelo menos 95%** de quem comprou ingresso. Abaixo disso o lançamento fica **Abaixo da meta**, mesmo com ingressos e CPA em ordem: conta como critério principal, entra no motivo e no texto da cobrança. Sem o número do grupo informado, não pune.
 - **Sem meta** (falta preencher a meta de ingressos), **Sem dados** (as vendas começaram e não há métricas), **Vendas não começaram** e **Sem tráfego pago** (marcado pelo admin: não se cobra CPA).
 

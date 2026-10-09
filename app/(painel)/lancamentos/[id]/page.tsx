@@ -206,15 +206,13 @@ export default async function LancamentoPage({
         {/* Tráfego x orgânico: só quando o Meta informa as compras das campanhas. */}
         {numeros?.doTrafego != null ? (
           <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-4">
-            <Numero rotulo="CPA (verba ÷ todos os ingressos)" valor={formatarReal(numeros.cpa)} />
-            <Numero rotulo="CAC (verba ÷ vendas do tráfego)" valor={formatarReal(numeros.cac)} />
             <Numero
               rotulo="Vendas do tráfego"
-              valor={`${formatarInteiro(numeros.doTrafego)} (${formatarPercentual(numeros.parteDoTrafego)})`}
+              valor={`${formatarInteiro(numeros.doTrafego)} (${formatarPercentual(numeros.parteDoTrafego)} dos ingressos)`}
             />
             <Numero
               rotulo="Vendas orgânicas"
-              valor={`${formatarInteiro(numeros.organicas)} (${formatarPercentual(numeros.parteOrganica)})`}
+              valor={`${formatarInteiro(numeros.organicas)} (${formatarPercentual(numeros.parteOrganica)} dos ingressos)`}
             />
           </div>
         ) : null}
@@ -266,10 +264,10 @@ export default async function LancamentoPage({
         <h2 className="font-semibold">Histórico de métricas</h2>
         {fotos.length ? (
           <div className="mt-3 overflow-x-auto rounded-xl border border-borda bg-cartao">
-            <table className="w-full min-w-[940px] text-left text-sm">
+            <table className="w-full min-w-[860px] text-left text-sm">
               <thead className="text-xs text-apagado">
                 <tr>
-                  {["Data", "Quem", "Verba", "Ingressos", "Do tráfego", "Receita", "Grupo WhatsApp", "CPA", "CAC", "Ticket médio"].map(
+                  {["Data", "Quem", "Verba", "Ingressos", "Do tráfego", "Receita", "Grupo WhatsApp", "CPA", "Ticket médio"].map(
                     (coluna) => (
                       <th key={coluna} className="px-4 py-3 font-normal">
                         {coluna}
@@ -298,7 +296,6 @@ export default async function LancamentoPage({
                           : ""}
                       </td>
                       <td className="px-4 py-3">{formatarReal(calculo.cpa)}</td>
-                      <td className="px-4 py-3">{formatarReal(calculo.cac)}</td>
                       <td className="px-4 py-3">{formatarReal(calculo.ticketMedio)}</td>
                     </tr>
                   );
