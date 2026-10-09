@@ -84,7 +84,7 @@ Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em
 
 ## CAC e vendas orgânicas
 
-O **CPA** continua sendo a verba dividida por todos os ingressos vendidos. O **CAC** é a mesma verba dividida só pelas vendas que vieram do tráfego pago. Hoje esse número é o de compras que o Meta Ads atribui às campanhas do lançamento (as mesmas que entram na verba); o restante dos ingressos conta como venda **orgânica**. Os três aparecem no bloco do CPA do cartão: "CAC R$ 62,50 · 40 do tráfego, 17 orgânicas". Como o Meta conta pelo pixel, o número pode diferir um pouco da Berry; quando a Berry passar a informar a origem de cada venda, a fonte será trocada.
+O **CPA** continua sendo a verba dividida por todos os ingressos vendidos. O **CAC** é a mesma verba dividida só pelas vendas que vieram do tráfego pago. Hoje esse número é o de compras que o Meta Ads atribui às campanhas do lançamento (as mesmas que entram na verba); o restante dos ingressos conta como venda **orgânica**. Os três aparecem na faixa **Tráfego x orgânico** do cartão, na página do lançamento (ao lado do CPA, para comparar) e no histórico de métricas. Como o Meta conta pelo pixel, o número pode diferir um pouco da Berry; quando a Berry passar a informar a origem de cada venda, a fonte será trocada.
 
 ## Comparecimento no evento
 

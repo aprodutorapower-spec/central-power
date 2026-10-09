@@ -44,16 +44,20 @@ export function calcular(
     Partial<Pick<Foto, "compras_trafego">>,
 ) {
   const doTrafego = foto.compras_trafego ?? null;
+  const organicas =
+    doTrafego != null && foto.ingressos_vendidos != null
+      ? Math.max(foto.ingressos_vendidos - doTrafego, 0)
+      : null;
   return {
     cpa: dividir(foto.verba_investida, foto.ingressos_vendidos),
     ticketMedio: dividir(foto.receita_ingressos, foto.ingressos_vendidos),
     comparecimento: dividir(foto.grupo_whatsapp, foto.ingressos_vendidos),
     cac: dividir(foto.verba_investida, doTrafego),
     doTrafego,
-    organicas:
-      doTrafego != null && foto.ingressos_vendidos != null
-        ? Math.max(foto.ingressos_vendidos - doTrafego, 0)
-        : null,
+    organicas,
+    // Fatia de cada origem no total de ingressos.
+    parteDoTrafego: organicas == null ? null : dividir(doTrafego, foto.ingressos_vendidos),
+    parteOrganica: dividir(organicas, foto.ingressos_vendidos),
   };
 }
 

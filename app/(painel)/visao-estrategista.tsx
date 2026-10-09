@@ -166,17 +166,7 @@ function CartaoLancamento({
             </>
           }
           detalhe={<LinhaMetaCpa urgencia={urgencia} />}
-        >
-          {/* CAC: a mesma verba, só sobre as vendas que vieram do tráfego. */}
-          {numeros?.doTrafego != null ? (
-            <p className="mt-1 text-xs text-apagado">
-              CAC <span className="text-texto">{formatarReal(numeros.cac)}</span> ·{" "}
-              {formatarInteiro(numeros.doTrafego)} do tráfego,{" "}
-              {formatarInteiro(numeros.organicas)}{" "}
-              {numeros.organicas === 1 ? "orgânica" : "orgânicas"}
-            </p>
-          ) : null}
-        </Bloco>
+        />
         <Bloco
           rotulo="Grupo de WhatsApp"
           selo={<SeloMeta status={urgencia.grupo.status} />}
@@ -244,6 +234,38 @@ function CartaoLancamento({
           }
         />
       </div>
+
+      {/* Tráfego x orgânico: aparece quando o Meta informa as compras das
+          campanhas. CAC = verba ÷ vendas que vieram do tráfego. */}
+      {numeros?.doTrafego != null ? (
+        <div className="mt-2 rounded-lg bg-cartao-2 px-3 py-2.5">
+          <p className="text-xs text-apagado">Tráfego x orgânico</p>
+          <dl className="mt-1 grid grid-cols-3 gap-x-4">
+            <div>
+              <dt className="text-xs text-apagado">CAC (verba ÷ vendas do tráfego)</dt>
+              <dd className="font-semibold">{formatarReal(numeros.cac)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-apagado">Vendas do tráfego</dt>
+              <dd className="font-semibold">
+                {formatarInteiro(numeros.doTrafego)}
+                <span className="ml-1.5 text-sm font-normal text-apagado">
+                  {formatarPercentual(numeros.parteDoTrafego)}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-apagado">Vendas orgânicas</dt>
+              <dd className="font-semibold">
+                {formatarInteiro(numeros.organicas)}
+                <span className="ml-1.5 text-sm font-normal text-apagado">
+                  {formatarPercentual(numeros.parteOrganica)}
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      ) : null}
 
       {/* A partir do dia do evento: quantos compareceram, contra os ingressos. */}
       {hoje >= lancamento.d0 ? (
