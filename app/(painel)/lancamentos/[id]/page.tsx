@@ -17,7 +17,7 @@ import { calcularUrgencia, metasFechadasParaEstrategista } from "@/lib/urgencia"
 import { definirSituacao } from "../actions";
 import { PainelMetas } from "../painel-metas";
 import { disparoDoMetaLigado } from "@/lib/meta-disparo";
-import { BotaoBerry, BotaoMeta } from "../../interacoes";
+import { BotaoBerry, BotaoMeta, ExcluirLancamento } from "../../interacoes";
 import { LinhaDoTempo } from "../linha-do-tempo";
 import { FormAtualizacao } from "./form-atualizacao";
 
@@ -128,6 +128,9 @@ export default async function LancamentoPage({
             {encerrado ? "Reabrir lançamento" : "Encerrar lançamento"}
           </BotaoEnviar>
         </form>
+        {perfil?.papel === "admin" ? (
+          <ExcluirLancamento id={lancamento.id} nome={lancamento.nome} />
+        ) : null}
       </div>
 
       <section className="mt-6 rounded-xl border border-borda bg-cartao p-5">

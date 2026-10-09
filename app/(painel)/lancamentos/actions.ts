@@ -323,3 +323,24 @@ export async function atualizarPeloMeta(
   if (resultado.situacao === "erro") return { erro: resultado.erro };
   return resultado.situacao === "recente" ? { recente: true } : { pedido: true };
 }
+
+// Apaga o lançamento de vez, com checkpoints, histórico de métricas e avisos
+// (o banco apaga em cascata). Só o admin: a regra de acesso do banco também
+// barra qualquer outra pessoa.
+export async function excluirLancamento(
+  _anterior: ResultadoLancamento,
+  formData: FormData,
+): Promise<ResultadoLancamento> {
+  const { supabase, perfil } = await obterSessao();
+  if (perfil?.papel !== "admin") return { erro: "Só o admin pode excluir um lançamento." };
+
+  const { data: apagado } = await supabase
+    .from("lancamentos")
+    .delete()
+    .eq("id", String(formData.get("id") ?? ""))
+    .select("expert_id");
+  if (!apagado?.length) return { erro: "Não foi possível excluir." };
+
+  revalidatePath("/", "layout");
+  redirect(`/experts/${apagado[0].expert_id}`);
+}

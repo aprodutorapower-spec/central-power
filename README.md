@@ -94,6 +94,10 @@ Lançamento sem Meta Ads ligado não tem como separar as vendas: nele o CPA cont
 
 A partir do dia do evento (D0), a atualização do lançamento ganha o bloco **Comparecimento no evento**: quantas pessoas estiveram presentes. No **LP** é um número só; no **LPS** são seis, um por aula e um para o pitch, preenchidos conforme forem acontecendo. O cartão mostra cada número e a porcentagem sobre os ingressos vendidos. É um número separado do **grupo de WhatsApp**, que continua existindo.
 
+## Excluir um lançamento
+
+Só o admin. Na página do lançamento, clique em **Excluir lançamento** e confirme. Apaga o lançamento, os checkpoints e todo o histórico de métricas, sem volta. Para só tirar do painel e guardar o histórico, use **Encerrar lançamento**.
+
 ## Verba pelo Meta Ads (automática)
 
 Só o admin configura. Em **Editar lançamento**, no bloco **Verba pelo Meta Ads**:

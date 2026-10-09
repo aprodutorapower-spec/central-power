@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { atualizarPelaBerry, atualizarPeloMeta } from "./lancamentos/actions";
+import {
+  atualizarPelaBerry,
+  atualizarPeloMeta,
+  excluirLancamento,
+} from "./lancamentos/actions";
 
 // Pequenas peças que precisam do navegador: menu, voltar, copiar e painel lateral.
 
@@ -283,6 +287,59 @@ export function BotaoMeta({ lancamentoId }: { lancamentoId: string }) {
             ? "Já foi pedida há instantes. A verba chega em cerca de 1 minuto."
             : "Atualização pedida. A verba chega em cerca de 1 minuto."}
         </span>
+      ) : null}
+    </form>
+  );
+}
+
+// Excluir um lançamento (só o admin vê). Pede confirmação antes: apaga tudo
+// do lançamento e não dá para desfazer.
+export function ExcluirLancamento({ id, nome }: { id: string; nome: string }) {
+  const [resultado, acao, excluindo] = useActionState(excluirLancamento, {});
+  const [confirmando, setConfirmando] = useState(false);
+
+  if (!confirmando) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirmando(true)}
+        className="text-sm text-apagado hover:text-power-claro"
+      >
+        Excluir lançamento
+      </button>
+    );
+  }
+
+  return (
+    <form action={acao} className="basis-full rounded-lg border border-power bg-cartao p-4 text-sm">
+      <input type="hidden" name="id" value={id} />
+      <p>
+        Excluir <span className="font-semibold">{nome}</span>? Apaga o lançamento, os
+        checkpoints e todo o histórico de métricas. Não dá para desfazer.
+      </p>
+      <p className="mt-1 text-apagado">
+        Para só tirar do painel e guardar o histórico, use “Encerrar lançamento”.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button
+          type="submit"
+          disabled={excluindo}
+          className="rounded-lg bg-power px-3 py-1.5 font-semibold hover:brightness-125 disabled:opacity-60"
+        >
+          {excluindo ? "Excluindo…" : "Sim, excluir lançamento"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirmando(false)}
+          className="text-apagado hover:text-texto"
+        >
+          Cancelar
+        </button>
+      </div>
+      {resultado.erro ? (
+        <p className="mt-2 text-power-claro" role="alert">
+          {resultado.erro}
+        </p>
       ) : null}
     </form>
   );
