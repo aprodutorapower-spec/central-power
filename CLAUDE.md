@@ -104,6 +104,12 @@ Pedido do Ricardo: reconstruir a experiência do admin em Nível 1 (macro, 6 est
 - Lição desta entrega: número que ele pede precisa de lugar próprio e visível no cartão e na página do lançamento. A primeira versão era uma linha pequena dentro de um bloco e ele não encontrou.
 - **Lembrar o Ricardo (ele pediu "me lembra depois"):** (1) decidir se as vendas do produto principal voltam ao formulário de atualização (hoje a decisão vigente é ficarem de fora); (2) tempo de tela x conversão no LPS (ver player da Berry, exportação do Zoom; YouTube demora dois dias); (3) tratar evento e pós-evento além do comparecimento; (4) botão "Gerar debriefing" na retrospectiva (depende de cada estrategista mandar o modelo); (5) exportar o histórico de métricas para planilha; e, fora de CAC e pós-evento: contagem automática do grupo pelo Zap Members, outros checkouts (Hotmart, Kiwify), melhores criativos e públicos, tarefas para design, vídeo e infra, e os playbooks que os estrategistas ficaram de mandar para detalhar os checkpoints. Lembrar quando esta entrega fechar, não a cada mensagem.
 
+## Agenda para o robô de WhatsApp (Ricardo, 09/10/2026)
+- Ele tem outro robô que dispara mensagens no grupo de WhatsApp de cada estrategista conforme os checkpoints avançam (é a "pendência adiada" de avisos e cobrança entrando em pauta). Perguntou que chave do Supabase passar. Decisão minha: o robô NÃO recebe chave do banco; lê uma porta só de leitura do site, `GET /api/cron/agenda` (`lib/agenda.ts`), com o segredo próprio `ROBO_SEGREDO` (`.env.local` e Vercel; gerado sem exibir). `?dia=AAAA-MM-DD` consulta outro dia.
+- A resposta traz, por lançamento ativo e do mais urgente para o menos: expert, lançamento, estrategista (id e nome), o que há na linha do tempo hoje e amanhã (marcos e checkpoints), situação e motivo (os mesmos do cartão), checkpoints atrasados, avisos de conexão, números principais e o link. O robô só lê e escreve a mensagem; não recalcula regra nenhuma.
+- O sistema não guarda telefone do estrategista nem o grupo de WhatsApp: esse vínculo fica no robô (pelo nome ou id do estrategista). Se ele pedir, criar os campos em `perfis`.
+- Quem envia a mensagem é o robô dele; o site não dispara WhatsApp.
+
 ## Próximos passos (fora do v1)
 Pauta automática da call de sexta, integrações (Meta Ads por BM em modo leitura, Berry Pay preenchendo as métricas sozinha, Asana), lançamentos perpétuos, teste de aceite com os estrategistas, domínio próprio.
 

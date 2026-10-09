@@ -94,6 +94,10 @@ Lançamento sem Meta Ads ligado não tem como separar as vendas: nele o CPA cont
 
 A partir do dia do evento (D0), a atualização do lançamento ganha o bloco **Comparecimento no evento**: quantas pessoas estiveram presentes. No **LP** é um número só; no **LPS** são seis, um por aula e um para o pitch, preenchidos conforme forem acontecendo. O cartão mostra cada número e a porcentagem sobre os ingressos vendidos. É um número separado do **grupo de WhatsApp**, que continua existindo.
 
+## Agenda do dia para o robô de WhatsApp
+
+O robô que avisa os estrategistas no WhatsApp lê a agenda do dia em `https://central-power.vercel.app/api/cron/agenda`, enviando o cabeçalho `Authorization: Bearer <ROBO_SEGREDO>`. É só leitura. A resposta lista cada lançamento ativo com o que acontece hoje e amanhã na linha do tempo, a situação, o motivo, os checkpoints atrasados, os avisos de conexão e os números principais. Para consultar outro dia, acrescente `?dia=AAAA-MM-DD`. O robô não recebe nenhuma chave do banco.
+
 ## Excluir um lançamento
 
 Só o admin. Na página do lançamento, clique em **Excluir lançamento** e confirme. Apaga o lançamento, os checkpoints e todo o histórico de métricas, sem volta. Para só tirar do painel e guardar o histórico, use **Encerrar lançamento**.
