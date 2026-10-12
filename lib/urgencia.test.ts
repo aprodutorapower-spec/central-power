@@ -165,7 +165,7 @@ test("grupo de WhatsApp: pelo menos 95% de quem comprou ingresso", () => {
   // mesmo com ingressos e CPA em ordem.
   const soGrupo = com(120);
   assert.equal(soGrupo.faixa, "abaixo");
-  assert.match(soGrupo.motivo, /Grupo de WhatsApp com 80% dos ingressos \(mínimo 95%\)/);
+  assert.match(soGrupo.motivo, /Grupo de WhatsApp com 80% dos ingressos \(mínimo 95%; faltam 23 pessoas\)/);
   assert.ok(soGrupo.pontos >= PESO_ABAIXO);
 
   // Soma com os outros: abaixo nos três pesa mais que abaixo em dois.
@@ -316,4 +316,21 @@ test("CPA é sobre as vendas do tráfego; as orgânicas só somam no total", () 
   assert.equal(junto.cpa.atual, 40);
   assert.equal(junto.cpa.base, "todos");
   assert.equal(junto.cpa.status, "acima");
+});
+
+test("grupo de WhatsApp: a porcentagem nunca aparece arredondada para cima do mínimo", () => {
+  const com = (grupo: number) =>
+    calcularUrgencia({
+      lancamento: BASE,
+      foto: { ingressos_vendidos: 220, verba_investida: 6000, grupo_whatsapp: grupo },
+      atrasos: [],
+      hoje: HOJE,
+    });
+  // 208 de 220 = 94,55%: está abaixo do mínimo e o texto diz 94%, não 95%.
+  assert.equal(com(208).grupo.status, "abaixo");
+  assert.match(com(208).motivo, /Grupo de WhatsApp com 94% dos ingressos \(mínimo 95%; falta 1 pessoa\)/);
+  // 209 de 220 = 95% exatos: bateu o mínimo.
+  assert.equal(com(209).grupo.status, "na_meta");
+  assert.equal(com(209).grupo.faltam, 0);
+  assert.equal(com(200).grupo.faltam, 9);
 });

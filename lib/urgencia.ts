@@ -4,7 +4,7 @@
 // Os imports têm ".ts" no final para os testes rodarem direto no Node
 // (npm test), sem ferramenta extra.
 import { diaDe, diasEntre, formatarData } from "./datas.ts";
-import { dividir, formatarInteiro, formatarReal, vendasParaCpa } from "./numeros.ts";
+import { dividir, formatarInteiro, formatarReal, vendasParaCpa, formatarPercentualParaBaixo } from "./numeros.ts";
 import type { Lancamento } from "./marcos";
 import type { Foto } from "./metricas";
 
@@ -206,6 +206,13 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
         ? "na_meta"
         : "abaixo";
 
+  // Quantas pessoas faltam no grupo para bater o mínimo com os ingressos de
+  // agora (o total de ingressos sobe sozinho; o número do grupo é digitado).
+  const faltamNoGrupo =
+    noGrupo == null || vendidos == null
+      ? null
+      : Math.max(Math.ceil(vendidos * MINIMO_GRUPO_WHATSAPP - 1e-9) - noGrupo, 0);
+
   const desvioGrupo =
     proporcaoGrupo == null
       ? null
@@ -290,7 +297,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   }
   if (statusGrupo === "abaixo") {
     motivos.push(
-      `Grupo de WhatsApp com ${pct(proporcaoGrupo!)} dos ingressos (mínimo ${pct(MINIMO_GRUPO_WHATSAPP)})`,
+      `Grupo de WhatsApp com ${formatarPercentualParaBaixo(proporcaoGrupo)} dos ingressos (mínimo ${pct(MINIMO_GRUPO_WHATSAPP)}; ${faltamNoGrupo === 1 ? "falta 1 pessoa" : `faltam ${faltamNoGrupo} pessoas`})`,
     );
   }
   if (semMeta) motivos.push("Sem meta definida");
@@ -356,6 +363,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
       pessoas: noGrupo,
       proporcao: proporcaoGrupo,
       minimo: MINIMO_GRUPO_WHATSAPP,
+      faltam: faltamNoGrupo,
     },
     diasAteD0,
     checkpointsAtrasados: atrasos.length,

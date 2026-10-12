@@ -29,6 +29,17 @@ export function formatarPercentual(valor: number | null | undefined) {
   return valor == null ? "—" : `${Math.round(valor * 100)}%`;
 }
 
+// Porcentagem comparada com um mínimo (o grupo de WhatsApp precisa de 95%):
+// arredonda para baixo, para 94,6% nunca aparecer como "95%" e parecer que
+// bateu o mínimo. (O ajuste mínimo cobre imprecisão de conta, como 0,95 × 100.)
+export function porcentagemParaBaixo(valor: number) {
+  return Math.floor(valor * 100 + 1e-9);
+}
+
+export function formatarPercentualParaBaixo(valor: number | null | undefined) {
+  return valor == null ? "—" : `${porcentagemParaBaixo(valor)}%`;
+}
+
 // Para preencher campo de formulário: 1234.5 -> "1234,50".
 export function dinheiroParaCampo(valor: number | null | undefined) {
   return valor == null ? "" : valor.toFixed(2).replace(".", ",");

@@ -12,6 +12,7 @@ import {
   dinheiroParaCampo,
   formatarInteiro,
   formatarPercentual,
+  formatarPercentualParaBaixo,
   formatarReal,
   lerDinheiro,
   lerInteiro,
@@ -156,7 +157,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
       <p className="mt-2 text-sm text-apagado">
         CPA <span className="text-texto">{formatarReal(cpa)}</span> · Ticket médio{" "}
         <span className="text-texto">{formatarReal(ticketMedio)}</span> · Comparecimento
-        no grupo <span className="text-texto">{formatarPercentual(comparecimento)}</span>
+        no grupo <span className="text-texto">{formatarPercentualParaBaixo(comparecimento)}</span>
       </p>
 
       {/* Só a partir do dia do evento: antes disso não há o que preencher. */}

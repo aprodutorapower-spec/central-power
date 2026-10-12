@@ -11,7 +11,12 @@ import {
 } from "@/lib/linha-do-tempo";
 import { faseDoLancamento, TIPOS, type Lancamento } from "@/lib/marcos";
 import { calcular, haQuanto, STATUS, type Foto } from "@/lib/metricas";
-import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
+import {
+  formatarInteiro,
+  formatarPercentual,
+  formatarPercentualParaBaixo,
+  formatarReal,
+} from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
 import { calcularUrgencia, metasFechadasParaEstrategista } from "@/lib/urgencia";
 import { definirSituacao } from "../actions";
@@ -198,7 +203,7 @@ export default async function LancamentoPage({
               valor={
                 formatarInteiro(ultima.grupo_whatsapp) +
                 (numeros.comparecimento != null
-                  ? ` (${formatarPercentual(numeros.comparecimento)})`
+                  ? ` (${formatarPercentualParaBaixo(numeros.comparecimento)})`
                   : "")
               }
             />
@@ -295,7 +300,7 @@ export default async function LancamentoPage({
                       <td className="px-4 py-3">
                         {formatarInteiro(foto.grupo_whatsapp)}
                         {calculo.comparecimento != null
-                          ? ` (${formatarPercentual(calculo.comparecimento)})`
+                          ? ` (${formatarPercentualParaBaixo(calculo.comparecimento)})`
                           : ""}
                       </td>
                       <td className="px-4 py-3">{formatarReal(calculo.cpa)}</td>

@@ -3,7 +3,7 @@
 //
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
 import { formatarData } from "./datas.ts";
-import { formatarInteiro, formatarReal } from "./numeros.ts";
+import { formatarInteiro, formatarPercentualParaBaixo, formatarReal } from "./numeros.ts";
 import type { Urgencia } from "./urgencia.ts";
 
 // Quantos checkpoints atrasados são citados pelo nome; o resto vira "mais N".
@@ -46,7 +46,7 @@ export function textoCobranca({
   }
   if (u.grupo.status === "abaixo") {
     pontos.push(
-      `Grupo de WhatsApp: ${formatarInteiro(u.grupo.pessoas)} pessoas, ${pct(u.grupo.proporcao!)} dos ingressos vendidos (o mínimo é ${pct(u.grupo.minimo)}).`,
+      `Grupo de WhatsApp: ${formatarInteiro(u.grupo.pessoas)} pessoas, ${formatarPercentualParaBaixo(u.grupo.proporcao)} dos ingressos vendidos (o mínimo é ${pct(u.grupo.minimo)}).`,
     );
   }
   if (u.faixa === "sem_dados") {

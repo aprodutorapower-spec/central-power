@@ -3,6 +3,7 @@ import { avisosDeConexao } from "./conexoes";
 import { hoje, somarDias } from "./datas";
 import { montarLinhaDoTempo, tituloDoItem, type Checkpoint, type ItemLinha } from "./linha-do-tempo";
 import type { Foto } from "./metricas";
+import { porcentagemParaBaixo } from "./numeros";
 import { montarItens, type LancamentoDoPainel } from "./painel";
 import { criarClienteAdmin } from "./supabase/admin";
 import { FAIXAS } from "./urgencia";
@@ -92,8 +93,9 @@ export async function agendaDoDia(dia = hoje()) {
           meta_cpa: u.cpa.meta == null ? null : Math.round(u.cpa.meta * 100) / 100,
           verba_investida: item.foto?.verba_investida ?? null,
           grupo_whatsapp: u.grupo.pessoas,
+          grupo_whatsapp_faltam_para_o_minimo: u.grupo.faltam,
           grupo_whatsapp_proporcao:
-            u.grupo.proporcao == null ? null : Math.round(u.grupo.proporcao * 100) / 100,
+            u.grupo.proporcao == null ? null : porcentagemParaBaixo(u.grupo.proporcao) / 100,
         },
         link: `${SITE}/lancamentos/${l.id}`,
       };

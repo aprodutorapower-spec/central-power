@@ -6,7 +6,12 @@ import { avisosDeConexao } from "@/lib/conexoes";
 import { formatarData } from "@/lib/datas";
 import { contagem, CORES, montarLinhaDoTempo, tituloDoItem } from "@/lib/linha-do-tempo";
 import { calcular, COMPARECIMENTO, haQuanto, STATUS } from "@/lib/metricas";
-import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
+import {
+  formatarInteiro,
+  formatarPercentual,
+  formatarPercentualParaBaixo,
+  formatarReal,
+} from "@/lib/numeros";
 import type { GrupoEstrategista, ItemPainel } from "@/lib/painel";
 import { BotaoCopiar, CartaoComPainel } from "./interacoes";
 import { definirSituacao } from "./lancamentos/actions";
@@ -173,10 +178,17 @@ function CartaoLancamento({
           valor={
             formatarInteiro(urgencia.grupo.pessoas) +
             (urgencia.grupo.proporcao != null
-              ? ` (${formatarPercentual(urgencia.grupo.proporcao)})`
+              ? ` (${formatarPercentualParaBaixo(urgencia.grupo.proporcao)})`
               : "")
           }
-          detalhe={`Mínimo: ${formatarPercentual(urgencia.grupo.minimo)} dos ingressos`}
+          detalhe={
+            `Mínimo: ${formatarPercentual(urgencia.grupo.minimo)} dos ingressos` +
+            (urgencia.grupo.faltam
+              ? urgencia.grupo.faltam === 1
+                ? " · falta 1 pessoa"
+                : ` · faltam ${urgencia.grupo.faltam} pessoas`
+              : "")
+          }
         />
         <Bloco
           rotulo="Ticket médio"

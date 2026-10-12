@@ -1,5 +1,10 @@
 import { formatarData } from "@/lib/datas";
-import { formatarInteiro, formatarPercentual, formatarReal } from "@/lib/numeros";
+import {
+  formatarInteiro,
+  formatarPercentual,
+  formatarPercentualParaBaixo,
+  formatarReal,
+} from "@/lib/numeros";
 import {
   FAIXAS,
   STATUS_META,
@@ -122,10 +127,15 @@ export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
         </p>
         <p className="mt-0.5 font-semibold">
           {formatarInteiro(grupo.pessoas)}
-          {grupo.proporcao != null ? ` (${formatarPercentual(grupo.proporcao)} dos ingressos)` : ""}
+          {grupo.proporcao != null ? ` (${formatarPercentualParaBaixo(grupo.proporcao)} dos ingressos)` : ""}
         </p>
         <p className="mt-1 text-xs text-apagado">
           Mínimo: {formatarPercentual(grupo.minimo)} dos ingressos vendidos
+          {grupo.faltam
+            ? grupo.faltam === 1
+              ? " · falta 1 pessoa"
+              : ` · faltam ${grupo.faltam} pessoas`
+            : ""}
         </p>
       </div>
       <div>
