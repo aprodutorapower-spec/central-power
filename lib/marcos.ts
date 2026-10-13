@@ -65,6 +65,15 @@ export type Lancamento = {
   meta_conferido_em: string | null;
   meta_erro: string | null;
   meta_campanhas: number | null;
+  berry_extras: { id: string; nome: string }[];
+  berry_principais: { id: string; nome: string }[];
+  // Turma anterior, no lançamento semanal (null na primeira turma).
+  turma_de: string | null;
+  meta_teste_conta: string | null;
+  meta_teste_pedido_em: string | null;
+  meta_teste_feito_em: string | null;
+  meta_teste_ok: boolean | null;
+  meta_teste_detalhe: string | null;
 };
 
 // Datas sugeridas a partir do D0. LP e LG (evento único): carrinho fecha em D0+4.

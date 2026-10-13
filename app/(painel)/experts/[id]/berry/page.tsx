@@ -26,6 +26,9 @@ type LancamentoBerry = {
   situacao: "ativo" | "encerrado";
   dv0: string | null;
   berry_produto_id: string | null;
+  tipo: string;
+  berry_extras: { id: string; nome: string }[];
+  berry_principais: { id: string; nome: string }[];
 };
 
 export default async function BerryPage({
@@ -44,10 +47,8 @@ export default async function BerryPage({
         .maybeSingle(),
       supabase
         .from("lancamentos")
-        .select("id, nome, situacao, dv0, berry_produto_id")
+        .select("id, nome, situacao, dv0, tipo, berry_produto_id, berry_extras, berry_principais")
         .eq("expert_id", id)
-        // Lançamento gratuito não vende ingresso: não tem produto na Berry.
-        .neq("tipo", "LG")
         .order("situacao")
         .order("d0"),
     ]);
@@ -150,7 +151,7 @@ export default async function BerryPage({
 
         {conexao && !falha ? (
           <section className="mt-6 max-w-2xl">
-            <h2 className="font-semibold">Produto do ingresso em cada lançamento</h2>
+            <h2 className="font-semibold">Produtos de cada lançamento</h2>
             {lancamentos.length ? (
               <ul className="mt-3 grid gap-3">
                 {lancamentos.map((lancamento) => (
@@ -169,12 +170,15 @@ export default async function BerryPage({
                         <span className="text-xs text-apagado">Encerrado</span>
                       ) : null}
                     </div>
-                    {/* A chave refaz o campo depois de salvar, já com o produto novo. */}
+                    {/* Sem trocar a chave ao salvar: a confirmação da Berry precisa
+                        continuar na tela depois que os dados recarregam. */}
                     <SeletorProduto
-                      key={lancamento.berry_produto_id ?? ""}
                       lancamentoId={lancamento.id}
                       lancamentoNome={lancamento.nome}
                       atual={lancamento.berry_produto_id}
+                      extras={lancamento.berry_extras}
+                      principais={lancamento.berry_principais}
+                      gratuito={lancamento.tipo === "LG"}
                       produtos={produtos}
                     />
                     {vendas.has(lancamento.id) ? (

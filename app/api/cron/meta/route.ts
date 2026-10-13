@@ -4,6 +4,8 @@ import {
   gravarVerbaDoMeta,
   lancamentosDoMeta,
   registrarErroDoMeta,
+  registrarTesteDoMeta,
+  testesDoMetaPendentes,
 } from "@/lib/meta-sincronia";
 
 // Porta da rotina do Meta Ads (uma tarefa agendada do Claude, 3x ao dia).
@@ -21,7 +23,11 @@ export async function GET(request: Request) {
   if (!autorizado(request)) return new Response("Não autorizado", { status: 401 });
   // A rotina pedir a lista já prova que ela está viva.
   await registrarRotina("meta");
-  return Response.json({ lancamentos: await lancamentosDoMeta() });
+  // "testes": contas de anúncios que alguém pediu para conferir pela tela.
+  return Response.json({
+    lancamentos: await lancamentosDoMeta(),
+    testes: await testesDoMetaPendentes(),
+  });
 }
 
 export async function POST(request: Request) {
@@ -31,8 +37,19 @@ export async function POST(request: Request) {
     lancamento_id?: unknown;
     campanhas?: unknown;
     erro?: unknown;
+    teste?: { ok?: unknown; detalhe?: unknown };
   } | null;
   const id = typeof corpo?.lancamento_id === "string" ? corpo.lancamento_id : "";
+  // Resposta de um teste de conexão pedido pela tela.
+  if (id && corpo?.teste && typeof corpo.teste === "object") {
+    const gravou = await registrarTesteDoMeta(
+      id,
+      corpo.teste.ok === true,
+      typeof corpo.teste.detalhe === "string" ? corpo.teste.detalhe : "",
+    );
+    revalidatePath("/", "layout");
+    return Response.json({ situacao: gravou ? "teste_registrado" : "sem_teste" });
+  }
   // A rotina não conseguiu consultar o Meta para este lançamento.
   if (id && typeof corpo?.erro === "string" && corpo.erro.trim()) {
     await registrarErroDoMeta(id, corpo.erro);

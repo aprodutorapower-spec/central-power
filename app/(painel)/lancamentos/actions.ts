@@ -2,14 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { sincronizarBerry, vendasNaBerry } from "@/lib/berry-sincronia";
+import { camposDaBerry, sincronizarBerry, vendasNaBerry } from "@/lib/berry-sincronia";
 import { CAMPOS_COMPARECIMENTO, herdarDaUltima } from "@/lib/metricas";
-import { dispararRotinaDoMeta } from "@/lib/meta-disparo";
+import { dispararRotinaDoMeta, ESPERA_ENTRE_TESTES_MS } from "@/lib/meta-disparo";
 import { diasEntre, hoje, somarDias } from "@/lib/datas";
 import { calcularMarcos, TIPOS, type Tipo } from "@/lib/marcos";
 import { ehGratuito, rotulos } from "@/lib/rotulos";
 import { lerDinheiro, lerInteiro } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
+import { criarClienteAdmin } from "@/lib/supabase/admin";
+import { proximaTurma } from "@/lib/turmas";
 import { metasFechadasParaEstrategista } from "@/lib/urgencia";
 
 export type ResultadoLancamento = { erro?: string };
@@ -233,8 +235,13 @@ export async function salvarAtualizacao(
     preenchido_por_nome: perfil.nome,
     fonte: "manual",
     verba_investida: dinheiro("verba_investida"),
-    ingressos_vendidos: daBerry?.ingressos ?? inteiro("ingressos_vendidos"),
-    receita_ingressos: daBerry?.receita ?? dinheiro("receita_ingressos"),
+    ingressos_vendidos: inteiro("ingressos_vendidos"),
+    receita_ingressos: dinheiro("receita_ingressos"),
+    // Produto principal vem da Berry; sem ela, segue o último número.
+    vendas_produto: herdado.vendas_produto,
+    faturamento_produto: herdado.faturamento_produto,
+    // O que a Berry informa vale mais que o digitado.
+    ...(daBerry ? camposDaBerry(daBerry) : {}),
     grupo_whatsapp: inteiro("grupo_whatsapp"),
   });
   if (error) return { erro: "O status foi salvo, mas as métricas não. Tente de novo." };
@@ -296,7 +303,7 @@ export async function atualizarPelaBerry(
   const resultado = await sincronizarBerry(lancamento.id);
   if (resultado.situacao === "erro") return { erro: resultado.erro };
   if (resultado.situacao === "sem_berry") {
-    return { erro: "Conecte a Berry e escolha o produto do ingresso primeiro." };
+    return { erro: "Conecte a Berry e escolha os produtos do lançamento primeiro." };
   }
 
   revalidatePath("/", "layout");
@@ -350,4 +357,97 @@ export async function excluirLancamento(
 
   revalidatePath("/", "layout");
   redirect(`/experts/${apagado[0].expert_id}`);
+}
+
+// Semanal: cria a próxima turma como cópia desta, uma semana depois, já com as
+// metas, os produtos da Berry e a conta de anúncios. Quem enxerga a turma atual
+// pode criar a próxima; a cópia é feita pelo servidor porque parte desses campos
+// (conta e filtro do Meta) o estrategista não pode gravar direto.
+export async function criarProximaTurma(formData: FormData) {
+  const { supabase, perfil } = await obterSessao();
+  if (!perfil) return;
+
+  const id = String(formData.get("id") ?? "");
+  const { data: atual } = await supabase.from("lancamentos").select("*").eq("id", id).maybeSingle();
+  if (!atual || atual.tipo !== "LPS") return;
+
+  const admin = criarClienteAdmin();
+  // Já existe: só abre.
+  const { data: existente } = await admin
+    .from("lancamentos")
+    .select("id")
+    .eq("turma_de", id)
+    .limit(1)
+    .maybeSingle();
+  if (existente) redirect(`/lancamentos/${existente.id}`);
+
+  const { data: criada } = await admin
+    .from("lancamentos")
+    .insert({
+      ...proximaTurma(atual),
+      expert_id: atual.expert_id,
+      tipo: atual.tipo,
+      meta_ingressos: atual.meta_ingressos,
+      meta_cpa: atual.meta_cpa,
+      verba_prevista: atual.verba_prevista,
+      sem_trafego: atual.sem_trafego,
+      berry_produto_id: atual.berry_produto_id,
+      berry_produto_nome: atual.berry_produto_nome,
+      berry_extras: atual.berry_extras,
+      berry_principais: atual.berry_principais,
+      meta_conta_id: atual.meta_conta_id,
+      turma_de: atual.id,
+      criado_por: perfil.id,
+    })
+    .select("id")
+    .single();
+  if (!criada) return;
+
+  // Já traz da Berry as vendas do período da turma nova.
+  if (atual.berry_produto_id) await sincronizarBerry(criada.id);
+  revalidatePath("/", "layout");
+  redirect(`/lancamentos/${criada.id}`);
+}
+
+export type ResultadoTesteMeta = { erro?: string; pedido?: boolean };
+
+// "Testar conexão com o Meta Ads": o site não fala com o Meta, então o pedido
+// fica registrado no lançamento e a rotina do Claude (acordada na hora) confere
+// se o conector enxerga a conta e devolve a resposta em cerca de um minuto.
+export async function testarContaMeta(
+  _anterior: ResultadoTesteMeta,
+  formData: FormData,
+): Promise<ResultadoTesteMeta> {
+  const { supabase, perfil } = await obterSessao();
+  if (!perfil) return { erro: "Sua sessão expirou. Entre de novo." };
+
+  // O banco confirma que quem pediu enxerga este lançamento.
+  const id = String(formData.get("lancamento_id") ?? "");
+  const { data: lancamento } = await supabase
+    .from("lancamentos")
+    .select("id, meta_conta_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!lancamento) return { erro: "Lançamento não encontrado." };
+
+  const conta =
+    String(formData.get("conta") ?? "").replace(/\D/g, "") || lancamento.meta_conta_id;
+  if (!conta) return { erro: "Informe o número da conta de anúncios." };
+  if (conta.length < 6) return { erro: "Esse número parece curto demais para uma conta de anúncios." };
+
+  await criarClienteAdmin()
+    .from("lancamentos")
+    .update({
+      meta_teste_conta: conta,
+      meta_teste_pedido_em: new Date().toISOString(),
+      meta_teste_feito_em: null,
+      meta_teste_ok: null,
+      meta_teste_detalhe: null,
+    })
+    .eq("id", id);
+
+  const disparo = await dispararRotinaDoMeta(ESPERA_ENTRE_TESTES_MS);
+  revalidatePath("/", "layout");
+  if (disparo.situacao === "erro") return { erro: disparo.erro };
+  return { pedido: true };
 }

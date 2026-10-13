@@ -10,6 +10,7 @@ import {
   COMPARECIMENTO,
   haQuanto,
   participacaoERetencao,
+  retorno,
   STATUS,
 } from "@/lib/metricas";
 import {
@@ -21,7 +22,7 @@ import {
 import type { GrupoEstrategista, ItemPainel } from "@/lib/painel";
 import { ehGratuito, rotulos } from "@/lib/rotulos";
 import { BotaoCopiar, CartaoComPainel } from "./interacoes";
-import { definirSituacao } from "./lancamentos/actions";
+import { criarProximaTurma, definirSituacao } from "./lancamentos/actions";
 import { LinhaDoTempo } from "./lancamentos/linha-do-tempo";
 import {
   BarraIngressos,
@@ -79,7 +80,10 @@ function CartaoLancamento({
   hoje,
   quem,
   admin,
+  temProximaTurma,
 }: {
+  // Semanal: a turma seguinte já foi criada.
+  temProximaTurma: boolean;
   item: ItemPainel;
   estrategista: string | null;
   hoje: string;
@@ -106,6 +110,9 @@ function CartaoLancamento({
   const gratuito = ehGratuito(lancamento.tipo);
   const r = rotulos(lancamento.tipo);
   const evento = participacaoERetencao(foto);
+  // ROI de ingressos e produto principal (vendas, faturamento e CAC).
+  const ret = retorno(foto);
+  const temPrincipal = lancamento.berry_principais?.length > 0 || ret.vendasPrincipal != null;
   const terminou = podeEncerrar(lancamento, item.checkpoints, hoje);
   // Lançamento terminado não cobra conexão: a sugestão é encerrar.
   const conexoes = terminou ? [] : avisosDeConexao(lancamento, hoje, new Date());
@@ -284,6 +291,51 @@ function CartaoLancamento({
         />
       </div>
 
+      {/* Retorno: ROI dos ingressos (pago) e produto principal, quando há o que mostrar. */}
+      {(!gratuito && ret.roiIngressos != null) || temPrincipal ? (
+        <div className="mt-2 rounded-lg bg-cartao-2 px-3 py-2.5">
+          <p className="text-xs text-apagado">Retorno</p>
+          <dl className="mt-1 grid grid-cols-2 gap-x-4 gap-y-2 lg:grid-cols-4">
+            {gratuito ? null : (
+              <div>
+                <dt className="text-xs text-apagado">ROI de ingressos</dt>
+                <dd className="font-semibold">
+                  {ret.roiIngressos == null ? (
+                    "—"
+                  ) : (
+                    <span className={ret.roiIngressos >= 0 ? "text-ok" : "text-power-claro"}>
+                      {ret.roiIngressos >= 0 ? "+" : "−"}
+                      {formatarPercentual(Math.abs(ret.roiIngressos))}
+                    </span>
+                  )}
+                  <span className="ml-1.5 text-sm font-normal text-apagado">
+                    receita contra a verba
+                  </span>
+                </dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-xs text-apagado">Vendas do produto principal</dt>
+              <dd className="font-semibold">
+                {temPrincipal ? (
+                  formatarInteiro(ret.vendasPrincipal)
+                ) : (
+                  <span className="text-sm font-normal text-apagado">Produto não ligado</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-apagado">Faturamento do produto principal</dt>
+              <dd className="font-semibold">{formatarReal(ret.faturamentoPrincipal)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-apagado">CAC (verba ÷ vendas do principal)</dt>
+              <dd className="font-semibold">{formatarReal(ret.cac)}</dd>
+            </div>
+          </dl>
+        </div>
+      ) : null}
+
       {/* Tráfego x orgânico: aparece quando o Meta informa as compras das
           campanhas. O CPA é sobre as do tráfego; as orgânicas só somam no total. */}
       {numeros?.doTrafego != null ? (
@@ -384,6 +436,25 @@ function CartaoLancamento({
         </div>
       ) : null}
 
+      {/* Semanal: a turma da semana começou e a próxima ainda não foi criada. */}
+      {lancamento.tipo === "LPS" && hoje >= lancamento.d0 && !temProximaTurma ? (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border border-borda bg-cartao-2 px-3 py-2.5">
+          <div>
+            <p className="text-xs text-apagado">Próxima turma</p>
+            <p className="mt-1 text-sm">
+              Cria a turma da semana que vem já com as metas, os produtos e a conta de
+              anúncios desta.
+            </p>
+          </div>
+          <form action={criarProximaTurma}>
+            <input type="hidden" name="id" value={lancamento.id} />
+            <BotaoEnviar className={BOTAO} enviando="Criando…">
+              Criar próxima turma
+            </BotaoEnviar>
+          </form>
+        </div>
+      ) : null}
+
       {/* Só aparece depois do último marco: encerrar é o que desliga as
           atualizações automáticas deste lançamento. */}
       {terminou ? (
@@ -468,6 +539,7 @@ export function VisaoDoEstrategista({
       hoje={hoje}
       quem={quem}
       admin={admin}
+      temProximaTurma={grupo.itens.some((outro) => outro.lancamento.turma_de === item.lancamento.id)}
     />
   );
 

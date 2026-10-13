@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { ProdutoBerry } from "@/lib/berry";
 import {
   conectarBerry,
@@ -52,41 +52,119 @@ export function FormChave({
   );
 }
 
+type Escolhido = { id: string; nome: string };
+
+function Caixas({
+  nome,
+  titulo,
+  ajuda,
+  produtos,
+  marcados,
+  fora,
+}: {
+  nome: string;
+  titulo: string;
+  ajuda: string;
+  produtos: ProdutoBerry[];
+  marcados: Escolhido[];
+  // Produto que não pode ser marcado aqui (o do ingresso).
+  fora: string;
+}) {
+  const opcoes = produtos.filter((produto) => produto.id !== fora);
+  if (!opcoes.length) return null;
+  return (
+    <fieldset className="mt-4">
+      <legend className="text-sm font-semibold">{titulo}</legend>
+      <p className="text-xs text-apagado">{ajuda}</p>
+      <div className="mt-2 grid gap-1.5">
+        {opcoes.map((produto) => (
+          <label key={produto.id} className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              name={nome}
+              value={produto.id}
+              defaultChecked={marcados.some((m) => m.id === produto.id)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-power"
+            />
+            <span>
+              {produto.nome}
+              {produto.ativo ? "" : " (inativo na Berry)"}
+            </span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 export function SeletorProduto({
   lancamentoId,
   lancamentoNome,
   atual,
+  extras,
+  principais,
+  gratuito,
   produtos,
 }: {
   lancamentoId: string;
   lancamentoNome: string;
   atual: string | null;
+  extras: Escolhido[];
+  principais: Escolhido[];
+  // Lançamento gratuito não vende ingresso: só escolhe o produto principal.
+  gratuito: boolean;
   produtos: ProdutoBerry[];
 }) {
   const [resultado, acao, salvando] = useActionState(definirProdutoBerry, INICIAL);
+  const [ingresso, setIngresso] = useState(atual ?? "");
 
   return (
     <form action={acao}>
       <input type="hidden" name="lancamento_id" value={lancamentoId} />
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <select
-          name="produto_id"
-          defaultValue={atual ?? ""}
-          aria-label={`Produto do ingresso de ${lancamentoNome}`}
-          className={CAMPO}
-        >
-          <option value="">Nenhum produto escolhido</option>
-          {produtos.map((produto) => (
-            <option key={produto.id} value={produto.id}>
-              {produto.nome}
-              {produto.ativo ? "" : " (inativo na Berry)"}
-            </option>
-          ))}
-        </select>
-        <button type="submit" disabled={salvando} className={BOTAO}>
-          {salvando ? "Salvando…" : "Salvar"}
-        </button>
-      </div>
+      {gratuito ? null : (
+        <>
+          <label className="text-sm font-semibold" htmlFor={`produto-${lancamentoId}`}>
+            Produto do ingresso
+          </label>
+          <select
+            id={`produto-${lancamentoId}`}
+            name="produto_id"
+            value={ingresso}
+            onChange={(evento) => setIngresso(evento.target.value)}
+            aria-label={`Produto do ingresso de ${lancamentoNome}`}
+            className={`mt-1 ${CAMPO}`}
+          >
+            <option value="">Nenhum produto escolhido</option>
+            {produtos.map((produto) => (
+              <option key={produto.id} value={produto.id}>
+                {produto.nome}
+                {produto.ativo ? "" : " (inativo na Berry)"}
+              </option>
+            ))}
+          </select>
+          {ingresso ? (
+            <Caixas
+              nome="extras"
+              titulo="Também somam na receita de ingressos"
+              ajuda="Gravação e outros produtos vendidos junto ou à parte. Entram na receita e no ROI de ingressos. Order bump comprado junto com o ingresso já é contado sozinho, e nenhuma compra é somada duas vezes."
+              produtos={produtos}
+              marcados={extras}
+              fora={ingresso}
+            />
+          ) : null}
+        </>
+      )}
+      <Caixas
+        nome="principais"
+        titulo="Produto principal"
+        ajuda="O que é vendido no evento. Com ele o sistema mostra as vendas, o faturamento e o CAC (verba ÷ vendas), contando do dia do evento ou do pitch até o fim do carrinho."
+        produtos={produtos}
+        marcados={principais}
+        fora={ingresso}
+      />
+      <button type="submit" disabled={salvando} className={`mt-4 ${BOTAO}`}>
+        {salvando ? "Salvando…" : "Salvar produtos"}
+      </button>
       {resultado.erro ? (
         <p className="mt-2 text-sm text-power-claro" role="alert">
           {resultado.erro}

@@ -118,17 +118,28 @@ export async function definirProdutoBerry(
     .maybeSingle();
   if (!lancamento) return { erro: "Lançamento não encontrado." };
 
-  // O nome vem da Berry, não da tela: garante que o produto é mesmo da conta.
+  // Os nomes vêm da Berry, não da tela: garante que os produtos são mesmo da conta.
+  const extrasIds = formData.getAll("extras").map(String).filter(Boolean);
+  const principaisIds = formData.getAll("principais").map(String).filter(Boolean);
   let produto: ProdutoBerry | undefined;
-  if (produtoId) {
+  let extras: { id: string; nome: string }[] = [];
+  let principais: { id: string; nome: string }[] = [];
+  if (produtoId || extrasIds.length || principaisIds.length) {
     const chave = await chaveDoExpert(lancamento.expert_id);
     if (!chave) return { erro: "Conecte a Berry antes de escolher o produto." };
+    let daConta: ProdutoBerry[];
     try {
-      produto = (await listarProdutos(chave)).find((p) => p.id === produtoId);
+      daConta = await listarProdutos(chave);
     } catch (erro) {
       return { erro: mensagem(erro) };
     }
-    if (!produto) return { erro: "Esse produto não está na conta da Berry." };
+    const escolher = (lista: string[]) =>
+      daConta.filter((p) => lista.includes(p.id)).map((p) => ({ id: p.id, nome: p.nome }));
+    produto = produtoId ? daConta.find((p) => p.id === produtoId) : undefined;
+    if (produtoId && !produto) return { erro: "Esse produto não está na conta da Berry." };
+    // O ingresso não pode ser também extra nem principal; extra só existe com ingresso.
+    extras = produto ? escolher(extrasIds.filter((id) => id !== produtoId)) : [];
+    principais = escolher(principaisIds.filter((id) => id !== produtoId));
   }
 
   const { data: salvo } = await supabase
@@ -136,14 +147,16 @@ export async function definirProdutoBerry(
     .update({
       berry_produto_id: produto?.id ?? null,
       berry_produto_nome: produto?.nome ?? null,
+      berry_extras: extras,
+      berry_principais: principais,
     })
     .eq("id", lancamentoId)
     .select("id");
   if (!salvo?.length) return { erro: "Não foi possível salvar." };
 
-  // Produto escolhido: já traz ingressos e receita para o lançamento.
+  // Produto escolhido: já traz os números para o lançamento.
   // O resultado volta para a tela: quem conectou vê na hora se funcionou.
-  const puxada = produto ? await sincronizarBerry(lancamentoId) : null;
+  const puxada = produto || principais.length ? await sincronizarBerry(lancamentoId) : null;
 
   revalidatePath("/", "layout");
   if (puxada?.situacao === "erro") {
@@ -152,9 +165,25 @@ export async function definirProdutoBerry(
   if (puxada?.situacao === "atualizado" || puxada?.situacao === "sem_mudanca") {
     return {
       ok: true,
-      conferido: `Conectado: ${formatarInteiro(puxada.ingressos)} ${
-        puxada.ingressos === 1 ? "ingresso" : "ingressos"
-      } e ${formatarReal(puxada.receita)} encontrados na Berry. A partir de agora atualiza sozinho 3 vezes ao dia.`,
+      conferido: [
+        "Conectado:",
+        produto
+          ? `${formatarInteiro(puxada.ingressos)} ${
+              puxada.ingressos === 1 ? "ingresso" : "ingressos"
+            } e ${formatarReal(puxada.receita)} de receita${
+              extras.length ? " (com os produtos extras)" : ""
+            }`
+          : null,
+        produto && puxada.vendasPrincipal != null ? "·" : null,
+        puxada.vendasPrincipal != null
+          ? `${formatarInteiro(puxada.vendasPrincipal)} ${
+              puxada.vendasPrincipal === 1 ? "venda" : "vendas"
+            } do produto principal (${formatarReal(puxada.faturamentoPrincipal)})`
+          : null,
+        "encontrados na Berry. A partir de agora atualiza sozinho 3 vezes ao dia.",
+      ]
+        .filter(Boolean)
+        .join(" "),
     };
   }
   return { ok: true };

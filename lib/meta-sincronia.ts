@@ -135,3 +135,39 @@ export async function registrarErroDoMeta(lancamentoId: string, erro: string) {
     .eq("situacao", "ativo")
     .not("meta_conta_id", "is", null);
 }
+
+// Testes de conexão pedidos pela tela ("Testar conexão com o Meta Ads"): a
+// rotina confere se o conector enxerga a conta de anúncios e devolve a resposta.
+export async function testesDoMetaPendentes() {
+  const { data } = await criarClienteAdmin()
+    .from("lancamentos")
+    .select("id, meta_teste_conta, meta_teste_pedido_em, meta_teste_feito_em")
+    .not("meta_teste_pedido_em", "is", null)
+    .not("meta_teste_conta", "is", null);
+  return (data ?? [])
+    .filter((l) => !l.meta_teste_feito_em || l.meta_teste_feito_em < l.meta_teste_pedido_em)
+    .map((l) => ({ lancamento_id: l.id as string, conta: l.meta_teste_conta as string }));
+}
+
+export async function registrarTesteDoMeta(lancamentoId: string, ok: boolean, detalhe: string) {
+  const admin = criarClienteAdmin();
+  const { data: lancamento } = await admin
+    .from("lancamentos")
+    .select("id, meta_conta_id, meta_teste_conta")
+    .eq("id", lancamentoId)
+    .maybeSingle();
+  if (!lancamento?.meta_teste_conta) return false;
+
+  await admin
+    .from("lancamentos")
+    .update({
+      meta_teste_feito_em: new Date().toISOString(),
+      meta_teste_ok: ok,
+      meta_teste_detalhe: detalhe.trim().replace(/\s+/g, " ").slice(0, 240),
+      // Conta confirmada e o lançamento ainda sem conta: já fica preenchida.
+      // (As palavras do filtro continuam sendo do admin.)
+      ...(ok && !lancamento.meta_conta_id ? { meta_conta_id: lancamento.meta_teste_conta } : {}),
+    })
+    .eq("id", lancamentoId);
+  return true;
+}

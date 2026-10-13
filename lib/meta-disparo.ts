@@ -16,7 +16,13 @@ export function disparoDoMetaLigado() {
 
 export type ResultadoDisparo = { situacao: "pedido" | "recente" } | { situacao: "erro"; erro: string };
 
-export async function dispararRotinaDoMeta(): Promise<ResultadoDisparo> {
+// Um teste de conexão pode ser pedido logo depois de uma atualização: a espera
+// dele é menor, só para segurar cliques repetidos.
+export const ESPERA_ENTRE_TESTES_MS = 45_000;
+
+export async function dispararRotinaDoMeta(
+  esperaMs = ESPERA_ENTRE_DISPAROS_MS,
+): Promise<ResultadoDisparo> {
   const chave = process.env.META_ROTINA_TOKEN;
   if (!chave) return { situacao: "erro", erro: "A atualização na hora ainda não foi ligada." };
 
@@ -28,7 +34,7 @@ export async function dispararRotinaDoMeta(): Promise<ResultadoDisparo> {
     .maybeSingle();
   if (
     rotina &&
-    Date.now() - new Date(rotina.ultima_execucao).getTime() < ESPERA_ENTRE_DISPAROS_MS
+    Date.now() - new Date(rotina.ultima_execucao).getTime() < esperaMs
   ) {
     return { situacao: "recente" };
   }

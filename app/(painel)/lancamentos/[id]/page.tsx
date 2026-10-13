@@ -14,6 +14,7 @@ import {
   calcular,
   haQuanto,
   participacaoERetencao,
+  retorno,
   STATUS,
   type Foto,
 } from "@/lib/metricas";
@@ -26,10 +27,11 @@ import {
 } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
 import { calcularUrgencia, metasFechadasParaEstrategista } from "@/lib/urgencia";
-import { definirSituacao } from "../actions";
+import { criarProximaTurma, definirSituacao } from "../actions";
 import { PainelMetas } from "../painel-metas";
 import { disparoDoMetaLigado } from "@/lib/meta-disparo";
-import { BotaoBerry, BotaoMeta, ExcluirLancamento } from "../../interacoes";
+import { BotaoBerry, BotaoMeta, ExcluirLancamento, TesteMeta } from "../../interacoes";
+import { quando } from "@/lib/conexoes";
 import { LinhaDoTempo } from "../linha-do-tempo";
 import { FormAtualizacao } from "./form-atualizacao";
 
@@ -48,7 +50,7 @@ export default async function LancamentoPage({
   const { id } = await params;
   const { supabase, perfil } = await obterSessao();
 
-  const [{ data }, { data: lista }, { data: historico }] = await Promise.all([
+  const [{ data }, { data: lista }, { data: historico }, { data: seguinte }] = await Promise.all([
     supabase
       .from("lancamentos")
       .select("*, experts(nome)")
@@ -60,6 +62,8 @@ export default async function LancamentoPage({
       .select("*")
       .eq("lancamento_id", id)
       .order("criado_em", { ascending: false }),
+    // Semanal: a turma seguinte, se já foi criada.
+    supabase.from("lancamentos").select("id").eq("turma_de", id).limit(1).maybeSingle(),
   ]);
   if (!data) notFound();
 
@@ -84,6 +88,8 @@ export default async function LancamentoPage({
     : null;
   const numeros = ultima ? calcular(ultima) : null;
   const evento = participacaoERetencao(ultima);
+  const ret = retorno(ultima);
+  const temPrincipal = lancamento.berry_principais?.length > 0 || ret.vendasPrincipal != null;
   const urgencia = calcularUrgencia({
     lancamento,
     foto: ultima,
@@ -121,18 +127,20 @@ export default async function LancamentoPage({
         >
           Editar lançamento
         </Link>
-        {/* Lançamento gratuito não vende ingresso: não há o que ligar na Berry. */}
-        {gratuito ? null : (
-          <Link
-            href={`/experts/${lancamento.expert_id}/berry`}
-            className="rounded-lg border border-borda px-3 py-1.5 hover:border-power"
-          >
-            {lancamento.berry_produto_nome
-              ? `Berry: ${lancamento.berry_produto_nome}`
-              : "Conectar Berry"}
-          </Link>
-        )}
-        {!gratuito && lancamento.berry_produto_id ? (
+        {/* No gratuito não há ingresso, mas dá para ligar o produto principal. */}
+        <Link
+          href={`/experts/${lancamento.expert_id}/berry`}
+          className="rounded-lg border border-borda px-3 py-1.5 hover:border-power"
+        >
+          {lancamento.berry_produto_nome
+            ? `Berry: ${lancamento.berry_produto_nome}`
+            : lancamento.berry_principais?.length
+              ? "Berry: produto principal ligado"
+              : gratuito
+                ? "Ligar o produto principal (Berry)"
+                : "Conectar Berry"}
+        </Link>
+        {lancamento.berry_produto_id || lancamento.berry_principais?.length ? (
           <BotaoBerry lancamentoId={lancamento.id} />
         ) : null}
         {!encerrado &&
@@ -149,10 +157,63 @@ export default async function LancamentoPage({
             {encerrado ? "Reabrir lançamento" : "Encerrar lançamento"}
           </BotaoEnviar>
         </form>
+        {/* Semanal: as turmas ficam encadeadas, cada uma com os seus números. */}
+        {lancamento.turma_de ? (
+          <Link
+            href={`/lancamentos/${lancamento.turma_de}`}
+            className="text-sm text-apagado hover:text-texto"
+          >
+            ← Turma anterior
+          </Link>
+        ) : null}
+        {lancamento.tipo === "LPS" ? (
+          seguinte ? (
+            <Link
+              href={`/lancamentos/${seguinte.id}`}
+              className="text-sm text-apagado hover:text-texto"
+            >
+              Próxima turma →
+            </Link>
+          ) : (
+            <form action={criarProximaTurma}>
+              <input type="hidden" name="id" value={lancamento.id} />
+              <BotaoEnviar
+                className="rounded-lg border border-borda px-3 py-1.5 hover:border-power"
+                enviando="Criando…"
+              >
+                Criar próxima turma
+              </BotaoEnviar>
+            </form>
+          )
+        ) : null}
         {perfil?.papel === "admin" ? (
           <ExcluirLancamento id={lancamento.id} nome={lancamento.nome} />
         ) : null}
       </div>
+
+      {/* Teste de conexão com a conta de anúncios: para o estrategista e o admin. */}
+      {!encerrado && !lancamento.sem_trafego && disparoDoMetaLigado() ? (
+        <TesteMeta
+          lancamentoId={lancamento.id}
+          conta={lancamento.meta_conta_id ?? lancamento.meta_teste_conta}
+          pedidoEm={
+            lancamento.meta_teste_pedido_em &&
+            (!lancamento.meta_teste_feito_em ||
+              lancamento.meta_teste_feito_em < lancamento.meta_teste_pedido_em)
+              ? `em ${quando(lancamento.meta_teste_pedido_em)}`
+              : null
+          }
+          resposta={
+            lancamento.meta_teste_feito_em && lancamento.meta_teste_ok != null
+              ? {
+                  ok: lancamento.meta_teste_ok,
+                  detalhe: lancamento.meta_teste_detalhe ?? "",
+                  quando: `em ${quando(lancamento.meta_teste_feito_em)}`,
+                }
+              : null
+          }
+        />
+      ) : null}
 
       <section className="mt-6 rounded-xl border border-borda bg-cartao p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -258,6 +319,31 @@ export default async function LancamentoPage({
               <Numero rotulo="Ticket médio" valor={formatarReal(numeros.ticketMedio)} />
               </>
             )}
+          </div>
+        ) : null}
+
+        {/* Retorno: ROI dos ingressos (pago) e produto principal. */}
+        {(!gratuito && ret.roiIngressos != null) || temPrincipal ? (
+          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-4">
+            {gratuito ? null : (
+              <Numero
+                rotulo="ROI de ingressos (receita contra a verba)"
+                valor={
+                  ret.roiIngressos == null
+                    ? "—"
+                    : `${ret.roiIngressos >= 0 ? "+" : "−"}${formatarPercentual(Math.abs(ret.roiIngressos))}`
+                }
+              />
+            )}
+            <Numero
+              rotulo="Vendas do produto principal"
+              valor={temPrincipal ? formatarInteiro(ret.vendasPrincipal) : "Produto não ligado"}
+            />
+            <Numero
+              rotulo="Faturamento do produto principal"
+              valor={formatarReal(ret.faturamentoPrincipal)}
+            />
+            <Numero rotulo="CAC (verba ÷ vendas do principal)" valor={formatarReal(ret.cac)} />
           </div>
         ) : null}
 

@@ -82,6 +82,20 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
+## Produtos da Berry, retorno e turmas
+
+Na tela **Berry** do expert, cada lançamento tem três escolhas:
+
+- **Produto do ingresso:** de onde vêm os ingressos vendidos e a receita.
+- **Também somam na receita de ingressos:** gravação e outros produtos vendidos junto ou à parte. Nenhuma compra é somada duas vezes.
+- **Produto principal:** o que é vendido no evento. Conta do dia do evento (ou do pitch) até o fim do carrinho.
+
+Com isso o cartão e a página do lançamento mostram a faixa **Retorno**: ROI de ingressos (receita contra a verba), vendas e faturamento do produto principal e o **CAC** (verba ÷ vendas do produto principal).
+
+**Turmas do semanal (LPS):** cada turma é um lançamento. A partir do D0, o cartão oferece **Criar próxima turma**, que copia metas, produtos e conta de anúncios, anda as datas uma semana e ajusta as datas do filtro do Meta. Como todas as turmas vendem o mesmo produto, cada uma conta só os ingressos do seu período.
+
+**Teste de conexão com o Meta Ads:** na página do lançamento, informe o número da conta de anúncios e clique em **Testar conexão com o Meta Ads**. Em cerca de um minuto a tela diz se a conta já pode ser lida ou por que não.
+
 ## Lançamento gratuito (LG)
 
 Terceiro tipo de lançamento, ao lado do LP e do LPS: não vende ingresso, capta leads de graça para um evento online.

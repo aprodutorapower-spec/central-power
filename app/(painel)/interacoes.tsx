@@ -7,6 +7,7 @@ import {
   atualizarPelaBerry,
   atualizarPeloMeta,
   excluirLancamento,
+  testarContaMeta,
 } from "./lancamentos/actions";
 
 // Pequenas peças que precisam do navegador: menu, voltar, copiar e painel lateral.
@@ -342,5 +343,81 @@ export function ExcluirLancamento({ id, nome }: { id: string; nome: string }) {
         </p>
       ) : null}
     </form>
+  );
+}
+
+// Confere se o conector do Meta Ads enxerga a conta de anúncios do expert.
+// Quem responde é a rotina do Claude, em cerca de um minuto: a tela se
+// atualiza sozinha até a resposta chegar.
+export function TesteMeta({
+  lancamentoId,
+  conta,
+  pedidoEm,
+  resposta,
+}: {
+  lancamentoId: string;
+  // Conta já conhecida (a do lançamento ou a do último teste).
+  conta: string | null;
+  // Texto pronto de quando o teste foi pedido (null = nenhum pendente).
+  pedidoEm: string | null;
+  // Resposta do último teste concluído.
+  resposta: { ok: boolean; detalhe: string; quando: string } | null;
+}) {
+  const [resultado, acao, pedindo] = useActionState(testarContaMeta, {});
+  const router = useRouter();
+  const aguardando = Boolean(pedidoEm) && !pedindo;
+
+  useEffect(() => {
+    if (!aguardando) return;
+    const esperas = [30_000, 50_000, 75_000, 120_000, 180_000].map((ms) =>
+      setTimeout(() => router.refresh(), ms),
+    );
+    return () => esperas.forEach(clearTimeout);
+  }, [aguardando, pedidoEm, router]);
+
+  return (
+    <section className="mt-4 rounded-xl border border-borda bg-cartao p-5 text-sm">
+      <h2 className="font-semibold">Conexão com o Meta Ads</h2>
+      <p className="mt-1 text-apagado">
+        Confere se a conta de anúncios do expert já pode ser lida. O número fica no
+        Gerenciador de Anúncios, no seletor de contas.
+      </p>
+      <form action={acao} className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <input type="hidden" name="lancamento_id" value={lancamentoId} />
+        <input
+          name="conta"
+          inputMode="numeric"
+          defaultValue={conta ?? ""}
+          placeholder="Número da conta de anúncios"
+          aria-label="Número da conta de anúncios"
+          className="w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power sm:max-w-xs"
+        />
+        <button
+          type="submit"
+          disabled={pedindo}
+          className="shrink-0 rounded-lg border border-borda px-3 py-2 transition hover:border-power disabled:cursor-wait disabled:opacity-50"
+        >
+          {pedindo ? "Pedindo o teste…" : "Testar conexão com o Meta Ads"}
+        </button>
+      </form>
+      {resultado.erro ? (
+        <p className="mt-2 text-power-claro" role="alert">
+          {resultado.erro}
+        </p>
+      ) : aguardando ? (
+        <p className="mt-2 text-apagado" role="status">
+          Teste pedido {pedidoEm}. A resposta chega em cerca de 1 minuto e aparece aqui
+          sozinha.
+        </p>
+      ) : resposta ? (
+        <p className="mt-2" role="status">
+          <span className={resposta.ok ? "text-ok" : "text-power-claro"}>
+            {resposta.ok ? "Conectado:" : "Sem conexão:"}
+          </span>{" "}
+          {resposta.detalhe}{" "}
+          <span className="text-apagado">(testado {resposta.quando})</span>
+        </p>
+      ) : null}
+    </section>
   );
 }

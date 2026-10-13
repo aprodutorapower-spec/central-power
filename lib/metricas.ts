@@ -120,8 +120,30 @@ export function herdarDaUltima(ultima: Partial<Foto> | null | undefined) {
     receita_ingressos: ultima?.receita_ingressos ?? null,
     grupo_whatsapp: ultima?.grupo_whatsapp ?? null,
     compras_trafego: ultima?.compras_trafego ?? null,
+    vendas_produto: ultima?.vendas_produto ?? null,
+    faturamento_produto: ultima?.faturamento_produto ?? null,
     ...(Object.fromEntries(
       CAMPOS_COMPARECIMENTO.map((campo) => [campo, ultima?.[campo] ?? null]),
     ) as Record<CampoComparecimento, number | null>),
+  };
+}
+
+// Retorno do lançamento (sugestão do Alexandre, 13/10/2026):
+// - ROI de ingressos = (receita de ingressos − verba) ÷ verba. A receita já
+//   soma ingresso, order bumps e os produtos extras, como a gravação;
+// - CAC = verba ÷ vendas do produto principal.
+export function retorno(
+  foto:
+    | Pick<Foto, "verba_investida" | "receita_ingressos" | "vendas_produto" | "faturamento_produto">
+    | null
+    | undefined,
+) {
+  const verba = foto?.verba_investida ?? null;
+  const receita = foto?.receita_ingressos ?? null;
+  return {
+    roiIngressos: verba && receita != null ? (receita - verba) / verba : null,
+    vendasPrincipal: foto?.vendas_produto ?? null,
+    faturamentoPrincipal: foto?.faturamento_produto ?? null,
+    cac: dividir(verba, foto?.vendas_produto),
   };
 }

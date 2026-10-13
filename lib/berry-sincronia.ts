@@ -13,34 +13,69 @@ import { janelaDeVendas } from "./urgencia";
 
 export const QUEM_BERRY = "Berry (automático)";
 
+type Numeros = {
+  ingressos: number;
+  receita: number;
+  // Produto principal (null quando o lançamento não tem um escolhido).
+  vendasPrincipal: number | null;
+  faturamentoPrincipal: number | null;
+};
+
 export type ResultadoSincronia =
-  | { situacao: "atualizado" | "sem_mudanca"; ingressos: number; receita: number }
+  | ({ situacao: "atualizado" | "sem_mudanca" } & Numeros)
   | { situacao: "sem_berry" }
   | { situacao: "erro"; erro: string };
 
 type Consulta =
-  | { situacao: "ok"; ingressos: number; receita: number }
+  | ({ situacao: "ok"; temIngresso: boolean } & Numeros)
   | { situacao: "sem_berry" }
   | { situacao: "erro"; erro: string };
 
-// Ingressos e receita do lançamento, direto da Berry, sem gravar nada.
+export type ProdutoEscolhido = { id: string; nome: string };
+
+const ids = (lista: unknown) =>
+  Array.isArray(lista)
+    ? (lista as ProdutoEscolhido[]).map((p) => p?.id).filter((id) => typeof id === "string")
+    : [];
+
+// Ingressos, receita e produto principal do lançamento, direto da Berry, sem gravar nada.
 export async function vendasNaBerry(lancamentoId: string): Promise<Consulta> {
   const { data: lancamento } = await criarClienteAdmin()
     .from("lancamentos")
-    .select("id, expert_id, berry_produto_id, inicio_vendas, fim_vendas, dv0, de0, d0")
+    .select(
+      "id, tipo, expert_id, berry_produto_id, berry_extras, berry_principais, inicio_vendas, fim_vendas, dv0, de0, d0, dp0, dfc",
+    )
     .eq("id", lancamentoId)
     .maybeSingle();
-  if (!lancamento?.berry_produto_id) return { situacao: "sem_berry" };
+  const principais = ids(lancamento?.berry_principais);
+  if (!lancamento || (!lancamento.berry_produto_id && !principais.length)) {
+    return { situacao: "sem_berry" };
+  }
 
   try {
     const chave = await chaveDoExpert(lancamento.expert_id);
     if (!chave) return { situacao: "sem_berry" };
-    const { ingressos, receita } = await resumoDeVendas(
-      chave,
-      lancamento.berry_produto_id,
-      janelaDeVendas(lancamento).inicio,
-    );
-    return { situacao: "ok", ingressos, receita };
+    const janela = janelaDeVendas(lancamento);
+    const numeros = await resumoDeVendas(chave, {
+      ingresso: lancamento.berry_produto_id,
+      extras: ids(lancamento.berry_extras),
+      desde: janela.inicio,
+      // No semanal todas as turmas vendem o mesmo produto: cada turma conta só
+      // as vendas do seu período (até o fim das vendas, que por padrão é o D0).
+      ate: lancamento.tipo === "LPS" ? janela.fim : null,
+      principais,
+      // O produto principal é vendido do evento (ou do pitch) ao fim do carrinho.
+      principalDesde: lancamento.dp0 ?? lancamento.d0,
+      principalAte: lancamento.dfc,
+    });
+    return {
+      situacao: "ok",
+      temIngresso: Boolean(lancamento.berry_produto_id),
+      ingressos: numeros.ingressos,
+      receita: numeros.receita,
+      vendasPrincipal: numeros.vendasPrincipal,
+      faturamentoPrincipal: numeros.faturamentoPrincipal,
+    };
   } catch (erro) {
     return {
       situacao: "erro",
@@ -50,6 +85,22 @@ export async function vendasNaBerry(lancamentoId: string): Promise<Consulta> {
           : "Não foi possível consultar a Berry agora.",
     };
   }
+}
+
+// O que a Berry informa numa foto: ingressos e receita só quando o lançamento
+// tem produto de ingresso; produto principal só quando tem um escolhido.
+export function camposDaBerry(consulta: Extract<Consulta, { situacao: "ok" }>) {
+  return {
+    ...(consulta.temIngresso
+      ? { ingressos_vendidos: consulta.ingressos, receita_ingressos: consulta.receita }
+      : {}),
+    ...(consulta.vendasPrincipal != null
+      ? {
+          vendas_produto: consulta.vendasPrincipal,
+          faturamento_produto: consulta.faturamentoPrincipal,
+        }
+      : {}),
+  };
 }
 
 export async function sincronizarBerry(lancamentoId: string): Promise<ResultadoSincronia> {
@@ -68,7 +119,12 @@ export async function sincronizarBerry(lancamentoId: string): Promise<ResultadoS
       .eq("id", lancamentoId);
   }
   if (consulta.situacao !== "ok") return consulta;
-  const vendas = { ingressos: consulta.ingressos, receita: consulta.receita };
+  const numeros: Numeros = {
+    ingressos: consulta.ingressos,
+    receita: consulta.receita,
+    vendasPrincipal: consulta.vendasPrincipal,
+    faturamentoPrincipal: consulta.faturamentoPrincipal,
+  };
 
   const { data: ultima } = await admin
     .from("fotos_metricas")
@@ -79,37 +135,35 @@ export async function sincronizarBerry(lancamentoId: string): Promise<ResultadoS
     .maybeSingle();
 
   // Nada mudou desde a última foto: não enche o histórico com linhas iguais.
-  if (
-    ultima &&
-    ultima.ingressos_vendidos === vendas.ingressos &&
-    Number(ultima.receita_ingressos) === vendas.receita
-  ) {
-    return { situacao: "sem_mudanca", ...vendas };
-  }
+  const novos = camposDaBerry(consulta) as Record<string, number | null>;
+  const mudou = Object.entries(novos).some(
+    ([campo, valor]) => Number(ultima?.[campo] ?? NaN) !== Number(valor ?? NaN),
+  );
+  if (ultima && !mudou) return { situacao: "sem_mudanca", ...numeros };
 
   // A foto é o retrato completo do momento: o que a Berry não informa (verba,
   // grupo de WhatsApp e comparecimento) segue com o último valor lançado.
   const { error } = await admin.from("fotos_metricas").insert({
     ...herdarDaUltima(ultima),
+    ...novos,
     lancamento_id: lancamentoId,
     data: hoje(),
     fonte: "berry",
     preenchido_por_nome: QUEM_BERRY,
-    ingressos_vendidos: vendas.ingressos,
-    receita_ingressos: vendas.receita,
   });
   if (error) return { situacao: "erro", erro: "Não foi possível gravar os números." };
 
-  return { situacao: "atualizado", ...vendas };
+  return { situacao: "atualizado", ...numeros };
 }
 
-// Todos os lançamentos ativos com produto da Berry escolhido.
+// Todos os lançamentos ativos com algum produto da Berry escolhido.
 export async function sincronizarTodos() {
   const { data } = await criarClienteAdmin()
     .from("lancamentos")
     .select("id, nome")
     .eq("situacao", "ativo")
-    .not("berry_produto_id", "is", null);
+    // Com produto de ingresso, ou só com produto principal (lançamento gratuito).
+    .or("berry_produto_id.not.is.null,berry_principais.neq.[]");
 
   const resultados = [];
   // Um de cada vez, para respeitar o limite de chamadas da Berry.
