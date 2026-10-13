@@ -13,7 +13,7 @@ export const HORAS_SEM_ROTINA = 16;
 
 export type AvisoConexao = {
   fonte: "berry" | "meta";
-  tipo: "desconectado" | "erro" | "aguardando" | "parado";
+  tipo: "desconectado" | "erro" | "aguardando" | "parado" | "verba_parada";
   texto: string;
 };
 
@@ -104,4 +104,42 @@ export function avisosDeConexao(l: Entrada, hoje: string, agora: Date): AvisoCon
   }
 
   return avisos.filter((aviso) => aviso != null);
+}
+
+// Verba parada: o Meta Ads está sendo lido normalmente, a captação (venda de
+// ingressos ou de leads) está aberta e mesmo assim o investido não sobe. É o
+// sinal de anúncio parado (cartão recusado, conta bloqueada, campanha pausada).
+// Depois do fim da captação a verba parar é o esperado, então não avisa.
+export const HORAS_VERBA_PARADA = 8;
+
+export function verbaParada(
+  l: Entrada,
+  // Fotos de métricas do lançamento, da mais antiga para a mais nova.
+  fotos: { criado_em: string; verba_investida: number | null }[],
+  hoje: string,
+): AvisoConexao | null {
+  if (l.sem_trafego || !l.meta_conta_id || !l.meta_filtro?.trim()) return null;
+  // Leitura do Meta com problema já é avisada como conexão.
+  if (l.meta_erro || !l.meta_conferido_em) return null;
+  const janela = janelaDeVendas(l);
+  if (hoje < (l.meta_desde ?? janela.inicio) || hoje > janela.fim) return null;
+
+  const ultima = fotos.at(-1);
+  if (!ultima || !ultima.verba_investida) return null;
+  // Desde quando a verba tem o valor de agora.
+  let desde = ultima.criado_em;
+  for (let i = fotos.length - 1; i >= 0; i -= 1) {
+    if (Number(fotos[i].verba_investida) !== Number(ultima.verba_investida)) break;
+    desde = fotos[i].criado_em;
+  }
+  // Conta só o tempo confirmado por leitura do Meta: sem leitura nova, não dá
+  // para dizer que a verba parou.
+  const horas =
+    (new Date(l.meta_conferido_em).getTime() - new Date(desde).getTime()) / 3_600_000;
+  if (horas < HORAS_VERBA_PARADA) return null;
+  return {
+    fonte: "meta",
+    tipo: "verba_parada",
+    texto: `Verba parada desde ${quando(desde)}: os anúncios podem ter parado`,
+  };
 }

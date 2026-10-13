@@ -3,7 +3,13 @@
 // lê esta lista e cria uma tarefa para cada item novo.
 //
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
-import { avisosDeConexao, horasDesde, HORAS_SEM_ROTINA, quando } from "./conexoes.ts";
+import {
+  avisosDeConexao,
+  horasDesde,
+  HORAS_SEM_ROTINA,
+  quando,
+  verbaParada,
+} from "./conexoes.ts";
 import { janelaDeVendas } from "./urgencia.ts";
 import type { Lancamento } from "./marcos";
 
@@ -51,9 +57,14 @@ const O_QUE_FAZER = {
   },
 } as const;
 
+const VERBA_PARADA =
+  "O Meta Ads está sendo lido normalmente, a captação está aberta e o investido não sobe. Confira no Gerenciador de Anúncios se as campanhas estão ativas e se a forma de pagamento da conta está em dia.";
+
 export function avisosParaAsana(dados: {
   lancamentos: (Lancamento & { experts: { nome: string } })[];
   rotinas: Rotina[];
+  // Fotos de métricas dos lançamentos ativos (para o aviso de verba parada).
+  fotos?: { lancamento_id: string; criado_em: string; verba_investida: number | null }[];
   hoje: string;
   agora: Date;
 }): Aviso[] {
@@ -72,8 +83,23 @@ export function avisosParaAsana(dados: {
   for (const l of dados.lancamentos) {
     if (l.situacao !== "ativo") continue;
     const vendendo = janelaDeVendas(l).inicio <= dados.hoje;
+    const parada = verbaParada(
+      l,
+      (dados.fotos ?? [])
+        .filter((f) => f.lancamento_id === l.id)
+        .sort((a, b) => a.criado_em.localeCompare(b.criado_em)),
+      dados.hoje,
+    );
+    if (parada) {
+      avisos.push({
+        chave: `${l.id}:meta:verba_parada`,
+        lancamento_id: l.id,
+        titulo: `Central Power: ${l.experts.nome} · ${l.nome}: ${parada.texto}`,
+        detalhe: `${VERBA_PARADA}\n\nLançamento: ${SITE}/lancamentos/${l.id}`,
+      });
+    }
     for (const aviso of avisosDeConexao(l, dados.hoje, dados.agora)) {
-      if (aviso.tipo === "aguardando") continue;
+      if (aviso.tipo === "aguardando" || aviso.tipo === "verba_parada") continue;
       // Lançamento que ainda não vende não precisa estar conectado.
       // Nem o que já fechou o carrinho: aí a sugestão é encerrar.
       if (aviso.tipo === "desconectado" && (!vendendo || dados.hoje > l.dfc)) continue;

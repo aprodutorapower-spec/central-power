@@ -33,3 +33,16 @@ test("filtro: anda as datas, vira o mês e o ano, e não mexe no resto", () => {
   assert.equal(deslocarDatasDoFiltro("Vendas, Workshop", "2026-10-12"), "Vendas, Workshop");
   assert.equal(deslocarDatasDoFiltro(null, "2026-10-12"), null);
 });
+
+test("turma com fim das vendas antes do D0: a próxima começa no dia seguinte a esse fim", () => {
+  const proxima = proximaTurma({
+    nome: "Workshop",
+    fim_vendas: "2026-10-11",
+    d0: "2026-10-12",
+    de0: "2026-10-05",
+    dp0: "2026-10-18",
+    dfc: "2026-10-20",
+    meta_filtro: null,
+  });
+  assert.equal(proxima.dv0, "2026-10-12");
+});

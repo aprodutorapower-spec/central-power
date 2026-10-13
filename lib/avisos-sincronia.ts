@@ -16,16 +16,22 @@ export async function registrarRotina(nome: NomeRotina) {
 // sai, o que é novo entra, e devolve os que ainda não viraram tarefa.
 export async function avisosPendentes(): Promise<Aviso[]> {
   const admin = criarClienteAdmin();
-  const [{ data: lancamentos }, { data: rotinas }, { data: registrados }] = await Promise.all([
-    admin.from("lancamentos").select("*, experts(nome)").eq("situacao", "ativo"),
-    admin.from("rotinas").select("nome, ultima_execucao"),
-    admin.from("avisos").select("chave, avisado_em"),
-  ]);
-  if (!lancamentos || !rotinas || !registrados) throw new Error("Falha ao ler o banco.");
+  const [{ data: lancamentos }, { data: rotinas }, { data: registrados }, { data: fotos }] =
+    await Promise.all([
+      admin.from("lancamentos").select("*, experts(nome)").eq("situacao", "ativo"),
+      admin.from("rotinas").select("nome, ultima_execucao"),
+      admin.from("avisos").select("chave, avisado_em"),
+      admin
+        .from("fotos_metricas")
+        .select("lancamento_id, criado_em, verba_investida, lancamentos!inner(situacao)")
+        .eq("lancamentos.situacao", "ativo"),
+    ]);
+  if (!lancamentos || !rotinas || !registrados || !fotos) throw new Error("Falha ao ler o banco.");
 
   const atuais = avisosParaAsana({
     lancamentos: lancamentos as (Lancamento & { experts: { nome: string } })[],
     rotinas,
+    fotos,
     hoje: hoje(),
     agora: new Date(),
   });

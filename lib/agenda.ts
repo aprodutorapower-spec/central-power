@@ -1,5 +1,5 @@
 import { SITE } from "./avisos";
-import { avisosDeConexao } from "./conexoes";
+import { avisosDeConexao, verbaParada } from "./conexoes";
 import { hoje, somarDias } from "./datas";
 import { montarLinhaDoTempo, tituloDoItem, type Checkpoint, type ItemLinha } from "./linha-do-tempo";
 import type { Foto } from "./metricas";
@@ -87,7 +87,12 @@ export async function agendaDoDia(dia = hoje()) {
         motivo: u.motivo,
         abaixo_da_meta: u.faixa === "abaixo",
         checkpoints_atrasados: item.atrasados,
-        avisos_de_conexao: avisosDeConexao(l, dia, agora).map((aviso) => aviso.texto),
+        avisos_de_conexao: [
+          ...avisosDeConexao(l, dia, agora),
+          verbaParada(l, item.fotos, dia),
+        ]
+          .filter((aviso) => aviso != null)
+          .map((aviso) => aviso.texto),
         numeros: {
           ingressos_vendidos: u.ingressos.vendidos,
           meta_ingressos: u.ingressos.meta,

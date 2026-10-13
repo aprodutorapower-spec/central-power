@@ -1,4 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import { diaDe, somarDias } from "./datas";
 import { criarClienteAdmin } from "./supabase/admin";
 
 // Só para o servidor: conversa com a Berry Pay e guarda as chaves de API.
@@ -109,6 +110,7 @@ const MAXIMO_PAGINAS = 40;
 
 type TransacaoBerry = {
   id: string;
+  created_at: string;
   amounts: { subtotal: number; discount: number };
   items: { product_id: string; quantity: number; amount: number }[];
 };
@@ -130,7 +132,9 @@ async function vendasPagas(
       page: String(pagina),
     });
     if (desde) filtros.set("startDate", desde);
-    if (ate) filtros.set("endDate", ate);
+    // A Berry corta o dia pelo horário UTC (21h de Brasília). Com data final,
+    // pede um dia a mais e separa aqui pelo dia de Brasília.
+    if (ate) filtros.set("endDate", somarDias(ate, 1));
 
     const { data, pagination } = await chamar<{
       data: TransacaoBerry[];
@@ -139,7 +143,13 @@ async function vendasPagas(
     vendas.push(...data);
     if (pagina >= pagination.total_pages) break;
   }
-  return vendas;
+  if (!ate) return vendas;
+  // Período fechado (turma do semanal, produto principal): vale o dia de
+  // Brasília em que a compra foi feita, nas duas pontas.
+  return vendas.filter((venda) => {
+    const dia = diaDe(venda.created_at);
+    return dia <= ate && (!desde || dia >= desde);
+  });
 }
 
 export type ConsultaDeVendas = {

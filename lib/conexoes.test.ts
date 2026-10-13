@@ -1,7 +1,7 @@
 // Testes dos avisos de conexão (Berry e Meta Ads). Rodar com: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { avisosDeConexao as avisos } from "./conexoes.ts";
+import { avisosDeConexao as avisos, verbaParada } from "./conexoes.ts";
 
 // Os testes olham só o texto que aparece na tela.
 const avisosDeConexao = (...entrada: Parameters<typeof avisos>) =>
@@ -72,4 +72,27 @@ test("conectado e ainda sem nenhuma rodada: aguardando", () => {
 test("Meta com período que ainda não começou: sem aviso", () => {
   const l = { ...EM_DIA, meta_desde: "2026-10-20", meta_conferido_em: null };
   assert.deepEqual(avisosDeConexao(l, HOJE, AGORA), []);
+});
+
+test("verba parada: avisa quando o Meta é lido e o investido não sobe durante a captação", () => {
+  // Captação aberta (vendas de 01/10 a 12/10), leitura do Meta em dia.
+  const l = { ...EM_DIA, meta_conferido_em: haHoras(1) };
+  const fotos = (horas: number[], verbas: number[]) =>
+    horas.map((h, i) => ({ criado_em: haHoras(h), verba_investida: verbas[i] }));
+
+  // Subindo a cada leitura: sem aviso.
+  assert.equal(verbaParada(l, fotos([20, 10, 1], [1000, 1200, 1400]), HOJE), null);
+  // Parada há 6 horas confirmadas: ainda pode ser normal.
+  assert.equal(verbaParada(l, fotos([20, 7, 1], [1000, 1200, 1200]), HOJE), null);
+  // Parada há 10 horas, com leitura nova confirmando: avisa.
+  const parada = verbaParada(l, fotos([20, 11, 4, 1], [1000, 1200, 1200, 1200]), HOJE);
+  assert.equal(parada?.tipo, "verba_parada");
+  assert.match(parada!.texto, /^Verba parada desde 08\/10 às 04h00/);
+
+  // Depois do fim da captação a verba parar é o esperado.
+  assert.equal(verbaParada({ ...l, fim_vendas: "2026-10-07" }, fotos([30, 20, 1], [900, 900, 900]), HOJE), null);
+  // Sem leitura recente do Meta, o problema é de conexão, não de verba.
+  assert.equal(verbaParada({ ...l, meta_conferido_em: haHoras(15) }, fotos([20, 16, 15], [900, 900, 900]), HOJE), null);
+  // Lançamento sem tráfego ou sem Meta ligado: não se aplica.
+  assert.equal(verbaParada({ ...l, sem_trafego: true }, fotos([30, 1], [900, 900]), HOJE), null);
 });

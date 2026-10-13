@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BotaoEnviar } from "@/app/botao-enviar";
 import { podeEncerrar } from "@/lib/avisos";
 import { textoCobranca } from "@/lib/cobranca";
-import { avisosDeConexao } from "@/lib/conexoes";
+import { avisosDeConexao, verbaParada } from "@/lib/conexoes";
 import { formatarData } from "@/lib/datas";
 import { contagem, CORES, montarLinhaDoTempo, tituloDoItem } from "@/lib/linha-do-tempo";
 import {
@@ -116,6 +116,7 @@ function CartaoLancamento({
   const terminou = podeEncerrar(lancamento, item.checkpoints, hoje);
   // Lançamento terminado não cobra conexão: a sugestão é encerrar.
   const conexoes = terminou ? [] : avisosDeConexao(lancamento, hoje, new Date());
+  const parada = verbaParada(lancamento, item.fotos, hoje);
 
   return (
     <CartaoComPainel
@@ -422,6 +423,17 @@ function CartaoLancamento({
             </>
           ) : null}
         </p>
+      ) : null}
+
+      {/* Só aparece com a captação aberta, o Meta sendo lido e o investido sem subir. */}
+      {parada && !terminou ? (
+        <div className="mt-3 rounded-lg border border-power bg-cartao-2 px-3 py-2.5">
+          <p className="text-xs text-apagado">Verba parada</p>
+          <p className="mt-1 text-sm">
+            {parada.texto}. Confira as campanhas e a forma de pagamento da conta de
+            anúncios.
+          </p>
+        </div>
       ) : null}
 
       {/* Só aparece quando algo que deveria atualizar sozinho não está. */}

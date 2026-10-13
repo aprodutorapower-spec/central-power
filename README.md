@@ -96,6 +96,8 @@ Com isso o cartão e a página do lançamento mostram a faixa **Retorno**: ROI d
 
 **Teste de conexão com o Meta Ads:** na página do lançamento, informe o número da conta de anúncios e clique em **Testar conexão com o Meta Ads**. Em cerca de um minuto a tela diz se a conta já pode ser lida ou por que não.
 
+**Verba parada:** com a captação aberta e o Meta Ads sendo lido normalmente, se o investido ficar 8 horas ou mais sem subir, o cartão mostra a faixa **Verba parada** e o aviso vira tarefa no Asana. É o sinal de anúncio parado (cartão recusado, conta bloqueada, campanha pausada). Depois do fim da captação o sistema não avisa.
+
 ## Lançamento gratuito (LG)
 
 Terceiro tipo de lançamento, ao lado do LP e do LPS: não vende ingresso, capta leads de graça para um evento online.

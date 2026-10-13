@@ -34,6 +34,8 @@ export function deslocarDatasDoFiltro(filtro: string | null, d0: string, dias = 
 
 type Turma = {
   nome: string;
+  // Fim das vendas de ingressos da turma (vazio: o D0).
+  fim_vendas?: string | null;
   d0: string;
   de0: string;
   dp0: string | null;
@@ -51,9 +53,10 @@ export function proximaTurma(atual: Turma) {
     de0: somarDias(atual.de0, DIAS_ENTRE_TURMAS),
     dp0: atual.dp0 ? somarDias(atual.dp0, DIAS_ENTRE_TURMAS) : null,
     dfc: somarDias(atual.dfc, DIAS_ENTRE_TURMAS),
-    // Os ingressos da próxima turma começam a contar no dia seguinte ao início
-    // desta: é assim que as vendas do mesmo produto se dividem entre as turmas.
-    dv0: somarDias(atual.d0, 1),
+    // Os ingressos da próxima turma começam a contar no dia seguinte ao fim das
+    // vendas desta: é assim que as vendas do mesmo produto se dividem entre as
+    // turmas, sem deixar nenhum dia de fora.
+    dv0: somarDias(atual.fim_vendas ?? atual.d0, 1),
     meta_filtro: deslocarDatasDoFiltro(atual.meta_filtro, atual.d0),
   };
 }
