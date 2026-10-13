@@ -18,6 +18,7 @@ import {
   lerInteiro,
 } from "@/lib/numeros";
 import type { Lancamento } from "@/lib/marcos";
+import { ehGratuito, rotulos } from "@/lib/rotulos";
 import { calcularUrgencia } from "@/lib/urgencia";
 import { SeloMeta } from "../painel-metas";
 import { salvarAtualizacao, type ResultadoAtualizacao } from "../actions";
@@ -34,6 +35,9 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
   const [resultado, acao, salvando] = useActionState(salvarAtualizacao, INICIAL);
   // Com o produto da Berry escolhido, ingressos e receita não são digitados.
   const berry = Boolean(lancamento.berry_produto_id);
+  // Gratuito: leads no lugar de ingressos, CPL no lugar de CPA, e sem receita.
+  const gratuito = ehGratuito(lancamento.tipo);
+  const r = rotulos(lancamento.tipo);
 
   // Já vem com os valores da última foto: normalmente só os números mudam.
   const [status, setStatus] = useState<Status | "">(lancamento.status ?? "");
@@ -116,7 +120,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
           />
         </label>
         <label className="block text-sm text-apagado">
-          Ingressos vendidos
+          {gratuito ? "Leads captados" : "Ingressos vendidos"}
           <input
             name="ingressos_vendidos"
             inputMode="numeric"
@@ -127,18 +131,20 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
           />
           {berry ? <span className="mt-1 block text-xs">{DA_BERRY}</span> : null}
         </label>
-        <label className="block text-sm text-apagado">
-          Receita de ingressos (R$)
-          <input
-            name="receita_ingressos"
-            inputMode="decimal"
-            value={receita}
-            readOnly={berry}
-            onChange={(evento) => setReceita(evento.target.value)}
-            className={`${CAMPO} text-texto ${berry ? "opacity-70" : ""}`}
-          />
-          {berry ? <span className="mt-1 block text-xs">{DA_BERRY}</span> : null}
-        </label>
+        {gratuito ? null : (
+          <label className="block text-sm text-apagado">
+            Receita de ingressos (R$)
+            <input
+              name="receita_ingressos"
+              inputMode="decimal"
+              value={receita}
+              readOnly={berry}
+              onChange={(evento) => setReceita(evento.target.value)}
+              className={`${CAMPO} text-texto ${berry ? "opacity-70" : ""}`}
+            />
+            {berry ? <span className="mt-1 block text-xs">{DA_BERRY}</span> : null}
+          </label>
+        )}
         <label className="block text-sm text-apagado">
           No grupo de WhatsApp
           <input
@@ -155,19 +161,29 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
         </label>
       </div>
       <p className="mt-2 text-sm text-apagado">
-        CPA <span className="text-texto">{formatarReal(cpa)}</span> · Ticket médio{" "}
-        <span className="text-texto">{formatarReal(ticketMedio)}</span> · Comparecimento
-        no grupo <span className="text-texto">{formatarPercentualParaBaixo(comparecimento)}</span>
+        {r.custo} <span className="text-texto">{formatarReal(cpa)}</span>
+        {gratuito ? null : (
+          <>
+            {" "}
+            · Ticket médio <span className="text-texto">{formatarReal(ticketMedio)}</span>
+          </>
+        )}{" "}
+        · Comparecimento no grupo{" "}
+        <span className="text-texto">{formatarPercentualParaBaixo(comparecimento)}</span>
       </p>
 
       {/* Só a partir do dia do evento: antes disso não há o que preencher. */}
       {hoje >= lancamento.d0 ? (
         <>
-          <p className="mt-5 text-sm font-semibold">Comparecimento no evento</p>
+          <p className="mt-5 text-sm font-semibold">
+            {gratuito ? "Participação no evento" : "Comparecimento no evento"}
+          </p>
           <p className="text-xs text-apagado">
-            {lancamento.tipo === "LPS"
-              ? "Quantas pessoas estiveram em cada aula e no pitch. Preencha conforme forem acontecendo."
-              : "Quantas pessoas estiveram no evento."}{" "}
+            {gratuito
+              ? "Quantas pessoas entraram ao vivo e quantas ficaram até o final do evento."
+              : lancamento.tipo === "LPS"
+                ? "Quantas pessoas estiveram em cada aula e no pitch. Preencha conforme forem acontecendo."
+                : "Quantas pessoas estiveram no evento."}{" "}
             É outro número, diferente do grupo de WhatsApp.
           </p>
           <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
@@ -192,28 +208,28 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
           {lancamento.meta_ingressos != null ? (
             <>
               <span>
-                {formatarInteiro(lancamento.meta_ingressos)} ingressos (
+                {formatarInteiro(lancamento.meta_ingressos)} {r.unidades} (
                 {formatarInteiro(metas.ingressos.esperado)} esperados até hoje)
               </span>
               <SeloMeta status={metas.ingressos.status} />
             </>
           ) : (
-            <span className="text-apagado">Ingressos: sem meta ainda</span>
+            <span className="text-apagado">{r.Unidades}: sem meta ainda</span>
           )}
         </p>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
           {metas.cpa.status === "nao_se_aplica" ? (
-            <span className="text-apagado">CPA: sem tráfego pago</span>
+            <span className="text-apagado">{r.custo}: sem tráfego pago</span>
           ) : metas.cpa.meta != null ? (
             <>
               <span>
-                CPA até {formatarReal(metas.cpa.meta)}
+                {r.custo} até {formatarReal(metas.cpa.meta)}
                 {metas.cpa.origemMeta === "mercado" ? " (o dobro do ticket)" : ""}
               </span>
               <SeloMeta status={metas.cpa.status} />
             </>
           ) : (
-            <span className="text-apagado">CPA: sem meta ainda</span>
+            <span className="text-apagado">{r.custo}: sem meta ainda</span>
           )}
         </p>
         {lancamento.verba_prevista != null ? (
@@ -224,13 +240,15 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
               : ""}
           </p>
         ) : null}
-        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span>
-            Grupo de WhatsApp: pelo menos {formatarPercentual(metas.grupo.minimo)} dos
-            ingressos vendidos
-          </span>
-          <SeloMeta status={metas.grupo.status} />
-        </p>
+        {gratuito ? null : (
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>
+              Grupo de WhatsApp: pelo menos {formatarPercentual(metas.grupo.minimo)} dos
+              ingressos vendidos
+            </span>
+            <SeloMeta status={metas.grupo.status} />
+          </p>
+        )}
       </div>
 
 

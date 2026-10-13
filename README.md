@@ -82,6 +82,17 @@ Situações: **Pendente** (ainda sem acesso), **Convidado** (link gerado, ainda 
 
 Lançamento com D0 no futuro aparece como **Previsto**; entre o D0 e o DFC, **Em andamento**; depois do DFC, **Carrinho fechado**. Quando acabar de vez, abra o lançamento e clique em **Encerrar lançamento** (dá para reabrir).
 
+## Lançamento gratuito (LG)
+
+Terceiro tipo de lançamento, ao lado do LP e do LPS: não vende ingresso, capta leads de graça para um evento online.
+
+- **Leads no lugar de ingressos:** meta de leads e leads captados (digitados na atualização; não há Berry).
+- **CPL no lugar de CPA:** verba dividida pelos leads que vieram do tráfego (ou por todos os leads, enquanto o Meta não informar). A meta de CPL é obrigatória ao criar, porque não existe ticket para servir de régua.
+- **Participação ao vivo:** quantas pessoas entraram no evento, com a porcentagem sobre os leads.
+- **Retenção até o final:** quantas ficaram até o fim, com a porcentagem sobre quem entrou.
+- **Grupo de WhatsApp:** aparece com a porcentagem dos leads, mas não tem mínimo nem deixa o lançamento "abaixo da meta".
+- A linha do tempo tem checkpoints próprios, editáveis em **Modelos de checkpoint**.
+
 ## CPA, vendas do tráfego e vendas orgânicas
 
 O **CPA** é a verba investida dividida pelas vendas de ingresso que vieram do tráfego pago. As vendas **orgânicas** não entram nessa conta: só somam no total de ingressos. A meta de CPA, o teto do dobro do ticket e o "abaixo da meta" olham para esse CPA.

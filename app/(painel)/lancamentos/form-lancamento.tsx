@@ -1,5 +1,6 @@
 "use client";
 
+import { ehGratuito, rotulos } from "@/lib/rotulos";
 import { quando } from "@/lib/conexoes";
 import Link from "next/link";
 import { useActionState, useState } from "react";
@@ -26,6 +27,8 @@ const INICIAL: ResultadoLancamento = {};
 
 const EXPLICACAO_VERBA =
   "Quanto será investido em anúncios no lançamento inteiro, do começo ao fim. É diferente da verba investida até agora, que o estrategista informa em cada atualização: o sistema mostra uma contra a outra.";
+const EXPLICACAO_META_CPL =
+  "Valor máximo que se aceita gastar em anúncio por lead captado pelo tráfego (os leads orgânicos não entram na conta). No lançamento gratuito não existe ticket de ingresso para servir de régua, então é esta meta que diz se o CPL está bom.";
 const EXPLICACAO_META_CPA =
   "Valor máximo que se aceita gastar em anúncio por ingresso vendido pelo tráfego (as vendas orgânicas não entram na conta). Não é obrigatória. Quando preenchida, é ela que vale. Em branco, o sistema usa a régua de mercado: o dobro do ticket médio do ingresso (ingresso + order bumps), calculado sozinho conforme as vendas saem.";
 
@@ -58,6 +61,9 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
 
   // O estrategista define as metas ao criar e pode corrigir até o início das
   // vendas de ingressos; depois, só o admin.
+  // Gratuito: leads no lugar de ingressos e CPL no lugar de CPA.
+  const gratuito = ehGratuito(tipo);
+  const r = rotulos(tipo);
   const podeMetas =
     admin || !lancamento || !metasFechadasParaEstrategista(lancamento, hoje);
   // Para o estrategista, criar um lançamento sem metas não é permitido.
@@ -93,7 +99,7 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
 
       <fieldset className="mt-4">
         <legend className="text-sm text-apagado">Tipo</legend>
-        <div className="mt-1 grid gap-2 sm:grid-cols-2">
+        <div className="mt-1 grid gap-2 sm:grid-cols-3">
           {(Object.keys(TIPOS) as Tipo[]).map((opcao) => (
             <label
               key={opcao}
@@ -116,6 +122,13 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
             </label>
           ))}
         </div>
+        {gratuito ? (
+          <p className="mt-2 text-xs text-apagado">
+            Sem venda de ingresso: a captação de leads é gratuita, para um evento online.
+            O sistema acompanha leads e CPL, a participação ao vivo e a retenção até o
+            final do evento.
+          </p>
+        ) : null}
       </fieldset>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -192,7 +205,7 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
         </div>
         <div>
           <RotuloData campo="dv0">
-            DV0 · início da venda de ingressos
+            DV0 · {gratuito ? "início da captação de leads" : "início da venda de ingressos"}
           </RotuloData>
           <input
             id="dv0"
@@ -210,13 +223,13 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
         <>
           <p className="text-xs text-apagado">
             {admin
-              ? "O estrategista preenche ao criar e pode corrigir até o início das vendas de ingressos. Depois disso, só o admin altera."
-              : "Você define agora e pode corrigir até o início das vendas de ingressos (DV0). Depois disso, só o Ricardo altera."}
+              ? `O estrategista preenche ao criar e pode corrigir até o início ${gratuito ? "da captação" : "das vendas de ingressos"}. Depois disso, só o admin altera.`
+              : `Você define agora e pode corrigir até o início ${gratuito ? "da captação" : "das vendas de ingressos"} (DV0). Depois disso, só o Ricardo altera.`}
           </p>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm text-apagado" htmlFor="meta_ingressos">
-                Meta de ingressos (total a vender)
+                {gratuito ? "Meta de leads (total a captar)" : "Meta de ingressos (total a vender)"}
               </label>
               <input
                 id="meta_ingressos"
@@ -224,22 +237,31 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
                 inputMode="numeric"
                 required={metasObrigatorias}
                 defaultValue={lancamento?.meta_ingressos ?? ""}
-                placeholder="Ex.: 300"
+                placeholder={gratuito ? "Ex.: 5.000" : "Ex.: 300"}
                 className={CAMPO}
               />
             </div>
             <div>
               <div className="relative flex items-center gap-1.5 text-sm text-apagado">
-                <label htmlFor="meta_cpa">Meta de CPA (R$), opcional</label>
-                <Dica texto={EXPLICACAO_META_CPA} />
+                <label htmlFor="meta_cpa">
+                  Meta de {r.custo} (R$){gratuito ? "" : ", opcional"}
+                </label>
+                <Dica texto={gratuito ? EXPLICACAO_META_CPL : EXPLICACAO_META_CPA} />
               </div>
               <input
                 id="meta_cpa"
                 name="meta_cpa"
                 inputMode="decimal"
                 disabled={semTrafego}
+                required={gratuito && metasObrigatorias && !semTrafego}
                 defaultValue={dinheiroParaCampo(lancamento?.meta_cpa)}
-                placeholder={semTrafego ? "Não se aplica" : "Em branco: o dobro do ticket"}
+                placeholder={
+                  semTrafego
+                    ? "Não se aplica"
+                    : gratuito
+                      ? "Ex.: 4,50"
+                      : "Em branco: o dobro do ticket"
+                }
                 className={CAMPO}
               />
             </div>
@@ -260,7 +282,7 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
             </div>
             <div>
               <label className="block text-sm text-apagado" htmlFor="fim_vendas">
-                Fim das vendas de ingressos
+                {gratuito ? "Fim da captação de leads" : "Fim das vendas de ingressos"}
               </label>
               <input
                 id="fim_vendas"
@@ -283,24 +305,27 @@ export function FormLancamento({ expertId, lancamento, voltar, admin, hoje }: Pr
               onChange={(evento) => setSemTrafego(evento.target.checked)}
               className="h-4 w-4 accent-power"
             />
-            Sem tráfego pago (não cobra CPA nem aparece como “sem meta”)
+            Sem tráfego pago (não cobra {r.custo} nem aparece como “sem meta”)
           </label>
         </>
       ) : (
         <p className="mt-1 text-sm text-apagado">
-          As vendas de ingressos já começaram, então só o Ricardo altera:{" "}
+          {gratuito ? "A captação já começou" : "As vendas de ingressos já começaram"}, então só
+          o Ricardo altera:{" "}
           <span className="text-texto">
             {lancamento?.meta_ingressos != null
-              ? `${formatarInteiro(lancamento.meta_ingressos)} ingressos`
-              : "ingressos sem meta"}
+              ? `${formatarInteiro(lancamento.meta_ingressos)} ${r.unidades}`
+              : `${r.unidades} sem meta`}
           </span>
           {" · "}
           <span className="text-texto">
             {lancamento?.sem_trafego
               ? "sem tráfego pago"
               : lancamento?.meta_cpa != null
-                ? `CPA até ${formatarReal(lancamento.meta_cpa)}`
-                : "CPA até o dobro do ticket médio das vendas"}
+                ? `${r.custo} até ${formatarReal(lancamento.meta_cpa)}`
+                : gratuito
+                  ? "CPL sem meta"
+                  : "CPA até o dobro do ticket médio das vendas"}
           </span>
           {lancamento?.verba_prevista != null ? (
             <>

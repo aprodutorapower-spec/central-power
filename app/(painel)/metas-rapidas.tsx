@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ehGratuito, rotulos } from "@/lib/rotulos";
 import { useActionState } from "react";
 import { dinheiroParaCampo } from "@/lib/numeros";
 import { definirMetas, type ResultadoAtualizacao } from "./lancamentos/actions";
@@ -15,11 +16,14 @@ type Props = {
   dono: string;
   metaIngressos: number | null;
   metaCpa: number | null;
+  tipo: string;
 };
 
 // Linha de edição rápida das metas de um lançamento, sem sair da visão geral.
-export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa }: Props) {
+export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa, tipo }: Props) {
   const [resultado, acao, salvando] = useActionState(definirMetas, INICIAL);
+  const gratuito = ehGratuito(tipo);
+  const r = rotulos(tipo);
 
   return (
     <li className="py-3">
@@ -32,22 +36,22 @@ export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa }: Props) {
           <p className="truncate text-sm text-apagado">{dono}</p>
         </div>
         <label className="block text-xs text-apagado">
-          Meta de ingressos
+          Meta de {r.unidades}
           <input
             name="meta_ingressos"
             inputMode="numeric"
             defaultValue={metaIngressos ?? ""}
-            placeholder="Ex.: 300"
+            placeholder={gratuito ? "Ex.: 5.000" : "Ex.: 300"}
             className={`${CAMPO} text-base text-texto`}
           />
         </label>
         <label className="block text-xs text-apagado">
-          Meta de CPA (R$)
+          Meta de {r.custo} (R$)
           <input
             name="meta_cpa"
             inputMode="decimal"
             defaultValue={dinheiroParaCampo(metaCpa)}
-            placeholder="2× o ticket"
+            placeholder={gratuito ? "Ex.: 4,50" : "2× o ticket"}
             className={`${CAMPO} text-base text-texto`}
           />
         </label>
@@ -63,7 +67,7 @@ export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa }: Props) {
           name="sem_trafego"
           value="true"
           disabled={salvando}
-          title="Tira este lançamento da cobrança de CPA"
+          title={`Tira este lançamento da cobrança de ${r.custo}`}
           className="rounded-lg px-2 py-2 text-sm text-apagado transition hover:text-texto disabled:opacity-50"
         >
           Sem tráfego pago

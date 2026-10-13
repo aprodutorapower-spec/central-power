@@ -43,3 +43,16 @@ test("vendas do tráfego: soma as compras das campanhas que entram na verba", ()
 test("rotina que ainda não manda compras: vendas do tráfego ficam em branco, não zero", () => {
   assert.equal(somarVerba(CAMPANHAS, "Vendas, 31/10 - LCTO").compras, null);
 });
+
+test("lançamento gratuito: soma os leads das campanhas que entram na verba", () => {
+  const campanhas = [
+    { nome: "[LEADS][CBO][AULA 20/11]", gasto: 800, compras: 0, leads: 410 },
+    { nome: "[LEADS][Q][AULA 20/11]", gasto: 300, compras: 0, leads: null },
+    { nome: "[LEADS][OUTRO EVENTO]", gasto: 500, compras: 0, leads: 900 },
+  ];
+  const resultado = somarVerba(campanhas, "LEADS, AULA 20/11");
+  assert.equal(resultado.verba, 1100);
+  assert.equal(resultado.leads, 410);
+  // Rotina que ainda não manda leads: fica em branco, não zero.
+  assert.equal(somarVerba(CAMPANHAS, "Vendas, 31/10 - LCTO").leads, null);
+});

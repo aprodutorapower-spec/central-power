@@ -49,6 +49,10 @@ export async function POST(request: Request) {
       (c as { compras?: unknown })?.compras == null
         ? null
         : Number((c as { compras?: unknown }).compras),
+    leads:
+      (c as { leads?: unknown })?.leads == null
+        ? null
+        : Number((c as { leads?: unknown }).leads),
   }));
 
   const resultado = await gravarVerbaDoMeta(id, campanhas);

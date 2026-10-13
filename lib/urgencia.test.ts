@@ -334,3 +334,34 @@ test("grupo de WhatsApp: a porcentagem nunca aparece arredondada para cima do m�
   assert.equal(com(209).grupo.faltam, 0);
   assert.equal(com(200).grupo.faltam, 9);
 });
+
+test("lançamento gratuito: leads e CPL, sem régua de grupo e sem teto pelo ticket", () => {
+  const com = (extras: Record<string, unknown>, foto: Record<string, unknown>) =>
+    calcularUrgencia({
+      lancamento: { ...BASE, tipo: "LG", meta_ingressos: 3000, ...extras },
+      foto: { ingressos_vendidos: 1500, verba_investida: 9000, ...foto } as never,
+      atrasos: [],
+      hoje: HOJE,
+    });
+
+  // 1.500 leads com 1.200 do tráfego: CPL = R$ 9.000 ÷ 1.200 = R$ 7,50, contra meta de R$ 5.
+  const caro = com({ meta_cpa: 5 }, { compras_trafego: 1200, grupo_whatsapp: 600 });
+  assert.equal(caro.gratuito, true);
+  assert.equal(caro.cpa.atual, 7.5);
+  assert.equal(caro.cpa.status, "abaixo");
+  assert.match(caro.motivo, /CPL 50% acima da meta/);
+  assert.doesNotMatch(caro.motivo, /CPA|ingresso/i);
+  // Grupo com 40% dos leads não pune: a régua de 95% é só de ingresso pago.
+  assert.equal(caro.grupo.status, "nao_se_aplica");
+  assert.equal(caro.grupo.faltam, null);
+
+  // Sem meta de CPL não existe teto de mercado (não há ticket): fica cobrado como falta de meta.
+  const semMeta = com({ meta_cpa: null }, { compras_trafego: 1200, receita_ingressos: 0 });
+  assert.equal(semMeta.cpa.meta, null);
+  assert.equal(semMeta.faltaMeta, true);
+  assert.match(semMeta.motivo, /Falta a meta de CPL/);
+
+  // Lançamento pago não muda.
+  const pago = calcularUrgencia({ lancamento: BASE, foto: { ingressos_vendidos: 150, verba_investida: 6000 }, atrasos: [], hoje: HOJE });
+  assert.equal(pago.gratuito, false);
+});

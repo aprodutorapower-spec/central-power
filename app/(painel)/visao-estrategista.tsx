@@ -5,7 +5,13 @@ import { textoCobranca } from "@/lib/cobranca";
 import { avisosDeConexao } from "@/lib/conexoes";
 import { formatarData } from "@/lib/datas";
 import { contagem, CORES, montarLinhaDoTempo, tituloDoItem } from "@/lib/linha-do-tempo";
-import { calcular, COMPARECIMENTO, haQuanto, STATUS } from "@/lib/metricas";
+import {
+  calcular,
+  COMPARECIMENTO,
+  haQuanto,
+  participacaoERetencao,
+  STATUS,
+} from "@/lib/metricas";
 import {
   formatarInteiro,
   formatarPercentual,
@@ -13,6 +19,7 @@ import {
   formatarReal,
 } from "@/lib/numeros";
 import type { GrupoEstrategista, ItemPainel } from "@/lib/painel";
+import { ehGratuito, rotulos } from "@/lib/rotulos";
 import { BotaoCopiar, CartaoComPainel } from "./interacoes";
 import { definirSituacao } from "./lancamentos/actions";
 import { LinhaDoTempo } from "./lancamentos/linha-do-tempo";
@@ -95,6 +102,10 @@ function CartaoLancamento({
     : null;
   const titulo = `${item.expert} · ${lancamento.nome}`;
   const grave = urgencia.faixa === "abaixo" || urgencia.faixa === "sem_dados";
+  // Gratuito: leads e CPL, e os dois blocos de receita viram participação e retenção.
+  const gratuito = ehGratuito(lancamento.tipo);
+  const r = rotulos(lancamento.tipo);
+  const evento = participacaoERetencao(foto);
   const terminou = podeEncerrar(lancamento, item.checkpoints, hoje);
   // Lançamento terminado não cobra conexão: a sugestão é encerrar.
   const conexoes = terminou ? [] : avisosDeConexao(lancamento, hoje, new Date());
@@ -141,7 +152,7 @@ function CartaoLancamento({
           médio. Embaixo: o investido ao lado do que entrou, e a linha do tempo. */}
       <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
         <Bloco
-          rotulo="Ingressos"
+          rotulo={r.Unidades}
           selo={<SeloMeta status={urgencia.ingressos.status} />}
           valor={
             formatarInteiro(urgencia.ingressos.vendidos) +
@@ -152,13 +163,13 @@ function CartaoLancamento({
           detalhe={
             urgencia.ingressos.meta != null
               ? `Esperado até hoje: ${formatarInteiro(urgencia.ingressos.esperado)}`
-              : "Sem meta de ingressos"
+              : `Sem meta de ${r.unidades}`
           }
         >
           <BarraIngressos urgencia={urgencia} />
         </Bloco>
         <Bloco
-          rotulo="CPA"
+          rotulo={r.custo}
           selo={<SeloMeta status={urgencia.cpa.status} />}
           valor={
             <>
@@ -174,7 +185,7 @@ function CartaoLancamento({
         />
         <Bloco
           rotulo="Grupo de WhatsApp"
-          selo={<SeloMeta status={urgencia.grupo.status} />}
+          selo={gratuito ? undefined : <SeloMeta status={urgencia.grupo.status} />}
           valor={
             formatarInteiro(urgencia.grupo.pessoas) +
             (urgencia.grupo.proporcao != null
@@ -182,19 +193,34 @@ function CartaoLancamento({
               : "")
           }
           detalhe={
-            `Mínimo: ${formatarPercentual(urgencia.grupo.minimo)} dos ingressos` +
-            (urgencia.grupo.faltam
-              ? urgencia.grupo.faltam === 1
-                ? " · falta 1 pessoa"
-                : ` · faltam ${urgencia.grupo.faltam} pessoas`
-              : "")
+            gratuito
+              ? "Dos leads captados · sem mínimo no gratuito"
+              : `Mínimo: ${formatarPercentual(urgencia.grupo.minimo)} dos ingressos` +
+                (urgencia.grupo.faltam
+                  ? urgencia.grupo.faltam === 1
+                    ? " · falta 1 pessoa"
+                    : ` · faltam ${urgencia.grupo.faltam} pessoas`
+                  : "")
           }
         />
-        <Bloco
-          rotulo="Ticket médio"
-          valor={formatarReal(numeros?.ticketMedio)}
-          detalhe="Receita ÷ ingressos"
-        />
+        {gratuito ? (
+          <Bloco
+            rotulo="Participação ao vivo"
+            valor={
+              formatarInteiro(evento.aoVivo) +
+              (evento.participacao != null
+                ? ` (${formatarPercentual(evento.participacao)})`
+                : "")
+            }
+            detalhe="Ao vivo ÷ leads captados"
+          />
+        ) : (
+          <Bloco
+            rotulo="Ticket médio"
+            valor={formatarReal(numeros?.ticketMedio)}
+            detalhe="Receita ÷ ingressos"
+          />
+        )}
         <Bloco
           rotulo="Verba investida"
           valor={formatarReal(foto?.verba_investida)}
@@ -206,11 +232,22 @@ function CartaoLancamento({
                 : "Sem verba total prevista"
           }
         />
-        <Bloco
-          rotulo="Ingressos + order bumps"
-          valor={formatarReal(foto?.receita_ingressos)}
-          detalhe="Receita das vendas"
-        />
+        {gratuito ? (
+          <Bloco
+            rotulo="Retenção até o final"
+            valor={
+              formatarInteiro(evento.ateOFinal) +
+              (evento.retencao != null ? ` (${formatarPercentual(evento.retencao)})` : "")
+            }
+            detalhe="Ficaram até o final ÷ ao vivo"
+          />
+        ) : (
+          <Bloco
+            rotulo="Ingressos + order bumps"
+            valor={formatarReal(foto?.receita_ingressos)}
+            detalhe="Receita das vendas"
+          />
+        )}
         <Bloco
           rotulo="Próximo na linha do tempo"
           valor={
@@ -254,20 +291,20 @@ function CartaoLancamento({
           <p className="text-xs text-apagado">Tráfego x orgânico</p>
           <dl className="mt-1 grid grid-cols-2 gap-x-4">
             <div>
-              <dt className="text-xs text-apagado">Vendas do tráfego</dt>
+              <dt className="text-xs text-apagado">{r.doTrafego}</dt>
               <dd className="font-semibold">
                 {formatarInteiro(numeros.doTrafego)}
                 <span className="ml-1.5 text-sm font-normal text-apagado">
-                  {formatarPercentual(numeros.parteDoTrafego)} dos ingressos
+                  {formatarPercentual(numeros.parteDoTrafego)} dos {r.unidades}
                 </span>
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-apagado">Vendas orgânicas</dt>
+              <dt className="text-xs text-apagado">{r.organicas}</dt>
               <dd className="font-semibold">
                 {formatarInteiro(numeros.organicas)}
                 <span className="ml-1.5 text-sm font-normal text-apagado">
-                  {formatarPercentual(numeros.parteOrganica)} dos ingressos
+                  {formatarPercentual(numeros.parteOrganica)} dos {r.unidades}
                 </span>
               </dd>
             </div>
@@ -276,7 +313,8 @@ function CartaoLancamento({
       ) : null}
 
       {/* A partir do dia do evento: quantos compareceram, contra os ingressos. */}
-      {hoje >= lancamento.d0 ? (
+      {/* No gratuito, participação e retenção já têm bloco próprio na grade. */}
+      {hoje >= lancamento.d0 && !gratuito ? (
         <div className="mt-2 rounded-lg bg-cartao-2 px-3 py-2.5">
           <p className="text-xs text-apagado">Comparecimento no evento</p>
           <dl

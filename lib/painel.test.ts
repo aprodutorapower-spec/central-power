@@ -74,6 +74,7 @@ function foto(lancamentoId: string, ingressos: number, verba: number, quando = H
     grupo_whatsapp: null,
     compras_trafego: null,
     comp_evento: null,
+    retencao_final: null,
     comp_aula1: null,
     comp_aula2: null,
     comp_aula3: null,

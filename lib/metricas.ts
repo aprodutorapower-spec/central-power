@@ -22,6 +22,7 @@ export type Foto = {
   grupo_whatsapp: number | null;
   compras_trafego: number | null;
   comp_evento: number | null;
+  retencao_final: number | null;
   comp_aula1: number | null;
   comp_aula2: number | null;
   comp_aula3: number | null;
@@ -70,6 +71,7 @@ export function haQuanto(dias: number) {
 // número, medido antes do evento.)
 export const CAMPOS_COMPARECIMENTO = [
   "comp_evento",
+  "retencao_final",
   "comp_aula1",
   "comp_aula2",
   "comp_aula3",
@@ -89,7 +91,25 @@ export const COMPARECIMENTO: Record<Tipo, { campo: CampoComparecimento; rotulo: 
     { campo: "comp_aula5", rotulo: "Aula 5" },
     { campo: "comp_pitch", rotulo: "Pitch" },
   ],
+  // Gratuito, evento online: quantos entraram ao vivo e quantos ficaram até o fim.
+  LG: [
+    { campo: "comp_evento", rotulo: "Participação ao vivo" },
+    { campo: "retencao_final", rotulo: "Ficaram até o final" },
+  ],
 };
+
+// Participação = quem esteve ao vivo ÷ leads captados; retenção = quem ficou
+// até o final ÷ quem esteve ao vivo.
+export function participacaoERetencao(
+  foto: Pick<Foto, "ingressos_vendidos" | "comp_evento" | "retencao_final"> | null | undefined,
+) {
+  return {
+    aoVivo: foto?.comp_evento ?? null,
+    participacao: dividir(foto?.comp_evento, foto?.ingressos_vendidos),
+    ateOFinal: foto?.retencao_final ?? null,
+    retencao: dividir(foto?.retencao_final, foto?.comp_evento),
+  };
+}
 
 // A foto é o retrato completo do momento: o que uma atualização não informa
 // segue com o valor da foto anterior. Quem grava sobrescreve só o que é seu.

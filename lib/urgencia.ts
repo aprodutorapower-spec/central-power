@@ -6,6 +6,7 @@
 import { diaDe, diasEntre, formatarData } from "./datas.ts";
 import { dividir, formatarInteiro, formatarReal, vendasParaCpa, formatarPercentualParaBaixo } from "./numeros.ts";
 import type { Lancamento } from "./marcos";
+import { ehGratuito, rotulos } from "./rotulos.ts";
 import type { Foto } from "./metricas";
 
 // Margem em volta da meta: até 10% para cima ou para baixo conta como "Na meta".
@@ -111,7 +112,9 @@ export type EntradaUrgencia = {
     | "d0"
     | "status"
     | "status_atualizado_em"
-  >;
+  > &
+    // Sem o tipo, vale o lançamento pago.
+    Partial<Pick<Lancamento, "tipo">>;
   // Última foto de métricas (null = nenhuma ainda).
   foto:
     | (Pick<Foto, "verba_investida" | "ingressos_vendidos"> & {
@@ -153,6 +156,9 @@ export function metasFechadasParaEstrategista(
 }
 
 export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: EntradaUrgencia) {
+  // Gratuito: leads no lugar de ingressos e CPL no lugar de CPA. A conta é a mesma.
+  const gratuito = ehGratuito(l.tipo);
+  const r = rotulos(l.tipo);
   // Ritmo esperado: linear do início ao fim das vendas.
   const { inicio, fim } = janelaDeVendas(l);
   const diasTotais = Math.max(diasEntre(inicio, fim), 0);
@@ -182,7 +188,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   // só vale enquanto não há receita registrada.
   const ticket =
     (dividir(foto?.receita_ingressos, vendidos) || null) ?? l.ticket_ingresso;
-  const tetoCpa = ticket == null ? null : ticket * MULTIPLO_TETO_CPA;
+  const tetoCpa = gratuito || ticket == null ? null : ticket * MULTIPLO_TETO_CPA;
   const metaCpa = l.sem_trafego ? null : (l.meta_cpa ?? tetoCpa);
   const origemMetaCpa =
     metaCpa == null ? null : l.meta_cpa != null ? ("lancamento" as const) : ("mercado" as const);
@@ -199,8 +205,11 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   // Grupo de WhatsApp: pelo menos 95% de quem comprou ingresso.
   const noGrupo = foto?.grupo_whatsapp ?? null;
   const proporcaoGrupo = dividir(noGrupo, vendidos);
-  const statusGrupo: StatusMeta =
-    proporcaoGrupo == null
+  // A régua de 95% é de quem pagou ingresso. No gratuito o número do grupo
+  // aparece, mas não entra na avaliação (não há régua definida para lead).
+  const statusGrupo: StatusMeta = gratuito
+    ? "nao_se_aplica"
+    : proporcaoGrupo == null
       ? "sem_dado"
       : proporcaoGrupo >= MINIMO_GRUPO_WHATSAPP
         ? "na_meta"
@@ -209,7 +218,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   // Quantas pessoas faltam no grupo para bater o mínimo com os ingressos de
   // agora (o total de ingressos sobe sozinho; o número do grupo é digitado).
   const faltamNoGrupo =
-    noGrupo == null || vendidos == null
+    gratuito || noGrupo == null || vendidos == null
       ? null
       : Math.max(Math.ceil(vendidos * MINIMO_GRUPO_WHATSAPP - 1e-9) - noGrupo, 0);
 
@@ -227,6 +236,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   // Sem tráfego pago não se cobra CPA; a meta de ingressos passa a ser opcional.
   const foraDasMetas = l.sem_trafego && l.meta_ingressos == null;
   const semMeta = !l.sem_trafego && l.meta_ingressos == null && metaCpa == null;
+  const faltaMetaDeCusto = gratuito && !l.sem_trafego && l.meta_cpa == null;
   const semDados = vendidos == null;
   // O grupo de WhatsApp conta como critério principal: abaixo de 95%, o
   // lançamento fica "Abaixo da meta" mesmo com ingressos e CPA em ordem.
@@ -285,14 +295,14 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   const motivos: string[] = [];
   if (statusIngressos === "abaixo") {
     motivos.push(
-      `Ingressos ${pct(desvioIngressos!)} abaixo do ritmo (${formatarInteiro(vendidos)} de ${formatarInteiro(Math.round(esperado!))} esperados até hoje)`,
+      `${r.Unidades} ${pct(desvioIngressos!)} abaixo do ritmo (${formatarInteiro(vendidos)} de ${formatarInteiro(Math.round(esperado!))} esperados até hoje)`,
     );
   }
   if (statusCpa === "abaixo") {
     motivos.push(
       origemMetaCpa === "mercado"
-        ? `CPA ${pct(desvioCpa!)} acima do dobro do ticket (${formatarReal(cpaAtual)} contra teto de ${formatarReal(metaCpa)})`
-        : `CPA ${pct(desvioCpa!)} acima da meta (${formatarReal(cpaAtual)} contra ${formatarReal(metaCpa)})`,
+        ? `${r.custo} ${pct(desvioCpa!)} acima do dobro do ticket (${formatarReal(cpaAtual)} contra teto de ${formatarReal(metaCpa)})`
+        : `${r.custo} ${pct(desvioCpa!)} acima da meta (${formatarReal(cpaAtual)} contra ${formatarReal(metaCpa)})`,
     );
   }
   if (statusGrupo === "abaixo") {
@@ -302,10 +312,14 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   }
   if (semMeta) motivos.push("Sem meta definida");
   else if (!l.sem_trafego && l.meta_ingressos == null) {
-    motivos.push("Falta a meta de ingressos");
-  }
+    motivos.push(`Falta a meta de ${r.unidades}`);
+  } else if (faltaMetaDeCusto) motivos.push(`Falta a meta de ${r.custo}`);
   if (semDados && vendasComecaram && !foraDasMetas) {
-    motivos.push("Vendas começaram e não há métricas registradas");
+    motivos.push(
+      gratuito
+        ? "Captação começou e não há métricas registradas"
+        : "Vendas começaram e não há métricas registradas",
+    );
   }
   if (atrasos.length) {
     motivos.push(
@@ -325,7 +339,7 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
       foraDasMetas
         ? "Sem tráfego pago: fora das metas"
         : !vendasComecaram
-        ? `Vendas começam em ${formatarData(inicio)}`
+        ? `${r.janela} começa${gratuito ? "" : "m"} em ${formatarData(inicio)}`
         : faixa === "acima"
           ? "Acima da meta"
           : "Na meta",
@@ -335,8 +349,11 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   return {
     faixa,
     pontos,
+    // Gratuito: as telas trocam ingressos por leads e CPA por CPL.
+    gratuito,
     // O teto do CPA vem sozinho com as vendas: só a meta de ingressos é cobrada.
-    faltaMeta: !l.sem_trafego && l.meta_ingressos == null,
+    // No gratuito não existe ticket para dar o teto: a meta de CPL também é cobrada.
+    faltaMeta: (!l.sem_trafego && l.meta_ingressos == null) || faltaMetaDeCusto,
     janela: { inicio, fim, vendasComecaram },
     ingressos: {
       status: statusIngressos,

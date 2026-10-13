@@ -93,6 +93,14 @@ export function IngressosDoGrupo({ resumo }: { resumo: Resumo }) {
       {resumo.metaIngressos ? (
         <span className="text-apagado"> de {formatarInteiro(resumo.metaIngressos)}</span>
       ) : null}
+      {/* Lançamentos gratuitos: leads não se somam a ingressos. */}
+      {resumo.gratuitos ? (
+        <span className="text-apagado">
+          {" · "}
+          <span className="font-semibold text-texto">{formatarInteiro(resumo.leads)}</span>
+          {resumo.metaLeads ? ` de ${formatarInteiro(resumo.metaLeads)}` : ""} leads
+        </span>
+      ) : null}
     </>
   );
 }
@@ -330,6 +338,7 @@ export async function VisaoGeral() {
                 dono={`${item.expert} · D0 ${formatarData(item.lancamento.d0)}`}
                 metaIngressos={item.lancamento.meta_ingressos}
                 metaCpa={item.lancamento.meta_cpa}
+                tipo={item.lancamento.tipo}
               />
             ))}
           </ul>

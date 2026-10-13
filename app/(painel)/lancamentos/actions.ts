@@ -6,7 +6,8 @@ import { sincronizarBerry, vendasNaBerry } from "@/lib/berry-sincronia";
 import { CAMPOS_COMPARECIMENTO, herdarDaUltima } from "@/lib/metricas";
 import { dispararRotinaDoMeta } from "@/lib/meta-disparo";
 import { diasEntre, hoje, somarDias } from "@/lib/datas";
-import { calcularMarcos, type Tipo } from "@/lib/marcos";
+import { calcularMarcos, TIPOS, type Tipo } from "@/lib/marcos";
+import { ehGratuito, rotulos } from "@/lib/rotulos";
 import { lerDinheiro, lerInteiro } from "@/lib/numeros";
 import { obterSessao } from "@/lib/sessao";
 import { metasFechadasParaEstrategista } from "@/lib/urgencia";
@@ -35,7 +36,7 @@ export async function salvarLancamento(
   const d0 = data(formData, "d0");
 
   if (!nome) return { erro: "Dê um nome ao lançamento." };
-  if (tipo !== "LP" && tipo !== "LPS") return { erro: "Escolha o tipo." };
+  if (!(tipo in TIPOS)) return { erro: "Escolha o tipo." };
   if (!d0) return { erro: "Informe a data do D0." };
 
   const sugerido = calcularMarcos(tipo, d0);
@@ -56,7 +57,13 @@ export async function salvarLancamento(
     sem_trafego,
   };
   if (!id && !admin) {
-    if (metas.meta_ingressos == null) return { erro: "Informe a meta de ingressos." };
+    if (metas.meta_ingressos == null) {
+      return { erro: `Informe a meta de ${rotulos(tipo).unidades}.` };
+    }
+    // No gratuito não há ticket para dar o teto: a meta de CPL é quem avalia o custo.
+    if (ehGratuito(tipo) && !sem_trafego && metas.meta_cpa == null) {
+      return { erro: "Informe a meta de CPL." };
+    }
   }
 
   // De onde vem a verba no Meta Ads: só o admin define.

@@ -5,6 +5,7 @@
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
 import { diasEntre } from "./datas.ts";
 import { dividir, formatarPercentual, vendasParaCpa } from "./numeros.ts";
+import { ehGratuito } from "./rotulos.ts";
 import {
   calcularUrgencia,
   ORDEM_FAIXAS,
@@ -119,10 +120,17 @@ export function resumir(itens: ItemPainel[]) {
 
   // CPA médio ponderado: verba total ÷ vendas do tráfego (a mesma base do CPA
   // de cada lançamento), só de quem tem tráfego.
-  const comTrafego = itens.filter((item) => !item.lancamento.sem_trafego);
-  const verba = comTrafego.reduce((t, i) => t + (i.foto?.verba_investida ?? 0), 0);
+  // Ingresso e lead não se somam, nem CPA com CPL: as somas do resumo são dos
+  // lançamentos pagos, e as dos gratuitos vêm à parte.
+  const pagos = itens.filter((item) => !ehGratuito(item.lancamento.tipo));
+  const gratuitos = itens.filter((item) => ehGratuito(item.lancamento.tipo));
+  const comTrafego = pagos.filter((item) => !item.lancamento.sem_trafego);
+  const verbaDosPagos = comTrafego.reduce((t, i) => t + (i.foto?.verba_investida ?? 0), 0);
   const vendasDoCpa = comTrafego.reduce((t, i) => t + (vendasParaCpa(i.foto) ?? 0), 0);
-  const cpa = dividir(verba, vendasDoCpa);
+  const cpa = dividir(verbaDosPagos, vendasDoCpa);
+  // A verba é dinheiro investido: essa soma junta pagos e gratuitos.
+  const todosComTrafego = itens.filter((item) => !item.lancamento.sem_trafego);
+  const verba = todosComTrafego.reduce((t, i) => t + (i.foto?.verba_investida ?? 0), 0);
 
   // A meta de CPA do grupo é a média das metas em uso (a do lançamento ou o
   // teto de mercado), pesada pelas vendas que entram na conta do CPA
@@ -139,10 +147,14 @@ export function resumir(itens: ItemPainel[]) {
       : comMetaCpa.reduce((t, i) => t + i.urgencia.cpa.meta!, 0) / comMetaCpa.length;
   const desvioCpa = cpa != null && metaCpa ? (cpa - metaCpa) / metaCpa : null;
 
-  const abaixoIngressos = itens.filter(
+  const abaixoIngressos = pagos.filter(
     (i) => i.urgencia.ingressos.status === "abaixo",
   ).length;
-  const abaixoCpa = itens.filter((i) => i.urgencia.cpa.status === "abaixo").length;
+  const abaixoCpa = pagos.filter((i) => i.urgencia.cpa.status === "abaixo").length;
+  const abaixoLeads = gratuitos.filter(
+    (i) => i.urgencia.ingressos.status === "abaixo",
+  ).length;
+  const abaixoCpl = gratuitos.filter((i) => i.urgencia.cpa.status === "abaixo").length;
   const abaixoGrupo = itens.filter((i) => i.urgencia.grupo.status === "abaixo").length;
 
   // "Atualizado há X dias" do lançamento mais defasado.
@@ -166,6 +178,8 @@ export function resumir(itens: ItemPainel[]) {
   if (desvioCpa != null && desvioCpa > TOLERANCIA_META) {
     partes.push(`CPA ${formatarPercentual(desvioCpa)} acima da meta`);
   } else if (abaixoCpa) partes.push(`${abaixoCpa} com CPA acima da meta`);
+  if (abaixoLeads) partes.push(`${abaixoLeads} abaixo da meta de leads`);
+  if (abaixoCpl) partes.push(`${abaixoCpl} com CPL acima da meta`);
   if (abaixoGrupo) partes.push(`${abaixoGrupo} com grupo de WhatsApp abaixo de 95%`);
   if (porFaixa.sem_dados) partes.push(`${porFaixa.sem_dados} sem dados`);
   if (porFaixa.sem_meta) partes.push(`${porFaixa.sem_meta} sem meta`);
@@ -179,6 +193,8 @@ export function resumir(itens: ItemPainel[]) {
   if (desvioCpa != null && desvioCpa > TOLERANCIA_META) {
     problemas.push(`CPA ${formatarPercentual(desvioCpa)} acima da meta`);
   } else if (abaixoCpa) problemas.push(`${lancs(abaixoCpa)} com CPA acima da meta`);
+  if (abaixoLeads) problemas.push(`${lancs(abaixoLeads)} abaixo da meta de leads`);
+  if (abaixoCpl) problemas.push(`${lancs(abaixoCpl)} com CPL acima da meta`);
   if (abaixoGrupo) problemas.push(`${lancs(abaixoGrupo)} com grupo de WhatsApp abaixo de 95%`);
   if (porFaixa.sem_dados) problemas.push(`${lancs(porFaixa.sem_dados)} sem métricas registradas`);
 
@@ -196,11 +212,15 @@ export function resumir(itens: ItemPainel[]) {
     // Soma do que está previsto investir ao todo. Só aparece quando todos os
     // lançamentos com tráfego informaram: comparar o investido de todos com o
     // previsto de alguns daria uma conta enganosa.
-    verbaPrevista: comTrafego.every((i) => i.lancamento.verba_prevista != null)
+    verbaPrevista: todosComTrafego.every((i) => i.lancamento.verba_prevista != null)
       ? soma((i) => i.lancamento.verba_prevista)
       : 0,
-    ingressos: soma((i) => i.foto?.ingressos_vendidos),
-    metaIngressos: soma((i) => i.lancamento.meta_ingressos),
+    ingressos: pagos.reduce((t, i) => t + (i.foto?.ingressos_vendidos ?? 0), 0),
+    metaIngressos: pagos.reduce((t, i) => t + (i.lancamento.meta_ingressos ?? 0), 0),
+    // Gratuitos: leads captados contra a meta (0 quando não há nenhum gratuito).
+    gratuitos: gratuitos.length,
+    leads: gratuitos.reduce((t, i) => t + (i.foto?.ingressos_vendidos ?? 0), 0),
+    metaLeads: gratuitos.reduce((t, i) => t + (i.lancamento.meta_ingressos ?? 0), 0),
     cpa,
     metaCpa,
     desvioCpa,

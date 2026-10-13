@@ -4,7 +4,13 @@
 
 // `compras`: quantas compras o Meta atribui à campanha (ausente quando a
 // rotina ainda não manda esse número).
-export type CampanhaMeta = { nome: string; gasto: number; compras?: number | null };
+// `leads`: quantos leads o Meta atribui à campanha (lançamento gratuito).
+export type CampanhaMeta = {
+  nome: string;
+  gasto: number;
+  compras?: number | null;
+  leads?: number | null;
+};
 
 const simples = (texto: string) =>
   texto
@@ -33,9 +39,18 @@ export function somarVerba(campanhas: CampanhaMeta[], filtro: string | null) {
   const centavos = contam.reduce((soma, c) => soma + Math.round(c.gasto * 100), 0);
   // Vendas do tráfego: só quando a rotina informou compras em alguma campanha
   // (campanha com gasto e sem compra conta como zero).
-  const informou = contam.some((c) => c.compras != null && Number.isFinite(c.compras));
-  const compras = informou
-    ? contam.reduce((soma, c) => soma + (Number.isFinite(c.compras) ? Math.round(c.compras!) : 0), 0)
-    : null;
-  return { verba: centavos / 100, campanhas: contam.length, compras };
+  const total = (campo: "compras" | "leads") =>
+    contam.some((c) => c[campo] != null && Number.isFinite(c[campo]))
+      ? contam.reduce(
+          (soma, c) => soma + (Number.isFinite(c[campo]) ? Math.round(c[campo]!) : 0),
+          0,
+        )
+      : null;
+  return {
+    verba: centavos / 100,
+    campanhas: contam.length,
+    compras: total("compras"),
+    // Lançamento gratuito: leads no lugar de compras.
+    leads: total("leads"),
+  };
 }

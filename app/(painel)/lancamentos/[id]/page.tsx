@@ -10,7 +10,14 @@ import {
   type Checkpoint,
 } from "@/lib/linha-do-tempo";
 import { faseDoLancamento, TIPOS, type Lancamento } from "@/lib/marcos";
-import { calcular, haQuanto, STATUS, type Foto } from "@/lib/metricas";
+import {
+  calcular,
+  haQuanto,
+  participacaoERetencao,
+  STATUS,
+  type Foto,
+} from "@/lib/metricas";
+import { ehGratuito, rotulos } from "@/lib/rotulos";
 import {
   formatarInteiro,
   formatarPercentual,
@@ -62,6 +69,9 @@ export default async function LancamentoPage({
   const dia = hoje();
   const fase = faseDoLancamento(lancamento, dia);
   const encerrado = lancamento.situacao === "encerrado";
+  // Gratuito: leads e CPL, sem Berry e sem receita; entra participação e retenção.
+  const gratuito = ehGratuito(lancamento.tipo);
+  const r = rotulos(lancamento.tipo);
   const { itens, proximo, atrasados } = montarLinhaDoTempo(
     lancamento,
     (lista ?? []) as Checkpoint[],
@@ -73,6 +83,7 @@ export default async function LancamentoPage({
     ? diasEntre(diaDe(lancamento.status_atualizado_em), dia)
     : null;
   const numeros = ultima ? calcular(ultima) : null;
+  const evento = participacaoERetencao(ultima);
   const urgencia = calcularUrgencia({
     lancamento,
     foto: ultima,
@@ -94,7 +105,7 @@ export default async function LancamentoPage({
           <p className="mt-1 text-sm text-apagado">
             {TIPOS[lancamento.tipo]}
             {lancamento.meta_ingressos != null
-              ? ` · meta de ${formatarInteiro(lancamento.meta_ingressos)} ingressos`
+              ? ` · meta de ${formatarInteiro(lancamento.meta_ingressos)} ${r.unidades}`
               : ""}
           </p>
         </div>
@@ -110,15 +121,20 @@ export default async function LancamentoPage({
         >
           Editar lançamento
         </Link>
-        <Link
-          href={`/experts/${lancamento.expert_id}/berry`}
-          className="rounded-lg border border-borda px-3 py-1.5 hover:border-power"
-        >
-          {lancamento.berry_produto_nome
-            ? `Berry: ${lancamento.berry_produto_nome}`
-            : "Conectar Berry"}
-        </Link>
-        {lancamento.berry_produto_id ? <BotaoBerry lancamentoId={lancamento.id} /> : null}
+        {/* Lançamento gratuito não vende ingresso: não há o que ligar na Berry. */}
+        {gratuito ? null : (
+          <Link
+            href={`/experts/${lancamento.expert_id}/berry`}
+            className="rounded-lg border border-borda px-3 py-1.5 hover:border-power"
+          >
+            {lancamento.berry_produto_nome
+              ? `Berry: ${lancamento.berry_produto_nome}`
+              : "Conectar Berry"}
+          </Link>
+        )}
+        {!gratuito && lancamento.berry_produto_id ? (
+          <BotaoBerry lancamentoId={lancamento.id} />
+        ) : null}
         {!encerrado &&
         !lancamento.sem_trafego &&
         lancamento.meta_conta_id &&
@@ -197,17 +213,51 @@ export default async function LancamentoPage({
                   : "")
               }
             />
-            <Numero rotulo="Receita de ingressos" valor={formatarReal(ultima.receita_ingressos)} />
-            <Numero
-              rotulo="No grupo de WhatsApp"
-              valor={
-                formatarInteiro(ultima.grupo_whatsapp) +
-                (numeros.comparecimento != null
-                  ? ` (${formatarPercentualParaBaixo(numeros.comparecimento)})`
-                  : "")
-              }
-            />
-            <Numero rotulo="Ticket médio" valor={formatarReal(numeros.ticketMedio)} />
+            {gratuito ? (
+              <>
+              <Numero
+                rotulo="No grupo de WhatsApp"
+                valor={
+                  formatarInteiro(ultima.grupo_whatsapp) +
+                  (numeros.comparecimento != null
+                    ? ` (${formatarPercentualParaBaixo(numeros.comparecimento)})`
+                    : "")
+                }
+              />
+                <Numero
+                  rotulo="Participação ao vivo"
+                  valor={
+                    formatarInteiro(evento.aoVivo) +
+                    (evento.participacao != null
+                      ? ` (${formatarPercentual(evento.participacao)} dos leads)`
+                      : "")
+                  }
+                />
+                <Numero
+                  rotulo="Retenção até o final"
+                  valor={
+                    formatarInteiro(evento.ateOFinal) +
+                    (evento.retencao != null
+                      ? ` (${formatarPercentual(evento.retencao)} de quem entrou)`
+                      : "")
+                  }
+                />
+              </>
+            ) : (
+              <>
+              <Numero rotulo="Receita de ingressos" valor={formatarReal(ultima.receita_ingressos)} />
+              <Numero
+                rotulo="No grupo de WhatsApp"
+                valor={
+                  formatarInteiro(ultima.grupo_whatsapp) +
+                  (numeros.comparecimento != null
+                    ? ` (${formatarPercentualParaBaixo(numeros.comparecimento)})`
+                    : "")
+                }
+              />
+              <Numero rotulo="Ticket médio" valor={formatarReal(numeros.ticketMedio)} />
+              </>
+            )}
           </div>
         ) : null}
 
@@ -215,12 +265,12 @@ export default async function LancamentoPage({
         {numeros?.doTrafego != null ? (
           <div className="mt-4 grid grid-cols-2 gap-4 border-t border-borda pt-4 sm:grid-cols-4">
             <Numero
-              rotulo="Vendas do tráfego"
-              valor={`${formatarInteiro(numeros.doTrafego)} (${formatarPercentual(numeros.parteDoTrafego)} dos ingressos)`}
+              rotulo={r.doTrafego}
+              valor={`${formatarInteiro(numeros.doTrafego)} (${formatarPercentual(numeros.parteDoTrafego)} dos ${r.unidades})`}
             />
             <Numero
-              rotulo="Vendas orgânicas"
-              valor={`${formatarInteiro(numeros.organicas)} (${formatarPercentual(numeros.parteOrganica)} dos ingressos)`}
+              rotulo={r.organicas}
+              valor={`${formatarInteiro(numeros.organicas)} (${formatarPercentual(numeros.parteOrganica)} dos ${r.unidades})`}
             />
           </div>
         ) : null}
@@ -275,7 +325,10 @@ export default async function LancamentoPage({
             <table className="w-full min-w-[860px] text-left text-sm">
               <thead className="text-xs text-apagado">
                 <tr>
-                  {["Data", "Quem", "Verba", "Ingressos", "Do tráfego", "Receita", "Grupo WhatsApp", "CPA", "Ticket médio"].map(
+                  {(gratuito
+                    ? ["Data", "Quem", "Verba", "Leads", "Do tráfego", "Grupo WhatsApp", "CPL", "Ao vivo", "Até o final"]
+                    : ["Data", "Quem", "Verba", "Ingressos", "Do tráfego", "Receita", "Grupo WhatsApp", "CPA", "Ticket médio"]
+                  ).map(
                     (coluna) => (
                       <th key={coluna} className="px-4 py-3 font-normal">
                         {coluna}
@@ -296,7 +349,9 @@ export default async function LancamentoPage({
                       <td className="px-4 py-3">{formatarReal(foto.verba_investida)}</td>
                       <td className="px-4 py-3">{formatarInteiro(foto.ingressos_vendidos)}</td>
                       <td className="px-4 py-3">{formatarInteiro(calculo.doTrafego)}</td>
-                      <td className="px-4 py-3">{formatarReal(foto.receita_ingressos)}</td>
+                      {gratuito ? null : (
+                        <td className="px-4 py-3">{formatarReal(foto.receita_ingressos)}</td>
+                      )}
                       <td className="px-4 py-3">
                         {formatarInteiro(foto.grupo_whatsapp)}
                         {calculo.comparecimento != null
@@ -304,7 +359,14 @@ export default async function LancamentoPage({
                           : ""}
                       </td>
                       <td className="px-4 py-3">{formatarReal(calculo.cpa)}</td>
-                      <td className="px-4 py-3">{formatarReal(calculo.ticketMedio)}</td>
+                      {gratuito ? (
+                        <>
+                          <td className="px-4 py-3">{formatarInteiro(foto.comp_evento)}</td>
+                          <td className="px-4 py-3">{formatarInteiro(foto.retencao_final)}</td>
+                        </>
+                      ) : (
+                        <td className="px-4 py-3">{formatarReal(calculo.ticketMedio)}</td>
+                      )}
                     </tr>
                   );
                 })}

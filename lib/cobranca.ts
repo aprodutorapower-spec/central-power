@@ -4,6 +4,7 @@
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
 import { formatarData } from "./datas.ts";
 import { formatarInteiro, formatarPercentualParaBaixo, formatarReal } from "./numeros.ts";
+import { ehGratuito, rotulos } from "./rotulos.ts";
 import type { Urgencia } from "./urgencia.ts";
 
 // Quantos checkpoints atrasados são citados pelo nome; o resto vira "mais N".
@@ -13,7 +14,7 @@ type Entrada = {
   // Nome de quem vai receber (null = expert sem responsável).
   estrategista: string | null;
   expert: string;
-  lancamento: { nome: string; d0: string };
+  lancamento: { nome: string; d0: string; tipo?: string | null };
   urgencia: Urgencia;
   // Checkpoints atrasados, do mais antigo para o mais recente.
   atrasados: { titulo: string; dias: number }[];
@@ -31,17 +32,19 @@ export function textoCobranca({
   atrasados,
 }: Entrada) {
   const pontos: string[] = [];
+  const gratuito = ehGratuito(lancamento.tipo);
+  const r = rotulos(lancamento.tipo);
 
   if (u.ingressos.status === "abaixo") {
     pontos.push(
-      `Ingressos: ${formatarInteiro(u.ingressos.vendidos)} vendidos, ${pct(u.ingressos.desvio!)} abaixo do ritmo (esperado até hoje: ${formatarInteiro(u.ingressos.esperado)}; meta: ${formatarInteiro(u.ingressos.meta)}).`,
+      `${r.Unidades}: ${formatarInteiro(u.ingressos.vendidos)} ${r.feitos}, ${pct(u.ingressos.desvio!)} abaixo do ritmo (esperado até hoje: ${formatarInteiro(u.ingressos.esperado)}; meta: ${formatarInteiro(u.ingressos.meta)}).`,
     );
   }
   if (u.cpa.status === "abaixo") {
     pontos.push(
       u.cpa.origemMeta === "mercado"
-        ? `CPA: ${formatarReal(u.cpa.atual)}, ${pct(u.cpa.desvio!)} acima do teto de ${formatarReal(u.cpa.meta)} (o dobro do ticket do ingresso).`
-        : `CPA: ${formatarReal(u.cpa.atual)}, ${pct(u.cpa.desvio!)} acima da meta de ${formatarReal(u.cpa.meta)}.`,
+        ? `${r.custo}: ${formatarReal(u.cpa.atual)}, ${pct(u.cpa.desvio!)} acima do teto de ${formatarReal(u.cpa.meta)} (o dobro do ticket do ingresso).`
+        : `${r.custo}: ${formatarReal(u.cpa.atual)}, ${pct(u.cpa.desvio!)} acima da meta de ${formatarReal(u.cpa.meta)}.`,
     );
   }
   if (u.grupo.status === "abaixo") {
@@ -51,7 +54,7 @@ export function textoCobranca({
   }
   if (u.faixa === "sem_dados") {
     pontos.push(
-      `As vendas começaram em ${formatarData(u.janela.inicio)} e ainda não há métricas registradas.`,
+      `${gratuito ? "A captação começou" : "As vendas começaram"} em ${formatarData(u.janela.inicio)} e ainda não há métricas registradas.`,
     );
   }
   const temProblema = pontos.length > 0 || atrasados.length > 0;

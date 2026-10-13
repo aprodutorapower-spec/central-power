@@ -1,5 +1,6 @@
 import { diasEntre } from "./datas";
 import { MARCOS, type Lancamento } from "./marcos";
+import { rotulos } from "./rotulos";
 
 // Checkpoint pendente que vence em até este número de dias fica "perto" (amarelo).
 export const LIMITE_PERTO_DIAS = 3;
@@ -52,7 +53,8 @@ export function montarLinhaDoTempo(
       tipo: "marco",
       chave: marco.chave,
       sigla: marco.sigla,
-      titulo: marco.descricao,
+      // No gratuito não há venda de ingressos: o DV0 é o início da captação.
+      titulo: marco.chave === "dv0" ? rotulos(lancamento.tipo).inicioDaJanela : marco.descricao,
       data,
       dias: diasEntre(hoje, data),
       // Marco não é "feito": só conta os dias e fica cinza depois que passa.

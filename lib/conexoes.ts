@@ -3,6 +3,7 @@
 // vazia e a tela não mostra nada.
 //
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
+import { ehGratuito } from "./rotulos.ts";
 import { janelaDeVendas } from "./urgencia.ts";
 import type { Lancamento } from "./marcos";
 
@@ -32,7 +33,8 @@ type Entrada = Pick<
   | "dv0"
   | "de0"
   | "d0"
->;
+> &
+  Partial<Pick<Lancamento, "tipo">>;
 
 // "08/10 às 14h28", no horário de Brasília.
 export function quando(instante: string) {
@@ -75,14 +77,17 @@ function situacao(
 export function avisosDeConexao(l: Entrada, hoje: string, agora: Date): AvisoConexao[] {
   const avisos: (AvisoConexao | null)[] = [];
 
-  if (!l.berry_produto_id) {
-    avisos.push({
-      fonte: "berry",
-      tipo: "desconectado",
-      texto: "Berry não conectada: ingressos e receita não atualizam sozinhos",
-    });
-  } else {
-    avisos.push(situacao("berry", "Berry", l.berry_conferido_em, l.berry_erro, agora));
+  // Lançamento gratuito não vende ingresso: não há o que ler na Berry.
+  if (!ehGratuito(l.tipo)) {
+    if (!l.berry_produto_id) {
+      avisos.push({
+        fonte: "berry",
+        tipo: "desconectado",
+        texto: "Berry não conectada: ingressos e receita não atualizam sozinhos",
+      });
+    } else {
+      avisos.push(situacao("berry", "Berry", l.berry_conferido_em, l.berry_erro, agora));
+    }
   }
 
   if (!l.sem_trafego) {

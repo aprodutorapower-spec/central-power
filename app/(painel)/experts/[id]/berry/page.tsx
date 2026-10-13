@@ -46,6 +46,8 @@ export default async function BerryPage({
         .from("lancamentos")
         .select("id, nome, situacao, dv0, berry_produto_id")
         .eq("expert_id", id)
+        // Lançamento gratuito não vende ingresso: não tem produto na Berry.
+        .neq("tipo", "LG")
         .order("situacao")
         .order("d0"),
     ]);

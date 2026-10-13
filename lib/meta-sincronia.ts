@@ -1,6 +1,7 @@
 import { hoje } from "./datas";
 import { herdarDaUltima } from "./metricas";
 import { palavrasDoFiltro, somarVerba, type CampanhaMeta } from "./meta";
+import { ehGratuito } from "./rotulos";
 import { criarClienteAdmin } from "./supabase/admin";
 import { janelaDeVendas } from "./urgencia";
 
@@ -52,7 +53,7 @@ export async function gravarVerbaDoMeta(
   const admin = criarClienteAdmin();
   const { data: lancamento } = await admin
     .from("lancamentos")
-    .select("id, meta_conta_id, meta_filtro, situacao")
+    .select("id, tipo, meta_conta_id, meta_filtro, situacao")
     .eq("id", lancamentoId)
     .maybeSingle();
   if (!lancamento?.meta_conta_id || lancamento.situacao !== "ativo") {
@@ -61,7 +62,10 @@ export async function gravarVerbaDoMeta(
 
   // Guarda o resultado de toda entrega da rotina, para a tela avisar quando
   // o Meta Ads para de atualizar.
-  const { verba, campanhas: quantas, compras } = somarVerba(campanhas, lancamento.meta_filtro);
+  const soma = somarVerba(campanhas, lancamento.meta_filtro);
+  const { verba, campanhas: quantas } = soma;
+  // O que veio do tráfego: compras de ingresso no pago, leads no gratuito.
+  const compras = ehGratuito(lancamento.tipo) ? soma.leads : soma.compras;
   const registrar = (erro: string | null) =>
     admin
       .from("lancamentos")

@@ -1,3 +1,4 @@
+import { GRATUITO, rotulos } from "@/lib/rotulos";
 import { formatarData } from "@/lib/datas";
 import {
   formatarInteiro,
@@ -51,7 +52,7 @@ export function BarraIngressos({ urgencia }: { urgencia: Urgencia }) {
     <div
       className="relative mt-2 h-2 rounded-full bg-borda"
       role="img"
-      aria-label={`${formatarInteiro(vendidos ?? 0)} de ${formatarInteiro(meta)} ingressos; esperado até hoje: ${formatarInteiro(esperado)}`}
+      aria-label={`${formatarInteiro(vendidos ?? 0)} de ${formatarInteiro(meta)} ${urgencia.gratuito ? "leads" : "ingressos"}; esperado até hoje: ${formatarInteiro(esperado)}`}
     >
       <div className={`h-2 rounded-full ${cor}`} style={{ width: parte(vendidos) }} />
       <div
@@ -70,7 +71,11 @@ export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
     return <p className="mt-1 text-xs text-apagado">Sem tráfego pago</p>;
   }
   if (cpa.meta == null) {
-    return <p className="mt-1 text-xs text-apagado">Teto do CPA aparece com as primeiras vendas</p>;
+    return (
+      <p className="mt-1 text-xs text-apagado">
+        {urgencia.gratuito ? "Sem meta de CPL" : "Teto do CPA aparece com as primeiras vendas"}
+      </p>
+    );
   }
   return (
     <>
@@ -83,8 +88,8 @@ export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
       {cpa.atual != null ? (
         <p className="mt-0.5 text-xs text-apagado">
           {cpa.base === "trafego"
-            ? `Verba ÷ ${formatarInteiro(cpa.vendas)} vendas do tráfego`
-            : "Verba ÷ todos os ingressos (sem dado do tráfego)"}
+            ? `Verba ÷ ${formatarInteiro(cpa.vendas)} ${urgencia.gratuito ? "leads" : "vendas"} do tráfego`
+            : `Verba ÷ todos os ${urgencia.gratuito ? "leads" : "ingressos"} (sem dado do tráfego)`}
         </p>
       ) : null}
     </>
@@ -93,12 +98,13 @@ export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
 
 export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
   const { ingressos, cpa, grupo, janela, diasAteD0 } = urgencia;
+  const r = rotulos(urgencia.gratuito ? GRATUITO : null);
 
   return (
     <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
       <div>
         <p className="flex items-center justify-between gap-2 text-xs text-apagado">
-          Ingressos contra a meta
+          {r.Unidades} contra a meta
           <SeloMeta status={ingressos.status} />
         </p>
         <p className="mt-0.5 font-semibold">
@@ -114,7 +120,7 @@ export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
       </div>
       <div>
         <p className="flex items-center justify-between gap-2 text-xs text-apagado">
-          CPA contra a meta
+          {r.custo} contra a meta
           <SeloMeta status={cpa.status} />
         </p>
         <p className="mt-0.5 font-semibold">{formatarReal(cpa.atual)}</p>
@@ -123,23 +129,31 @@ export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
       <div>
         <p className="flex items-center justify-between gap-2 text-xs text-apagado">
           Grupo de WhatsApp
-          <SeloMeta status={grupo.status} />
+          {urgencia.gratuito ? null : <SeloMeta status={grupo.status} />}
         </p>
         <p className="mt-0.5 font-semibold">
           {formatarInteiro(grupo.pessoas)}
-          {grupo.proporcao != null ? ` (${formatarPercentualParaBaixo(grupo.proporcao)} dos ingressos)` : ""}
+          {grupo.proporcao != null ? ` (${formatarPercentualParaBaixo(grupo.proporcao)} dos ${r.unidades})` : ""}
         </p>
         <p className="mt-1 text-xs text-apagado">
-          Mínimo: {formatarPercentual(grupo.minimo)} dos ingressos vendidos
-          {grupo.faltam
-            ? grupo.faltam === 1
-              ? " · falta 1 pessoa"
-              : ` · faltam ${grupo.faltam} pessoas`
-            : ""}
+          {urgencia.gratuito ? (
+            "Sem mínimo no lançamento gratuito"
+          ) : (
+            <>
+              Mínimo: {formatarPercentual(grupo.minimo)} dos ingressos vendidos
+              {grupo.faltam
+                ? grupo.faltam === 1
+                  ? " · falta 1 pessoa"
+                  : ` · faltam ${grupo.faltam} pessoas`
+                : ""}
+            </>
+          )}
         </p>
       </div>
       <div>
-        <p className="text-xs text-apagado">Venda de ingressos</p>
+        <p className="text-xs text-apagado">
+          {urgencia.gratuito ? "Captação de leads" : "Venda de ingressos"}
+        </p>
         <p className="mt-0.5 font-semibold">
           {formatarData(janela.inicio)} a {formatarData(janela.fim)}
         </p>

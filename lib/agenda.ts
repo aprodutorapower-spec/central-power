@@ -5,6 +5,7 @@ import { montarLinhaDoTempo, tituloDoItem, type Checkpoint, type ItemLinha } fro
 import type { Foto } from "./metricas";
 import { porcentagemParaBaixo } from "./numeros";
 import { montarItens, type LancamentoDoPainel } from "./painel";
+import { rotulos } from "./rotulos";
 import { criarClienteAdmin } from "./supabase/admin";
 import { FAIXAS } from "./urgencia";
 
@@ -69,6 +70,9 @@ export async function agendaDoDia(dia = hoje()) {
         expert: item.expert,
         lancamento: l.nome,
         tipo: l.tipo,
+        // No gratuito (LG) os números são de leads e o custo é CPL.
+        unidade: rotulos(l.tipo).unidades,
+        custo: rotulos(l.tipo).custo,
         estrategista: item.estrategistaId
           ? { id: item.estrategistaId, nome: nomes.get(item.estrategistaId) ?? null }
           : null,
@@ -92,6 +96,8 @@ export async function agendaDoDia(dia = hoje()) {
           cpa: u.cpa.atual == null ? null : Math.round(u.cpa.atual * 100) / 100,
           meta_cpa: u.cpa.meta == null ? null : Math.round(u.cpa.meta * 100) / 100,
           verba_investida: item.foto?.verba_investida ?? null,
+          participacao_ao_vivo: item.foto?.comp_evento ?? null,
+          ficaram_ate_o_final: item.foto?.retencao_final ?? null,
           grupo_whatsapp: u.grupo.pessoas,
           grupo_whatsapp_faltam_para_o_minimo: u.grupo.faltam,
           grupo_whatsapp_proporcao:
