@@ -20,7 +20,7 @@ import {
   formatarReal,
 } from "@/lib/numeros";
 import type { GrupoEstrategista, ItemPainel } from "@/lib/painel";
-import { ehGratuito, rotulos } from "@/lib/rotulos";
+import { ehBlack, rotulos, semIngresso } from "@/lib/rotulos";
 import { BotaoCopiar, CartaoComPainel } from "./interacoes";
 import { criarProximaTurma, definirSituacao } from "./lancamentos/actions";
 import { LinhaDoTempo } from "./lancamentos/linha-do-tempo";
@@ -107,7 +107,10 @@ function CartaoLancamento({
   const titulo = `${item.expert} · ${lancamento.nome}`;
   const grave = urgencia.faixa === "abaixo" || urgencia.faixa === "sem_dados";
   // Gratuito: leads e CPL, e os dois blocos de receita viram participação e retenção.
-  const gratuito = ehGratuito(lancamento.tipo);
+  const gratuito = semIngresso(lancamento.tipo);
+  // Black: a meta é a entrada no grupo; os blocos de grupo, ticket e receita
+  // viram convidados, live e faturamento.
+  const black = ehBlack(lancamento.tipo);
   const r = rotulos(lancamento.tipo);
   const evento = participacaoERetencao(foto);
   // ROI de ingressos e produto principal (vendas, faturamento e CAC).
@@ -191,6 +194,18 @@ function CartaoLancamento({
           }
           detalhe={<LinhaMetaCpa urgencia={urgencia} />}
         />
+        {black ? (
+          <Bloco
+            rotulo="Entrada no grupo"
+            valor={
+              formatarInteiro(urgencia.convite.convidados) +
+              (urgencia.convite.entrada != null
+                ? ` (${formatarPercentualParaBaixo(urgencia.convite.entrada)})`
+                : "")
+            }
+            detalhe="Convidados pelos disparos · % que entrou no grupo"
+          />
+        ) : (
         <Bloco
           rotulo="Grupo de WhatsApp"
           selo={gratuito ? undefined : <SeloMeta status={urgencia.grupo.status} />}
@@ -211,7 +226,19 @@ function CartaoLancamento({
                   : "")
           }
         />
-        {gratuito ? (
+        )}
+        {black ? (
+          <Bloco
+            rotulo="Comparecimento na live"
+            valor={
+              formatarInteiro(foto?.comp_evento) +
+              (foto?.comp_evento != null && foto?.ingressos_vendidos
+                ? ` (${formatarPercentual(foto.comp_evento / foto.ingressos_vendidos)})`
+                : "")
+            }
+            detalhe="Na live ÷ pessoas no grupo"
+          />
+        ) : gratuito ? (
           <Bloco
             rotulo="Participação ao vivo"
             valor={
@@ -240,7 +267,15 @@ function CartaoLancamento({
                 : "Sem verba total prevista"
           }
         />
-        {gratuito ? (
+        {black ? (
+          <Bloco
+            rotulo="Faturamento do produto principal"
+            valor={formatarReal(foto?.faturamento_produto)}
+            detalhe={
+              lancamento.berry_principais?.length ? "Vem da Berry" : "Informado na atualização"
+            }
+          />
+        ) : gratuito ? (
           <Bloco
             rotulo="Retenção até o final"
             valor={

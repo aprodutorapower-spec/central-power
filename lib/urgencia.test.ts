@@ -365,3 +365,26 @@ test("lançamento gratuito: leads e CPL, sem régua de grupo e sem teto pelo tic
   const pago = calcularUrgencia({ lancamento: BASE, foto: { ingressos_vendidos: 150, verba_investida: 6000 }, atrasos: [], hoje: HOJE });
   assert.equal(pago.gratuito, false);
 });
+
+test("evento de Black: a meta é a entrada no grupo; CPL opcional e sem régua de 95%", () => {
+  const black = (extras: Record<string, unknown>, foto: Record<string, unknown>) =>
+    calcularUrgencia({
+      lancamento: { ...BASE, tipo: "BLACK", meta_ingressos: 2000, meta_cpa: null, ...extras },
+      foto: { verba_investida: null, ...foto } as never,
+      atrasos: [],
+      hoje: HOJE,
+    });
+
+  // Na metade da captação (1.000 esperadas até hoje), 600 no grupo: abaixo do ritmo, com o nome certo.
+  const devagar = black({}, { ingressos_vendidos: 600, disparos: 6000 });
+  assert.equal(devagar.ingressos.status, "abaixo");
+  assert.match(devagar.motivo, /^Pessoas no grupo \d+% abaixo do ritmo/);
+  assert.equal(devagar.convite.convidados, 6000);
+  assert.equal(devagar.convite.entrada, 0.1);
+  // Sem meta de CPL não é pendência (no gratuito seria).
+  assert.equal(devagar.faltaMeta, false);
+  assert.equal(devagar.grupo.status, "nao_se_aplica");
+
+  const emDia = black({ sem_trafego: true }, { ingressos_vendidos: 2100, disparos: 6000 });
+  assert.equal(emDia.faixa, "acima");
+});

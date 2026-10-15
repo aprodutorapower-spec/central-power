@@ -3,7 +3,7 @@
 // vazia e a tela não mostra nada.
 //
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
-import { ehGratuito } from "./rotulos.ts";
+import { semIngresso } from "./rotulos.ts";
 import { janelaDeVendas } from "./urgencia.ts";
 import type { Lancamento } from "./marcos";
 
@@ -77,8 +77,8 @@ function situacao(
 export function avisosDeConexao(l: Entrada, hoje: string, agora: Date): AvisoConexao[] {
   const avisos: (AvisoConexao | null)[] = [];
 
-  // Lançamento gratuito não vende ingresso: não há o que ler na Berry.
-  if (!ehGratuito(l.tipo)) {
+  // Gratuito e Black não vendem ingresso: não há ingresso para ler na Berry.
+  if (!semIngresso(l.tipo)) {
     if (!l.berry_produto_id) {
       avisos.push({
         fonte: "berry",

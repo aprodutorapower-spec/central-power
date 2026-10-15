@@ -1,4 +1,4 @@
-import { GRATUITO, rotulos } from "@/lib/rotulos";
+import { ehBlack, rotulos } from "@/lib/rotulos";
 import { formatarData } from "@/lib/datas";
 import {
   formatarInteiro,
@@ -52,7 +52,7 @@ export function BarraIngressos({ urgencia }: { urgencia: Urgencia }) {
     <div
       className="relative mt-2 h-2 rounded-full bg-borda"
       role="img"
-      aria-label={`${formatarInteiro(vendidos ?? 0)} de ${formatarInteiro(meta)} ${urgencia.gratuito ? "leads" : "ingressos"}; esperado até hoje: ${formatarInteiro(esperado)}`}
+      aria-label={`${formatarInteiro(vendidos ?? 0)} de ${formatarInteiro(meta)} ${rotulos(urgencia.tipo).unidades}; esperado até hoje: ${formatarInteiro(esperado)}`}
     >
       <div className={`h-2 rounded-full ${cor}`} style={{ width: parte(vendidos) }} />
       <div
@@ -89,7 +89,7 @@ export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
         <p className="mt-0.5 text-xs text-apagado">
           {cpa.base === "trafego"
             ? `Verba ÷ ${formatarInteiro(cpa.vendas)} ${urgencia.gratuito ? "leads" : "vendas"} do tráfego`
-            : `Verba ÷ todos os ${urgencia.gratuito ? "leads" : "ingressos"} (sem dado do tráfego)`}
+            : `Verba ÷ ${rotulos(urgencia.tipo).unidades} (sem dado do tráfego)`}
         </p>
       ) : null}
     </>
@@ -98,7 +98,8 @@ export function LinhaMetaCpa({ urgencia }: { urgencia: Urgencia }) {
 
 export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
   const { ingressos, cpa, grupo, janela, diasAteD0 } = urgencia;
-  const r = rotulos(urgencia.gratuito ? GRATUITO : null);
+  const r = rotulos(urgencia.tipo);
+  const black = ehBlack(urgencia.tipo);
 
   return (
     <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -126,6 +127,19 @@ export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
         <p className="mt-0.5 font-semibold">{formatarReal(cpa.atual)}</p>
         <LinhaMetaCpa urgencia={urgencia} />
       </div>
+      {/* Black: a meta já é a entrada no grupo; aqui vai quem foi convidado. */}
+      {black ? (
+        <div>
+          <p className="text-xs text-apagado">Convidados pelos disparos</p>
+          <p className="mt-0.5 font-semibold">
+            {formatarInteiro(urgencia.convite.convidados)}
+            {urgencia.convite.entrada != null
+              ? ` (${formatarPercentualParaBaixo(urgencia.convite.entrada)} entraram)`
+              : ""}
+          </p>
+          <p className="mt-1 text-xs text-apagado">Pessoas no grupo ÷ convidados</p>
+        </div>
+      ) : (
       <div>
         <p className="flex items-center justify-between gap-2 text-xs text-apagado">
           Grupo de WhatsApp
@@ -150,9 +164,10 @@ export function PainelMetas({ urgencia }: { urgencia: Urgencia }) {
           )}
         </p>
       </div>
+      )}
       <div>
         <p className="text-xs text-apagado">
-          {urgencia.gratuito ? "Captação de leads" : "Venda de ingressos"}
+          {black ? "Captação" : urgencia.gratuito ? "Captação de leads" : "Venda de ingressos"}
         </p>
         <p className="mt-0.5 font-semibold">
           {formatarData(janela.inicio)} a {formatarData(janela.fim)}

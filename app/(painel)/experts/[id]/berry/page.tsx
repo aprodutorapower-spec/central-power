@@ -178,7 +178,7 @@ export default async function BerryPage({
                       atual={lancamento.berry_produto_id}
                       extras={lancamento.berry_extras}
                       principais={lancamento.berry_principais}
-                      gratuito={lancamento.tipo === "LG"}
+                      gratuito={lancamento.tipo === "LG" || lancamento.tipo === "BLACK"}
                       produtos={produtos}
                     />
                     {vendas.has(lancamento.id) ? (

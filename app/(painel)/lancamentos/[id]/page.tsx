@@ -18,7 +18,7 @@ import {
   STATUS,
   type Foto,
 } from "@/lib/metricas";
-import { ehGratuito, rotulos } from "@/lib/rotulos";
+import { ehBlack, rotulos, semIngresso } from "@/lib/rotulos";
 import {
   formatarInteiro,
   formatarPercentual,
@@ -74,7 +74,8 @@ export default async function LancamentoPage({
   const fase = faseDoLancamento(lancamento, dia);
   const encerrado = lancamento.situacao === "encerrado";
   // Gratuito: leads e CPL, sem Berry e sem receita; entra participação e retenção.
-  const gratuito = ehGratuito(lancamento.tipo);
+  const gratuito = semIngresso(lancamento.tipo);
+  const black = ehBlack(lancamento.tipo);
   const r = rotulos(lancamento.tipo);
   const { itens, proximo, atrasados } = montarLinhaDoTempo(
     lancamento,
@@ -274,7 +275,32 @@ export default async function LancamentoPage({
                   : "")
               }
             />
-            {gratuito ? (
+            {black ? (
+              <>
+                <Numero
+                  rotulo="Convidados pelos disparos"
+                  valor={
+                    formatarInteiro(ultima.disparos) +
+                    (ultima.disparos && ultima.ingressos_vendidos != null
+                      ? ` (${formatarPercentualParaBaixo(ultima.ingressos_vendidos / ultima.disparos)} entraram)`
+                      : "")
+                  }
+                />
+                <Numero
+                  rotulo="Comparecimento na live"
+                  valor={
+                    formatarInteiro(ultima.comp_evento) +
+                    (ultima.comp_evento != null && ultima.ingressos_vendidos
+                      ? ` (${formatarPercentual(ultima.comp_evento / ultima.ingressos_vendidos)} do grupo)`
+                      : "")
+                  }
+                />
+                <Numero
+                  rotulo="Faturamento do produto principal"
+                  valor={formatarReal(ultima.faturamento_produto)}
+                />
+              </>
+            ) : gratuito ? (
               <>
               <Numero
                 rotulo="No grupo de WhatsApp"
@@ -411,7 +437,9 @@ export default async function LancamentoPage({
             <table className="w-full min-w-[860px] text-left text-sm">
               <thead className="text-xs text-apagado">
                 <tr>
-                  {(gratuito
+                  {(black
+                    ? ["Data", "Quem", "Verba", "No grupo", "Do tráfego", "Convidados", "CPL", "Na live", "Faturamento"]
+                    : gratuito
                     ? ["Data", "Quem", "Verba", "Leads", "Do tráfego", "Grupo WhatsApp", "CPL", "Ao vivo", "Até o final"]
                     : ["Data", "Quem", "Verba", "Ingressos", "Do tráfego", "Receita", "Grupo WhatsApp", "CPA", "Ticket médio"]
                   ).map(
@@ -439,13 +467,18 @@ export default async function LancamentoPage({
                         <td className="px-4 py-3">{formatarReal(foto.receita_ingressos)}</td>
                       )}
                       <td className="px-4 py-3">
-                        {formatarInteiro(foto.grupo_whatsapp)}
-                        {calculo.comparecimento != null
+                        {black ? formatarInteiro(foto.disparos) : formatarInteiro(foto.grupo_whatsapp)}
+                        {!black && calculo.comparecimento != null
                           ? ` (${formatarPercentualParaBaixo(calculo.comparecimento)})`
                           : ""}
                       </td>
                       <td className="px-4 py-3">{formatarReal(calculo.cpa)}</td>
-                      {gratuito ? (
+                      {black ? (
+                        <>
+                          <td className="px-4 py-3">{formatarInteiro(foto.comp_evento)}</td>
+                          <td className="px-4 py-3">{formatarReal(foto.faturamento_produto)}</td>
+                        </>
+                      ) : gratuito ? (
                         <>
                           <td className="px-4 py-3">{formatarInteiro(foto.comp_evento)}</td>
                           <td className="px-4 py-3">{formatarInteiro(foto.retencao_final)}</td>

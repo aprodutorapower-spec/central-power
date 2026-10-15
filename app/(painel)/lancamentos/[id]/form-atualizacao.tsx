@@ -18,7 +18,7 @@ import {
   lerInteiro,
 } from "@/lib/numeros";
 import type { Lancamento } from "@/lib/marcos";
-import { ehGratuito, rotulos } from "@/lib/rotulos";
+import { ehBlack, rotulos, semIngresso } from "@/lib/rotulos";
 import { calcularUrgencia } from "@/lib/urgencia";
 import { SeloMeta } from "../painel-metas";
 import { salvarAtualizacao, type ResultadoAtualizacao } from "../actions";
@@ -36,7 +36,10 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
   // Com o produto da Berry escolhido, ingressos e receita não são digitados.
   const berry = Boolean(lancamento.berry_produto_id);
   // Gratuito: leads no lugar de ingressos, CPL no lugar de CPA, e sem receita.
-  const gratuito = ehGratuito(lancamento.tipo);
+  const gratuito = semIngresso(lancamento.tipo);
+  // Black: a meta é a entrada no grupo, contra os convidados pelos disparos.
+  const black = ehBlack(lancamento.tipo);
+  const principalNaBerry = lancamento.berry_principais?.length > 0;
   const r = rotulos(lancamento.tipo);
 
   // Já vem com os valores da última foto: normalmente só os números mudam.
@@ -47,6 +50,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
   );
   const [receita, setReceita] = useState(dinheiroParaCampo(ultima?.receita_ingressos));
   const [grupo, setGrupo] = useState(ultima?.grupo_whatsapp?.toString() ?? "");
+  const [disparos, setDisparos] = useState(ultima?.disparos?.toString() ?? "");
 
   const { cpa, ticketMedio, comparecimento } = calcular({
     verba_investida: lerDinheiro(verba),
@@ -120,7 +124,7 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
           />
         </label>
         <label className="block text-sm text-apagado">
-          {gratuito ? "Leads captados" : "Ingressos vendidos"}
+          {black ? "Pessoas no grupo" : gratuito ? "Leads captados" : "Ingressos vendidos"}
           <input
             name="ingressos_vendidos"
             inputMode="numeric"
@@ -130,6 +134,11 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
             className={`${CAMPO} text-texto ${berry ? "opacity-70" : ""}`}
           />
           {berry ? <span className="mt-1 block text-xs">{DA_BERRY}</span> : null}
+          {black ? (
+            <span className="mt-1 block text-xs text-texto">
+              Conte só os participantes: não inclua os admins nem a equipe.
+            </span>
+          ) : null}
         </label>
         {gratuito ? null : (
           <label className="block text-sm text-apagado">
@@ -145,20 +154,51 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
             {berry ? <span className="mt-1 block text-xs">{DA_BERRY}</span> : null}
           </label>
         )}
-        <label className="block text-sm text-apagado">
-          No grupo de WhatsApp
-          <input
-            name="grupo_whatsapp"
-            inputMode="numeric"
-            value={grupo}
-            onChange={(evento) => setGrupo(evento.target.value)}
-            className={`${CAMPO} text-texto`}
-          />
-          <span className="mt-1 block text-xs text-texto">
-            Conte só os participantes: não inclua os admins nem o pessoal da
-            equipe que está no grupo.
-          </span>
-        </label>
+        {black ? (
+          <>
+            <label className="block text-sm text-apagado">
+              Convidados (disparos feitos)
+              <input
+                name="disparos"
+                inputMode="numeric"
+                value={disparos}
+                onChange={(evento) => setDisparos(evento.target.value)}
+                className={`${CAMPO} text-texto`}
+              />
+              <span className="mt-1 block text-xs">
+                Quantas pessoas receberam o convite do grupo.
+              </span>
+            </label>
+            <label className="block text-sm text-apagado">
+              Faturamento do produto principal (R$)
+              <input
+                name="faturamento_produto"
+                inputMode="decimal"
+                defaultValue={dinheiroParaCampo(ultima?.faturamento_produto)}
+                readOnly={principalNaBerry}
+                className={`${CAMPO} text-texto ${principalNaBerry ? "opacity-70" : ""}`}
+              />
+              {principalNaBerry ? (
+                <span className="mt-1 block text-xs">Vem da Berry, atualizado sozinho.</span>
+              ) : null}
+            </label>
+          </>
+        ) : (
+          <label className="block text-sm text-apagado">
+            No grupo de WhatsApp
+            <input
+              name="grupo_whatsapp"
+              inputMode="numeric"
+              value={grupo}
+              onChange={(evento) => setGrupo(evento.target.value)}
+              className={`${CAMPO} text-texto`}
+            />
+            <span className="mt-1 block text-xs text-texto">
+              Conte só os participantes: não inclua os admins nem o pessoal da
+              equipe que está no grupo.
+            </span>
+          </label>
+        )}
       </div>
       <p className="mt-2 text-sm text-apagado">
         {r.custo} <span className="text-texto">{formatarReal(cpa)}</span>
@@ -168,18 +208,38 @@ export function FormAtualizacao({ lancamento, ultima, hoje }: Props) {
             · Ticket médio <span className="text-texto">{formatarReal(ticketMedio)}</span>
           </>
         )}{" "}
-        · Comparecimento no grupo{" "}
-        <span className="text-texto">{formatarPercentualParaBaixo(comparecimento)}</span>
+        {black ? (
+          <>
+            · Entrada no grupo{" "}
+            <span className="text-texto">
+              {formatarPercentualParaBaixo(
+                lerInteiro(disparos) ? (lerInteiro(ingressos) ?? 0) / lerInteiro(disparos)! : null,
+              )}
+            </span>{" "}
+            dos convidados
+          </>
+        ) : (
+          <>
+            · Comparecimento no grupo{" "}
+            <span className="text-texto">{formatarPercentualParaBaixo(comparecimento)}</span>
+          </>
+        )}
       </p>
 
       {/* Só a partir do dia do evento: antes disso não há o que preencher. */}
       {hoje >= lancamento.d0 ? (
         <>
           <p className="mt-5 text-sm font-semibold">
-            {gratuito ? "Participação no evento" : "Comparecimento no evento"}
+            {black
+              ? "Comparecimento na live"
+              : gratuito
+                ? "Participação no evento"
+                : "Comparecimento no evento"}
           </p>
           <p className="text-xs text-apagado">
-            {gratuito
+            {black
+              ? "Quantas pessoas estiveram na live de Black."
+              : gratuito
               ? "Quantas pessoas entraram ao vivo e quantas ficaram até o final do evento."
               : lancamento.tipo === "LPS"
                 ? "Quantas pessoas estiveram em cada aula e no pitch. Preencha conforme forem acontecendo."

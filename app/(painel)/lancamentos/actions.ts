@@ -239,10 +239,17 @@ export async function salvarAtualizacao(
     receita_ingressos: dinheiro("receita_ingressos"),
     // Produto principal vem da Berry; sem ela, segue o último número.
     vendas_produto: herdado.vendas_produto,
-    faturamento_produto: herdado.faturamento_produto,
+    // Black sem produto principal na Berry: o faturamento é digitado.
+    faturamento_produto: formData.has("faturamento_produto")
+      ? dinheiro("faturamento_produto")
+      : herdado.faturamento_produto,
     // O que a Berry informa vale mais que o digitado.
     ...(daBerry ? camposDaBerry(daBerry) : {}),
-    grupo_whatsapp: inteiro("grupo_whatsapp"),
+    // Campo que o formulário do tipo não mostra segue com o último valor.
+    grupo_whatsapp: formData.has("grupo_whatsapp")
+      ? inteiro("grupo_whatsapp")
+      : herdado.grupo_whatsapp,
+    disparos: formData.has("disparos") ? inteiro("disparos") : herdado.disparos,
   });
   if (error) return { erro: "O status foi salvo, mas as métricas não. Tente de novo." };
 

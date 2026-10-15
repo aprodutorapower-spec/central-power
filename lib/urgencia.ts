@@ -6,7 +6,7 @@
 import { diaDe, diasEntre, formatarData } from "./datas.ts";
 import { dividir, formatarInteiro, formatarReal, vendasParaCpa, formatarPercentualParaBaixo } from "./numeros.ts";
 import type { Lancamento } from "./marcos";
-import { ehGratuito, rotulos } from "./rotulos.ts";
+import { ehGratuito, rotulos, semIngresso } from "./rotulos.ts";
 import type { Foto } from "./metricas";
 
 // Margem em volta da meta: até 10% para cima ou para baixo conta como "Na meta".
@@ -121,6 +121,7 @@ export type EntradaUrgencia = {
         receita_ingressos?: number | null;
         grupo_whatsapp?: number | null;
         compras_trafego?: number | null;
+        disparos?: number | null;
       })
     | null;
   // Dias de atraso de cada checkpoint atrasado.
@@ -156,8 +157,9 @@ export function metasFechadasParaEstrategista(
 }
 
 export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: EntradaUrgencia) {
-  // Gratuito: leads no lugar de ingressos e CPL no lugar de CPA. A conta é a mesma.
-  const gratuito = ehGratuito(l.tipo);
+  // Gratuito e Black não vendem ingresso: leads (ou pessoas no grupo) no lugar
+  // de ingressos e CPL no lugar de CPA. A conta é a mesma.
+  const gratuito = semIngresso(l.tipo);
   const r = rotulos(l.tipo);
   // Ritmo esperado: linear do início ao fim das vendas.
   const { inicio, fim } = janelaDeVendas(l);
@@ -236,7 +238,8 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   // Sem tráfego pago não se cobra CPA; a meta de ingressos passa a ser opcional.
   const foraDasMetas = l.sem_trafego && l.meta_ingressos == null;
   const semMeta = !l.sem_trafego && l.meta_ingressos == null && metaCpa == null;
-  const faltaMetaDeCusto = gratuito && !l.sem_trafego && l.meta_cpa == null;
+  // Só o gratuito exige meta de CPL: no Black a meta principal é a entrada no grupo.
+  const faltaMetaDeCusto = ehGratuito(l.tipo) && !l.sem_trafego && l.meta_cpa == null;
   const semDados = vendidos == null;
   // O grupo de WhatsApp conta como critério principal: abaixo de 95%, o
   // lançamento fica "Abaixo da meta" mesmo com ingressos e CPA em ordem.
@@ -349,8 +352,14 @@ export function calcularUrgencia({ lancamento: l, foto, atrasos, hoje }: Entrada
   return {
     faixa,
     pontos,
-    // Gratuito: as telas trocam ingressos por leads e CPA por CPL.
+    // Sem ingresso (gratuito ou Black): as telas trocam os nomes pelo tipo.
     gratuito,
+    tipo: l.tipo ?? null,
+    // Black: quantos foram convidados pelos disparos e quantos deles entraram.
+    convite: {
+      convidados: foto?.disparos ?? null,
+      entrada: dividir(vendidos, foto?.disparos),
+    },
     // O teto do CPA vem sozinho com as vendas: só a meta de ingressos é cobrada.
     // No gratuito não existe ticket para dar o teto: a meta de CPL também é cobrada.
     faltaMeta: (!l.sem_trafego && l.meta_ingressos == null) || faltaMetaDeCusto,

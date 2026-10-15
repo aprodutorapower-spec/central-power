@@ -111,7 +111,7 @@ export function SeletorProduto({
   atual: string | null;
   extras: Escolhido[];
   principais: Escolhido[];
-  // Lançamento gratuito não vende ingresso: só escolhe o produto principal.
+  // Gratuito e Black não vendem ingresso: só escolhem o produto principal.
   gratuito: boolean;
   produtos: ProdutoBerry[];
 }) {

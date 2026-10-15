@@ -22,6 +22,8 @@ export type Foto = {
   grupo_whatsapp: number | null;
   compras_trafego: number | null;
   comp_evento: number | null;
+  // Black: quantas pessoas foram convidadas pelos disparos.
+  disparos: number | null;
   retencao_final: number | null;
   comp_aula1: number | null;
   comp_aula2: number | null;
@@ -96,6 +98,8 @@ export const COMPARECIMENTO: Record<Tipo, { campo: CampoComparecimento; rotulo: 
     { campo: "comp_evento", rotulo: "Participação ao vivo" },
     { campo: "retencao_final", rotulo: "Ficaram até o final" },
   ],
+  // Evento de Black: quantos estiveram na live.
+  BLACK: [{ campo: "comp_evento", rotulo: "Comparecimento na live" }],
 };
 
 // Participação = quem esteve ao vivo ÷ leads captados; retenção = quem ficou
@@ -120,6 +124,7 @@ export function herdarDaUltima(ultima: Partial<Foto> | null | undefined) {
     receita_ingressos: ultima?.receita_ingressos ?? null,
     grupo_whatsapp: ultima?.grupo_whatsapp ?? null,
     compras_trafego: ultima?.compras_trafego ?? null,
+    disparos: ultima?.disparos ?? null,
     vendas_produto: ultima?.vendas_produto ?? null,
     faturamento_produto: ultima?.faturamento_produto ?? null,
     ...(Object.fromEntries(

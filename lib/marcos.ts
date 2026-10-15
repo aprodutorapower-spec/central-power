@@ -1,11 +1,12 @@
 import { diasEntre, somarDias } from "./datas";
 
-export type Tipo = "LP" | "LPS" | "LG";
+export type Tipo = "LP" | "LPS" | "LG" | "BLACK";
 
 export const TIPOS: Record<Tipo, string> = {
   LP: "LP · evento único",
   LPS: "LPS · semanal 5+1",
   LG: "LG · gratuito, evento online",
+  BLACK: "Black · evento de Black",
 };
 
 // Mesmos nomes do Asana.
@@ -76,7 +77,7 @@ export type Lancamento = {
   meta_teste_detalhe: string | null;
 };
 
-// Datas sugeridas a partir do D0. LP e LG (evento único): carrinho fecha em D0+4.
+// Datas sugeridas a partir do D0. LP, LG e Black (evento único): carrinho fecha em D0+4.
 // LPS: pitch no domingo (D0+6) e carrinho fecha dois dias depois.
 export function calcularMarcos(tipo: Tipo, d0: string) {
   const dp0 = tipo === "LPS" ? somarDias(d0, 6) : null;

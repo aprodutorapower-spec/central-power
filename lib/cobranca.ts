@@ -4,7 +4,7 @@
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
 import { formatarData } from "./datas.ts";
 import { formatarInteiro, formatarPercentualParaBaixo, formatarReal } from "./numeros.ts";
-import { ehGratuito, rotulos } from "./rotulos.ts";
+import { rotulos, semIngresso } from "./rotulos.ts";
 import type { Urgencia } from "./urgencia.ts";
 
 // Quantos checkpoints atrasados são citados pelo nome; o resto vira "mais N".
@@ -32,7 +32,7 @@ export function textoCobranca({
   atrasados,
 }: Entrada) {
   const pontos: string[] = [];
-  const gratuito = ehGratuito(lancamento.tipo);
+  const gratuito = semIngresso(lancamento.tipo);
   const r = rotulos(lancamento.tipo);
 
   if (u.ingressos.status === "abaixo") {

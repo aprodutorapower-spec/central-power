@@ -1,7 +1,7 @@
 import { hoje } from "./datas";
 import { herdarDaUltima } from "./metricas";
 import { palavrasDoFiltro, somarVerba, type CampanhaMeta } from "./meta";
-import { ehGratuito } from "./rotulos";
+import { semIngresso } from "./rotulos";
 import { criarClienteAdmin } from "./supabase/admin";
 import { janelaDeVendas } from "./urgencia";
 
@@ -65,7 +65,7 @@ export async function gravarVerbaDoMeta(
   const soma = somarVerba(campanhas, lancamento.meta_filtro);
   const { verba, campanhas: quantas } = soma;
   // O que veio do tráfego: compras de ingresso no pago, leads no gratuito.
-  const compras = ehGratuito(lancamento.tipo) ? soma.leads : soma.compras;
+  const compras = semIngresso(lancamento.tipo) ? soma.leads : soma.compras;
   const registrar = (erro: string | null) =>
     admin
       .from("lancamentos")

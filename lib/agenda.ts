@@ -102,6 +102,8 @@ export async function agendaDoDia(dia = hoje()) {
           meta_cpa: u.cpa.meta == null ? null : Math.round(u.cpa.meta * 100) / 100,
           verba_investida: item.foto?.verba_investida ?? null,
           participacao_ao_vivo: item.foto?.comp_evento ?? null,
+          convidados_pelos_disparos: item.foto?.disparos ?? null,
+          faturamento_produto_principal: item.foto?.faturamento_produto ?? null,
           ficaram_ate_o_final: item.foto?.retencao_final ?? null,
           grupo_whatsapp: u.grupo.pessoas,
           grupo_whatsapp_faltam_para_o_minimo: u.grupo.faltam,

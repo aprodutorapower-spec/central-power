@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ehGratuito, rotulos } from "@/lib/rotulos";
+import { ehBlack, ehGratuito, rotulos } from "@/lib/rotulos";
 import { useActionState } from "react";
 import { dinheiroParaCampo } from "@/lib/numeros";
 import { definirMetas, type ResultadoAtualizacao } from "./lancamentos/actions";
@@ -41,7 +41,7 @@ export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa, tipo }: Pro
             name="meta_ingressos"
             inputMode="numeric"
             defaultValue={metaIngressos ?? ""}
-            placeholder={gratuito ? "Ex.: 5.000" : "Ex.: 300"}
+            placeholder={ehBlack(tipo) ? "Ex.: 2.000" : gratuito ? "Ex.: 5.000" : "Ex.: 300"}
             className={`${CAMPO} text-base text-texto`}
           />
         </label>
@@ -51,7 +51,7 @@ export function MetaRapida({ id, nome, dono, metaIngressos, metaCpa, tipo }: Pro
             name="meta_cpa"
             inputMode="decimal"
             defaultValue={dinheiroParaCampo(metaCpa)}
-            placeholder={gratuito ? "Ex.: 4,50" : "2× o ticket"}
+            placeholder={ehBlack(tipo) ? "Opcional" : gratuito ? "Ex.: 4,50" : "2× o ticket"}
             className={`${CAMPO} text-base text-texto`}
           />
         </label>

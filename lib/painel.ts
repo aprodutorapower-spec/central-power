@@ -5,7 +5,7 @@
 // Imports com ".ts" pelo mesmo motivo de urgencia.ts: os testes rodam no Node.
 import { diasEntre } from "./datas.ts";
 import { dividir, formatarPercentual, vendasParaCpa } from "./numeros.ts";
-import { ehGratuito } from "./rotulos.ts";
+import { ehBlack, ehGratuito, semIngresso } from "./rotulos.ts";
 import {
   calcularUrgencia,
   ORDEM_FAIXAS,
@@ -122,8 +122,9 @@ export function resumir(itens: ItemPainel[]) {
   // de cada lançamento), só de quem tem tráfego.
   // Ingresso e lead não se somam, nem CPA com CPL: as somas do resumo são dos
   // lançamentos pagos, e as dos gratuitos vêm à parte.
-  const pagos = itens.filter((item) => !ehGratuito(item.lancamento.tipo));
+  const pagos = itens.filter((item) => !semIngresso(item.lancamento.tipo));
   const gratuitos = itens.filter((item) => ehGratuito(item.lancamento.tipo));
+  const blacks = itens.filter((item) => ehBlack(item.lancamento.tipo));
   const comTrafego = pagos.filter((item) => !item.lancamento.sem_trafego);
   const verbaDosPagos = comTrafego.reduce((t, i) => t + (i.foto?.verba_investida ?? 0), 0);
   const vendasDoCpa = comTrafego.reduce((t, i) => t + (vendasParaCpa(i.foto) ?? 0), 0);
@@ -154,7 +155,12 @@ export function resumir(itens: ItemPainel[]) {
   const abaixoLeads = gratuitos.filter(
     (i) => i.urgencia.ingressos.status === "abaixo",
   ).length;
-  const abaixoCpl = gratuitos.filter((i) => i.urgencia.cpa.status === "abaixo").length;
+  const abaixoCpl = [...gratuitos, ...blacks].filter(
+    (i) => i.urgencia.cpa.status === "abaixo",
+  ).length;
+  const abaixoGrupoBlack = blacks.filter(
+    (i) => i.urgencia.ingressos.status === "abaixo",
+  ).length;
   const abaixoGrupo = itens.filter((i) => i.urgencia.grupo.status === "abaixo").length;
 
   // "Atualizado há X dias" do lançamento mais defasado.
@@ -180,6 +186,7 @@ export function resumir(itens: ItemPainel[]) {
   } else if (abaixoCpa) partes.push(`${abaixoCpa} com CPA acima da meta`);
   if (abaixoLeads) partes.push(`${abaixoLeads} abaixo da meta de leads`);
   if (abaixoCpl) partes.push(`${abaixoCpl} com CPL acima da meta`);
+  if (abaixoGrupoBlack) partes.push(`${abaixoGrupoBlack} abaixo da meta de entrada no grupo`);
   if (abaixoGrupo) partes.push(`${abaixoGrupo} com grupo de WhatsApp abaixo de 95%`);
   if (porFaixa.sem_dados) partes.push(`${porFaixa.sem_dados} sem dados`);
   if (porFaixa.sem_meta) partes.push(`${porFaixa.sem_meta} sem meta`);
@@ -195,6 +202,9 @@ export function resumir(itens: ItemPainel[]) {
   } else if (abaixoCpa) problemas.push(`${lancs(abaixoCpa)} com CPA acima da meta`);
   if (abaixoLeads) problemas.push(`${lancs(abaixoLeads)} abaixo da meta de leads`);
   if (abaixoCpl) problemas.push(`${lancs(abaixoCpl)} com CPL acima da meta`);
+  if (abaixoGrupoBlack) {
+    problemas.push(`${lancs(abaixoGrupoBlack)} abaixo da meta de entrada no grupo`);
+  }
   if (abaixoGrupo) problemas.push(`${lancs(abaixoGrupo)} com grupo de WhatsApp abaixo de 95%`);
   if (porFaixa.sem_dados) problemas.push(`${lancs(porFaixa.sem_dados)} sem métricas registradas`);
 

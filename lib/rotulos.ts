@@ -1,13 +1,26 @@
 // Nomes que mudam conforme o tipo do lançamento. No lançamento pago (LP e LPS)
 // vendem-se ingressos e mede-se o CPA; no gratuito (LG) captam-se leads para um
-// evento online e mede-se o CPL. As contas são as mesmas: só o nome muda.
+// evento online e mede-se o CPL; no evento de Black (BLACK) a meta é a entrada
+// de gente no grupo, vinda de disparos para bases antigas. As contas são as
+// mesmas: só o nome muda.
 //
 // Sem imports, para os testes rodarem no Node puro.
 
 export const GRATUITO = "LG";
+export const BLACK = "BLACK";
 
 export function ehGratuito(tipo: string | null | undefined) {
   return tipo === GRATUITO;
+}
+
+export function ehBlack(tipo: string | null | undefined) {
+  return tipo === BLACK;
+}
+
+// Tipos que não vendem ingresso: sem Berry de ingresso, sem ticket, com CPL e
+// sem a régua de 95% do grupo de WhatsApp.
+export function semIngresso(tipo: string | null | undefined) {
+  return ehGratuito(tipo) || ehBlack(tipo);
 }
 
 const PAGO = {
@@ -28,7 +41,7 @@ const PAGO = {
   inicioDaJanela: "Início da venda de ingressos",
 };
 
-const SEM_COBRAR = {
+const LEADS = {
   Unidades: "Leads",
   unidades: "leads",
   unidade: "lead",
@@ -41,8 +54,21 @@ const SEM_COBRAR = {
   inicioDaJanela: "Início da captação de leads",
 };
 
+const GRUPO = {
+  Unidades: "Pessoas no grupo",
+  unidades: "pessoas no grupo",
+  unidade: "pessoa",
+  feitos: "no grupo",
+  unidadesFeitas: "pessoas no grupo",
+  custo: "CPL",
+  doTrafego: "Do tráfego",
+  organicas: "Da base",
+  janela: "Captação",
+  inicioDaJanela: "Início da captação",
+};
+
 export type Rotulos = typeof PAGO;
 
 export function rotulos(tipo: string | null | undefined): Rotulos {
-  return ehGratuito(tipo) ? SEM_COBRAR : PAGO;
+  return ehBlack(tipo) ? GRUPO : ehGratuito(tipo) ? LEADS : PAGO;
 }
