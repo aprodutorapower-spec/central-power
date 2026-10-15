@@ -98,6 +98,17 @@ Com isso o cartão e a página do lançamento mostram a faixa **Retorno**: ROI d
 
 **Verba parada:** com a captação aberta e o Meta Ads sendo lido normalmente, se o investido ficar 8 horas ou mais sem subir, o cartão mostra a faixa **Verba parada** e o aviso vira tarefa no Asana. É o sinal de anúncio parado (cartão recusado, conta bloqueada, campanha pausada). Depois do fim da captação o sistema não avisa.
 
+## Evento de Black
+
+Para quem não faz lançamento pago nem gratuito: reativação de quem já comprou ou participou de algo com o expert. Disparos para grupos e listas antigas levam as pessoas para o grupo do evento, e o produto principal é vendido numa live.
+
+- **Datas:** início da captação (DV0) e dia do evento (D0). O fechamento do carrinho é sugerido 4 dias depois.
+- **Meta principal:** pessoas no grupo, com o ritmo esperado do início da captação até o evento.
+- **Convidados (disparos feitos):** quantas pessoas receberam o convite; o cartão mostra a % que entrou no grupo.
+- **Comparecimento na live:** a partir do dia do evento, com a % sobre as pessoas no grupo.
+- **Faturamento do produto principal:** da Berry, se o produto estiver ligado; se não, digitado na atualização.
+- **Tráfego pago é opcional:** com anúncio, verba e CPL (meta de CPL opcional); sem anúncio, marque "Sem tráfego pago".
+
 ## Lançamento gratuito (LG)
 
 Terceiro tipo de lançamento, ao lado do LP e do LPS: não vende ingresso, capta leads de graça para um evento online.
