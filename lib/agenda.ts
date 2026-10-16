@@ -91,8 +91,9 @@ export async function agendaDoDia(dia = hoje()) {
           ...avisosDeConexao(l, dia, agora),
           verbaParada(l, item.fotos, dia),
         ]
-          .filter((aviso) => aviso != null)
-          .map((aviso) => aviso.texto),
+          // Falha de uma rodada só não vai para o robô.
+          .filter((aviso) => aviso != null && !aviso.passageiro)
+          .map((aviso) => aviso!.texto),
         numeros: {
           ingressos_vendidos: u.ingressos.vendidos,
           meta_ingressos: u.ingressos.meta,

@@ -55,10 +55,17 @@ test("rodada perdida: avisa desde quando, no horário de Brasília", () => {
   assert.deepEqual(avisosDeConexao(l, HOJE, AGORA), ["Berry sem atualizar desde 07/10 às 09h00"]);
 });
 
-test("erro da última tentativa aparece no lugar do horário", () => {
-  const l = { ...EM_DIA, meta_erro: "nenhuma campanha com gasto bate com o filtro" };
+test("erro que se repete (última leitura boa há mais de 7 horas) aparece como erro", () => {
+  const l = { ...EM_DIA, meta_conferido_em: haHoras(9), meta_erro: "nenhuma campanha com gasto bate com o filtro" };
   assert.deepEqual(avisosDeConexao(l, HOJE, AGORA), [
     "Meta Ads com erro: nenhuma campanha com gasto bate com o filtro",
+  ]);
+});
+
+test("falha de uma rodada só, com leitura boa há pouco, aparece como passageira", () => {
+  const l = { ...EM_DIA, berry_erro: "Não consegui falar com a Berry agora. Tente de novo em instantes." };
+  assert.deepEqual(avisosDeConexao(l, HOJE, AGORA), [
+    "Berry: a última leitura falhou (Não consegui falar com a Berry agora. Tente de novo em instantes); tenta de novo na próxima rodada",
   ]);
 });
 

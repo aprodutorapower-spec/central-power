@@ -46,15 +46,29 @@ export async function chaveDoExpert(expertId: string) {
   return data ? decifrarChave(data.chave_cifrada) : null;
 }
 
+// Quando a Berry demora ou cai por um instante, tenta de novo antes de desistir
+// (em 15/10/2026 uma rodada inteira falhou assim e se resolveu sozinha na seguinte).
+const ESPERAS_ENTRE_TENTATIVAS_MS = [2_000, 5_000];
+const espera = (ms: number) => new Promise((resolver) => setTimeout(resolver, ms));
+
 async function chamar<T>(chave: string, caminho: string): Promise<T> {
-  let resposta: Response;
-  try {
-    resposta = await fetch(`${BASE}${caminho}`, {
-      headers: { Authorization: `Bearer ${chave}` },
-      cache: "no-store",
-      signal: AbortSignal.timeout(10_000),
-    });
-  } catch {
+  let resposta: Response | null = null;
+  for (let tentativa = 0; ; tentativa += 1) {
+    try {
+      resposta = await fetch(`${BASE}${caminho}`, {
+        headers: { Authorization: `Bearer ${chave}` },
+        cache: "no-store",
+        signal: AbortSignal.timeout(15_000),
+      });
+    } catch {
+      resposta = null;
+    }
+    // Chave errada ou sem permissão não melhora tentando de novo.
+    const passageiro = !resposta || resposta.status === 429 || resposta.status >= 500;
+    if (!passageiro || tentativa >= ESPERAS_ENTRE_TENTATIVAS_MS.length) break;
+    await espera(ESPERAS_ENTRE_TENTATIVAS_MS[tentativa]);
+  }
+  if (!resposta) {
     throw new ErroBerry(
       "Não consegui falar com a Berry agora. Tente de novo em instantes.",
     );

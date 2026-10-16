@@ -49,7 +49,7 @@ test("tudo em dia: nenhuma tarefa", () => {
 });
 
 test("erro e conexão faltando viram tarefa, com link do lançamento", () => {
-  const l = lancamento({ berry_erro: "chave inválida", meta_conta_id: null });
+  const l = lancamento({ berry_conferido_em: haHoras(9), berry_erro: "chave inválida", meta_conta_id: null });
   const avisos = avisosParaAsana({ lancamentos: [l], rotinas: ROTINAS_EM_DIA, hoje: HOJE, agora: AGORA });
   assert.deepEqual(avisos.map((a) => a.chave), ["l1:berry:erro", "l1:meta:desconectado"]);
   assert.equal(avisos[0].titulo, "Central Power: Fulano · Workshop: Berry com erro: chave inválida");
@@ -96,4 +96,16 @@ test("encerrar: só depois do último marco e do último checkpoint", () => {
   assert.equal(podeEncerrar(l, [{ data: "2026-10-08" }], HOJE), null);
   assert.equal(podeEncerrar(l, [{ data: "2026-10-07" }], HOJE), "2026-10-07");
   assert.equal(podeEncerrar({ ...l, situacao: "encerrado" }, [], HOJE), null);
+});
+
+test("erro numa rodada só não vira tarefa; duas rodadas seguidas viram", () => {
+  // Leitura boa 3 horas atrás e a de agora falhou: passageiro.
+  const umaFalha = lancamento({ berry_conferido_em: haHoras(3), berry_erro: "Não consegui falar com a Berry agora." });
+  assert.deepEqual(chaves([umaFalha]), []);
+  // Última leitura boa há 9 horas: já falharam duas rodadas.
+  const duas = lancamento({ berry_conferido_em: haHoras(9), berry_erro: "Não consegui falar com a Berry agora." });
+  assert.deepEqual(chaves([duas]), ["l1:berry:erro"]);
+  // Nunca leu: erro é alarme desde a primeira vez.
+  const nunca = lancamento({ berry_conferido_em: null, berry_erro: "A Berry não reconheceu essa chave." });
+  assert.deepEqual(chaves([nunca]), ["l1:berry:erro"]);
 });

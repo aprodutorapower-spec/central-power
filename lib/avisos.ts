@@ -100,6 +100,8 @@ export function avisosParaAsana(dados: {
     }
     for (const aviso of avisosDeConexao(l, dados.hoje, dados.agora)) {
       if (aviso.tipo === "aguardando" || aviso.tipo === "verba_parada") continue;
+      // Falha de uma rodada só: espera a próxima antes de virar tarefa.
+      if (aviso.passageiro) continue;
       // Lançamento que ainda não vende não precisa estar conectado.
       // Nem o que já fechou o carrinho: aí a sugestão é encerrar.
       if (aviso.tipo === "desconectado" && (!vendendo || dados.hoje > l.dfc)) continue;

@@ -15,7 +15,14 @@ export type AvisoConexao = {
   fonte: "berry" | "meta";
   tipo: "desconectado" | "erro" | "aguardando" | "parado" | "verba_parada";
   texto: string;
+  // Erro numa rodada só, com leitura boa há pouco: aparece no cartão, mas não
+  // vira tarefa no Asana nem mensagem do robô.
+  passageiro?: boolean;
 };
+
+// Erro só vira alarme quando a última leitura boa é mais velha que isto, ou
+// seja, quando falharam duas rodadas seguidas (as rodadas são às 9h, 12h e 18h).
+export const HORAS_ERRO_PERSISTENTE = 7;
 
 type Entrada = Pick<
   Lancamento,
@@ -60,7 +67,18 @@ function situacao(
   erro: string | null,
   agora: Date,
 ): AvisoConexao | null {
-  if (erro) return { fonte, tipo: "erro", texto: `${nome} com erro: ${erro}` };
+  if (erro) {
+    const passageiro =
+      conferidoEm != null && horasDesde(conferidoEm, agora) <= HORAS_ERRO_PERSISTENTE;
+    return passageiro
+      ? {
+          fonte,
+          tipo: "erro",
+          passageiro: true,
+          texto: `${nome}: a última leitura falhou (${erro.replace(/\.$/, "")}); tenta de novo na próxima rodada`,
+        }
+      : { fonte, tipo: "erro", texto: `${nome} com erro: ${erro}` };
+  }
   if (!conferidoEm) {
     return {
       fonte,
