@@ -29,6 +29,8 @@ Fluxo de cada etapa: build, lint, tipos, `scripts/isolamento.mjs`, publicar, rel
 ## Decisões já tomadas
 - Login por e-mail e senha. O admin gera um link de acesso de uso único e envia por fora (WhatsApp); o estrategista abre o link, cria a senha ali mesmo (`/auth/confirmar`), é levado ao login para entrar com e-mail e senha e cai em `/experts` (fluxo pedido pelo Ricardo em 08/10/2026, depois que o Alan abriu o link, não criou a senha e ficou trancado fora). Não usamos link mágico por e-mail porque o envio embutido do Supabase só manda uns poucos e-mails por hora.
 - O link de acesso só é consumido quando a senha é salva em /auth/confirmar (abrir o link, ou a prévia do aplicativo de mensagem, não gasta o link).
+- Senha definida pelo admin (Ricardo, 16/10/2026, depois que o Eduardo ficou sem conseguir entrar: "esse acesso está muito truncado"): em cada linha da tela Estrategistas há "Definir a senha dele"; o admin digita a senha e manda por WhatsApp (`definirSenha` em `estrategistas/actions.ts`; só troca senha de estrategista, nunca de admin; se o perfil ainda não tem login, cria). Entrar só com o e-mail foi descartado por segurança.
+- No teste de navegador da tela Estrategistas, achar a linha pelo `li` que contém o nome fictício: um seletor mais solto clicou na linha do Alan e trocou a senha real dele (16/10/2026).
 
 ## Cuidados aprendidos
 - Constante usada pelo servidor e pelo navegador mora em `lib/`, nunca num arquivo "use client": importada de lá numa página do servidor, ela chega vazia e a página quebra (foi o erro 500 da etapa 4). Build, lint e tipos não pegam isso.

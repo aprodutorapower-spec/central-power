@@ -130,3 +130,51 @@ export async function excluirEstrategista(
   revalidatePath("/", "layout");
   return { ok: true };
 }
+
+export type ResultadoSenha = { erro?: string; ok?: string };
+
+// O admin define a senha de um estrategista direto, sem link (pedido do
+// Ricardo em 16/10/2026: o caminho do link estava travando gente fora). Se o
+// estrategista ainda não tem acesso, o acesso nasce aqui, com o e-mail do perfil.
+export async function definirSenha(
+  _anterior: ResultadoSenha,
+  formData: FormData,
+): Promise<ResultadoSenha> {
+  const { perfil } = await obterSessao();
+  if (perfil?.papel !== "admin") return { erro: "Só o admin pode fazer isso." };
+
+  const perfilId = String(formData.get("perfil_id") ?? "");
+  const senha = String(formData.get("senha") ?? "").trim();
+  if (senha.length < 8) return { erro: "A senha precisa ter pelo menos 8 caracteres." };
+
+  const admin = criarClienteAdmin();
+  const { data: alvo } = await admin
+    .from("perfis")
+    .select("id, nome, email, user_id, papel")
+    .eq("id", perfilId)
+    .maybeSingle();
+  // Senha de admin não se troca por aqui.
+  if (!alvo || alvo.papel !== "estrategista") return { erro: "Estrategista não encontrado." };
+  if (!alvo.email) return { erro: "Preencha o e-mail dele e gere o acesso uma vez antes." };
+
+  if (alvo.user_id) {
+    const { error } = await admin.auth.admin.updateUserById(alvo.user_id, {
+      password: senha,
+      email_confirm: true,
+    });
+    if (error) return { erro: "Não foi possível trocar a senha." };
+  } else {
+    const { data: criado, error } = await admin.auth.admin.createUser({
+      email: alvo.email,
+      password: senha,
+      email_confirm: true,
+    });
+    if (error || !criado.user) return { erro: "Não foi possível criar o acesso." };
+    await admin.from("perfis").update({ user_id: criado.user.id }).eq("id", alvo.id);
+  }
+
+  revalidatePath("/estrategistas");
+  return {
+    ok: `Pronto. Mande para ${alvo.nome}: entrar em central-power.vercel.app com o e-mail ${alvo.email} e a senha que você definiu.`,
+  };
+}

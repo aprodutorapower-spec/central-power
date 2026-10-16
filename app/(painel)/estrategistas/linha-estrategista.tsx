@@ -3,10 +3,12 @@
 import { useActionState, useState } from "react";
 import {
   criarEstrategista,
+  definirSenha,
   excluirEstrategista,
   gerarLinkDeAcesso,
   type ResultadoAcesso,
   type ResultadoEstrategista,
+  type ResultadoSenha,
 } from "./actions";
 
 type Props = {
@@ -65,6 +67,8 @@ export function LinhaEstrategista({ id, nome, email, situacao, experts }: Props)
   const [copiado, setCopiado] = useState(false);
   const [exclusao, excluir, excluindo] = useActionState(excluirEstrategista, SEM_RESULTADO);
   const [confirmando, setConfirmando] = useState(false);
+  const [senha, acaoSenha, salvandoSenha] = useActionState(definirSenha, {} as ResultadoSenha);
+  const [definindo, setDefinindo] = useState(false);
 
   async function copiar() {
     if (!resultado.link) return;
@@ -134,6 +138,57 @@ export function LinhaEstrategista({ id, nome, email, situacao, experts }: Props)
           </button>
         </div>
       ) : null}
+
+      {/* Senha definida pelo admin: o caminho rápido quando o link não deu certo. */}
+      <div className="mt-3 text-sm">
+        {definindo ? (
+          <form action={acaoSenha} className="flex flex-col gap-2 sm:flex-row">
+            <input type="hidden" name="perfil_id" value={id} />
+            <input
+              name="senha"
+              type="text"
+              minLength={8}
+              required
+              autoComplete="off"
+              placeholder="Nova senha (mínimo 8 caracteres)"
+              aria-label={`Nova senha de ${nome}`}
+              className="w-full rounded-lg border border-borda bg-cartao-2 px-3 py-2 outline-none focus:border-power"
+            />
+            <button
+              type="submit"
+              disabled={salvandoSenha}
+              className="shrink-0 rounded-lg border border-borda px-4 py-2 hover:border-power disabled:opacity-60"
+            >
+              {salvandoSenha ? "Salvando…" : "Salvar senha"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDefinindo(false)}
+              className="text-apagado hover:text-texto"
+            >
+              Cancelar
+            </button>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setDefinindo(true)}
+            className="text-apagado hover:text-texto"
+          >
+            Definir a senha dele
+          </button>
+        )}
+        {senha.erro ? (
+          <p className="mt-2 text-power-claro" role="alert">
+            {senha.erro}
+          </p>
+        ) : null}
+        {senha.ok ? (
+          <p className="mt-2 text-ok" role="status">
+            {senha.ok}
+          </p>
+        ) : null}
+      </div>
 
       <div className="mt-4 border-t border-borda pt-3 text-sm">
         {confirmando ? (
