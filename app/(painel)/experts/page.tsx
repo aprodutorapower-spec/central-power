@@ -186,7 +186,7 @@ export default async function ExpertsPage({
                         {resumo(expert.id)}
                       </span>
                     </Link>
-                    <div className="flex shrink-0 items-center gap-3">
+                    <div className="flex min-w-0 shrink-0 flex-wrap items-center gap-x-3">
                       <SeletorResponsavel
                         expertId={expert.id}
                         expertNome={expert.nome}

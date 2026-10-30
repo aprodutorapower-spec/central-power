@@ -110,7 +110,7 @@ export function CartaoCheckpoint({ checkpoint, hoje, proximo, quem }: Props) {
           <details>
             <summary className={`cursor-pointer list-none ${BOTAO}`}>Mais opções</summary>
             <div className="mt-2 flex flex-wrap items-end gap-2">
-              <form action={mudarData} className="flex items-end gap-2">
+              <form action={mudarData} className="flex flex-wrap items-end gap-2">
                 <input type="hidden" name="id" value={checkpoint.id} />
                 <label className="text-xs text-apagado">
                   Nova data

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { trocarSenha } from "../actions";
 import { BotaoEnviar } from "@/app/botao-enviar";
+import { ConviteInstalar } from "../interacoes";
 
 const AVISOS: Record<string, string> = {
   ok: "Senha alterada.",
@@ -67,6 +68,7 @@ export default async function ContaPage({ searchParams }: PageProps<"/conta">) {
             Salvar nova senha
           </BotaoEnviar>
         </form>
+        <ConviteInstalar sempre />
     </div>
   );
 }

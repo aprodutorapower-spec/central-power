@@ -44,6 +44,9 @@ function Numero({ rotulo, valor }: { rotulo: string; valor: string }) {
   );
 }
 
+// A rotina grava até três fotos por dia: no celular, só as mais recentes abertas.
+const FICHAS_NO_CELULAR = 7;
+
 export default async function LancamentoPage({
   params,
 }: PageProps<"/lancamentos/[id]">) {
@@ -97,6 +100,65 @@ export default async function LancamentoPage({
     atrasos: itens.filter((item) => item.cor === "atrasado").map((item) => -item.dias),
     hoje: dia,
   });
+
+  // Cada coluna do histórico, na mesma ordem na tabela e nas fichas do celular.
+  const colunasDaFoto = (foto: Foto): [string, string][] => {
+    const calculo = calcular(foto);
+    const grupo = `${formatarInteiro(foto.grupo_whatsapp)}${
+      calculo.comparecimento != null
+        ? ` (${formatarPercentualParaBaixo(calculo.comparecimento)})`
+        : ""
+    }`;
+    if (black) {
+      return [
+        ["Verba", formatarReal(foto.verba_investida)],
+        ["No grupo", formatarInteiro(foto.ingressos_vendidos)],
+        ["Do tráfego", formatarInteiro(calculo.doTrafego)],
+        ["Convidados", formatarInteiro(foto.disparos)],
+        ["CPL", formatarReal(calculo.cpa)],
+        ["Na live", formatarInteiro(foto.comp_evento)],
+        ["Faturamento", formatarReal(foto.faturamento_produto)],
+      ];
+    }
+    if (gratuito) {
+      return [
+        ["Verba", formatarReal(foto.verba_investida)],
+        ["Leads", formatarInteiro(foto.ingressos_vendidos)],
+        ["Do tráfego", formatarInteiro(calculo.doTrafego)],
+        ["Grupo WhatsApp", grupo],
+        ["CPL", formatarReal(calculo.cpa)],
+        ["Ao vivo", formatarInteiro(foto.comp_evento)],
+        ["Até o final", formatarInteiro(foto.retencao_final)],
+      ];
+    }
+    return [
+      ["Verba", formatarReal(foto.verba_investida)],
+      ["Ingressos", formatarInteiro(foto.ingressos_vendidos)],
+      ["Do tráfego", formatarInteiro(calculo.doTrafego)],
+      ["Receita", formatarReal(foto.receita_ingressos)],
+      ["Grupo WhatsApp", grupo],
+      ["CPA", formatarReal(calculo.cpa)],
+      ["Ticket médio", formatarReal(calculo.ticketMedio)],
+    ];
+  };
+  const quemPreencheu = (foto: Foto) =>
+    foto.preenchido_por_nome ?? (foto.fonte === "manual" ? "—" : foto.fonte);
+  const fichaDaFoto = (foto: Foto) => (
+    <div key={foto.id} className="rounded-xl border border-borda bg-cartao p-4 text-sm">
+      <p className="flex flex-wrap justify-between gap-x-3">
+        <span className="font-semibold">{formatarData(foto.data)}</span>
+        <span className="text-apagado">{quemPreencheu(foto)}</span>
+      </p>
+      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+        {colunasDaFoto(foto).map(([rotulo, valor]) => (
+          <div key={rotulo}>
+            <dt className="text-xs text-apagado">{rotulo}</dt>
+            <dd>{valor}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
 
   return (
     <>
@@ -433,65 +495,48 @@ export default async function LancamentoPage({
       <section className="mt-6">
         <h2 className="font-semibold">Histórico de métricas</h2>
         {fotos.length ? (
-          <div className="mt-3 overflow-x-auto rounded-xl border border-borda bg-cartao">
-            <table className="w-full min-w-[860px] text-left text-sm">
-              <thead className="text-xs text-apagado">
-                <tr>
-                  {(black
-                    ? ["Data", "Quem", "Verba", "No grupo", "Do tráfego", "Convidados", "CPL", "Na live", "Faturamento"]
-                    : gratuito
-                    ? ["Data", "Quem", "Verba", "Leads", "Do tráfego", "Grupo WhatsApp", "CPL", "Ao vivo", "Até o final"]
-                    : ["Data", "Quem", "Verba", "Ingressos", "Do tráfego", "Receita", "Grupo WhatsApp", "CPA", "Ticket médio"]
-                  ).map(
-                    (coluna) => (
+          <>
+            {/* Do tablet para cima, tabela; no celular, uma ficha por foto, sem rolar de lado. */}
+            <div className="mt-3 hidden overflow-x-auto rounded-xl border border-borda bg-cartao md:block">
+              <table className="w-full min-w-[860px] text-left text-sm">
+                <thead className="text-xs text-apagado">
+                  <tr>
+                    {["Data", "Quem", ...colunasDaFoto(fotos[0]).map(([rotulo]) => rotulo)].map((coluna) => (
                       <th key={coluna} className="px-4 py-3 font-normal">
                         {coluna}
                       </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-borda">
-                {fotos.map((foto) => {
-                  const calculo = calcular(foto);
-                  return (
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-borda">
+                  {fotos.map((foto) => (
                     <tr key={foto.id}>
                       <td className="px-4 py-3">{formatarData(foto.data)}</td>
-                      <td className="px-4 py-3">
-                        {foto.preenchido_por_nome ?? (foto.fonte === "manual" ? "—" : foto.fonte)}
-                      </td>
-                      <td className="px-4 py-3">{formatarReal(foto.verba_investida)}</td>
-                      <td className="px-4 py-3">{formatarInteiro(foto.ingressos_vendidos)}</td>
-                      <td className="px-4 py-3">{formatarInteiro(calculo.doTrafego)}</td>
-                      {gratuito ? null : (
-                        <td className="px-4 py-3">{formatarReal(foto.receita_ingressos)}</td>
-                      )}
-                      <td className="px-4 py-3">
-                        {black ? formatarInteiro(foto.disparos) : formatarInteiro(foto.grupo_whatsapp)}
-                        {!black && calculo.comparecimento != null
-                          ? ` (${formatarPercentualParaBaixo(calculo.comparecimento)})`
-                          : ""}
-                      </td>
-                      <td className="px-4 py-3">{formatarReal(calculo.cpa)}</td>
-                      {black ? (
-                        <>
-                          <td className="px-4 py-3">{formatarInteiro(foto.comp_evento)}</td>
-                          <td className="px-4 py-3">{formatarReal(foto.faturamento_produto)}</td>
-                        </>
-                      ) : gratuito ? (
-                        <>
-                          <td className="px-4 py-3">{formatarInteiro(foto.comp_evento)}</td>
-                          <td className="px-4 py-3">{formatarInteiro(foto.retencao_final)}</td>
-                        </>
-                      ) : (
-                        <td className="px-4 py-3">{formatarReal(calculo.ticketMedio)}</td>
-                      )}
+                      <td className="px-4 py-3">{quemPreencheu(foto)}</td>
+                      {colunasDaFoto(foto).map(([rotulo, valor]) => (
+                        <td key={rotulo} className="px-4 py-3">
+                          {valor}
+                        </td>
+                      ))}
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-3 grid gap-3 md:hidden">
+              {fotos.slice(0, FICHAS_NO_CELULAR).map(fichaDaFoto)}
+              {fotos.length > FICHAS_NO_CELULAR ? (
+                <details>
+                  <summary className="cursor-pointer rounded-xl border border-borda bg-cartao px-4 py-3 text-sm">
+                    Ver as outras {fotos.length - FICHAS_NO_CELULAR}
+                  </summary>
+                  <div className="mt-3 grid gap-3">
+                    {fotos.slice(FICHAS_NO_CELULAR).map(fichaDaFoto)}
+                  </div>
+                </details>
+              ) : null}
+            </div>
+          </>
         ) : (
           <p className="mt-3 rounded-xl border border-borda bg-cartao p-5 text-sm text-apagado">
             Nenhuma foto de métricas ainda. Ela nasce a cada atualização do lançamento.

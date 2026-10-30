@@ -12,18 +12,38 @@ import {
 
 // Pequenas peças que precisam do navegador: menu, voltar, copiar e painel lateral.
 
-export function Menu({ itens }: { itens: { href: string; rotulo: string }[] }) {
+type ItemMenu = {
+  href: string;
+  rotulo: string;
+  curto?: string;
+  icone: keyof typeof ICONES;
+};
+
+const ICONES = {
+  inicio: "M3 12 12 4l9 8M5 10v10h14V10",
+  experts: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0",
+  pessoas:
+    "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM2 21a7 7 0 0 1 14 0M16 3.5a4 4 0 0 1 0 7M18 14.5a7 7 0 0 1 4 6.5",
+  modelos: "M9 6h12M9 12h12M9 18h12M3 6l1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2",
+};
+
+// Marca o item mais específico que bate com a página atual.
+function itemAtual(itens: ItemMenu[], pagina: string) {
   // A página de um estrategista é o segundo nível da visão geral.
-  const caminho = usePathname().replace(/^\/estrategistas\/.+/, "/");
-  // Marca o item mais específico que bate com a página atual.
-  const atual = itens
+  const caminho = pagina.replace(/^\/estrategistas\/.+/, "/");
+  return itens
     .filter((item) =>
       item.href === "/" ? caminho === "/" : caminho.startsWith(item.href),
     )
     .sort((a, b) => b.href.length - a.href.length)[0];
+}
+
+// Do tablet para cima o menu fica no topo; no celular quem navega é o MenuInferior.
+export function Menu({ itens }: { itens: ItemMenu[] }) {
+  const atual = itemAtual(itens, usePathname());
 
   return (
-    <nav className="flex w-full flex-wrap gap-x-5 gap-y-2 text-sm">
+    <nav className="hidden w-full flex-wrap gap-x-5 gap-y-2 text-sm md:flex">
       {itens.map((item) => (
         <Link
           key={item.href}
@@ -39,6 +59,154 @@ export function Menu({ itens }: { itens: { href: string; rotulo: string }[] }) {
         </Link>
       ))}
     </nav>
+  );
+}
+
+// Barra fixa embaixo, ao alcance do polegar, como num aplicativo.
+export function MenuInferior({ itens }: { itens: ItemMenu[] }) {
+  const atual = itemAtual(itens, usePathname());
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-borda bg-cartao pb-[env(safe-area-inset-bottom)] md:hidden">
+      {itens.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          aria-current={item === atual ? "page" : undefined}
+          className={`flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 border-t-2 px-1 text-[11px] ${
+            item === atual
+              ? "border-power font-semibold text-texto"
+              : "border-transparent text-apagado"
+          }`}
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d={ICONES[item.icone]} />
+          </svg>
+          <span className="max-w-full truncate">{item.curto ?? item.rotulo}</span>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+// Aberto pelo atalho da tela inicial, o iPhone não tem "puxar para atualizar":
+// quem volta para o aplicativo depois de um tempo recebe os números do momento.
+const MINUTOS_PARA_ATUALIZAR = 5;
+
+export function AtualizarAoVoltar() {
+  const router = useRouter();
+
+  useEffect(() => {
+    let saiuEm = 0;
+    const mudou = () => {
+      if (document.hidden) {
+        saiuEm = Date.now();
+      } else if (saiuEm && Date.now() - saiuEm > MINUTOS_PARA_ATUALIZAR * 60_000) {
+        router.refresh();
+      }
+    };
+    document.addEventListener("visibilitychange", mudou);
+    return () => document.removeEventListener("visibilitychange", mudou);
+  }, [router]);
+
+  return null;
+}
+
+// O Android entrega um pedido de instalação que pode ser disparado por botão;
+// o iPhone não tem isso, só o caminho manual pelo Compartilhar.
+type PedidoInstalacao = Event & { prompt: () => Promise<void> };
+const CONVITE_DISPENSADO = "convite-instalar-dispensado";
+
+function conviteDispensado() {
+  try {
+    return localStorage.getItem(CONVITE_DISPENSADO) === "sim";
+  } catch {
+    return false;
+  }
+}
+
+// Convite para colocar a Central na tela inicial. No topo das páginas só em
+// telas de toque e até a pessoa dispensar; com `sempre`, fica em Minha conta.
+export function ConviteInstalar({ sempre = false }: { sempre?: boolean }) {
+  const [estado, setEstado] = useState<"oculto" | "iphone" | "android">("oculto");
+  const [pedido, setPedido] = useState<PedidoInstalacao | null>(null);
+
+  useEffect(() => {
+    const instalado =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const toque = window.matchMedia("(pointer: coarse)").matches;
+    if (instalado || !toque || (!sempre && conviteDispensado())) return;
+
+    // iPad recente se apresenta como Mac; o toque é o que o diferencia.
+    const iphone = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+    const inicio = requestAnimationFrame(() => setEstado(iphone ? "iphone" : "android"));
+    const guardar = (evento: Event) => {
+      evento.preventDefault();
+      setPedido(evento as PedidoInstalacao);
+    };
+    window.addEventListener("beforeinstallprompt", guardar);
+    return () => {
+      cancelAnimationFrame(inicio);
+      window.removeEventListener("beforeinstallprompt", guardar);
+    };
+  }, [sempre]);
+
+  if (estado === "oculto") return null;
+
+  const dispensar = () => {
+    try {
+      localStorage.setItem(CONVITE_DISPENSADO, "sim");
+    } catch {}
+    setEstado("oculto");
+  };
+
+  return (
+    <aside className={`rounded-xl border border-borda bg-cartao p-4 text-sm ${sempre ? "mt-6" : "mb-6"}`}>
+      <p className="font-semibold">Coloque a Central na tela inicial</p>
+      {pedido ? (
+        <p className="mt-1 text-apagado">Ela abre direto, como um aplicativo.</p>
+      ) : estado === "iphone" ? (
+        <p className="mt-1 text-apagado">
+          No Safari, toque em Compartilhar (o quadrado com a seta) e depois em
+          &ldquo;Adicionar à Tela de Início&rdquo;.
+        </p>
+      ) : (
+        <p className="mt-1 text-apagado">
+          No menu do navegador (os três pontinhos), toque em &ldquo;Instalar
+          app&rdquo; ou &ldquo;Adicionar à tela inicial&rdquo;.
+        </p>
+      )}
+      <div className="mt-2 flex flex-wrap gap-2">
+        {pedido ? (
+          <button
+            type="button"
+            onClick={() => pedido.prompt()}
+            className="rounded-lg bg-power px-4 py-2 font-semibold hover:brightness-125"
+          >
+            Instalar
+          </button>
+        ) : null}
+        {sempre ? null : (
+          <button
+            type="button"
+            onClick={dispensar}
+            className="rounded-lg border border-borda px-4 py-2 hover:border-power"
+          >
+            Agora não
+          </button>
+        )}
+      </div>
+    </aside>
   );
 }
 
@@ -127,11 +295,13 @@ export function BotaoCopiar({
 // página. Cartão e janela vêm prontos do servidor; aqui só abre e fecha. Links, botões e campos dentro do cartão continuam funcionando; um
 // botão com data-abre-painel também abre o painel.
 export function CartaoComPainel({
+  id,
   titulo,
   painel,
   className = "",
   children,
 }: {
+  id?: string;
   titulo: string;
   painel: React.ReactNode;
   className?: string;
@@ -147,7 +317,7 @@ export function CartaoComPainel({
   }
 
   return (
-    <li onClick={aoClicar} className={`cursor-pointer ${className}`}>
+    <li id={id} onClick={aoClicar} className={`cursor-pointer ${className}`}>
       {children}
       <dialog
         ref={ref}
@@ -208,14 +378,14 @@ export function Dica({ texto }: { texto: string }) {
         // Só o mouse abre ao passar por cima; no toque, quem abre é o clique.
         onPointerEnter={(evento) => evento.pointerType === "mouse" && setAberta(true)}
         onPointerLeave={(evento) => evento.pointerType === "mouse" && setAberta(false)}
-        className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-apagado text-[10px] leading-none text-apagado hover:border-texto hover:text-texto"
+        className="toque-livre relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-apagado text-[10px] leading-none text-apagado after:absolute after:-inset-3 hover:border-texto hover:text-texto"
       >
         ?
       </button>
       {aberta ? (
         <span
           role="tooltip"
-          className="absolute left-0 top-full z-20 mt-1 w-72 max-w-[80vw] rounded-lg border border-borda bg-cartao-2 p-3 text-sm leading-snug text-texto shadow-lg shadow-black/50"
+          className="absolute left-0 top-full z-20 mt-1 w-72 max-w-[80vw] rounded-lg max-md:fixed max-md:inset-x-4 max-md:bottom-24 max-md:top-auto max-md:left-4 max-md:w-auto max-md:max-w-none border border-borda bg-cartao-2 p-3 text-sm leading-snug text-texto shadow-lg shadow-black/50"
         >
           {texto}
         </span>

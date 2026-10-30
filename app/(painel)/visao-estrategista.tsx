@@ -123,9 +123,10 @@ function CartaoLancamento({
 
   return (
     <CartaoComPainel
+      id={`lancamento-${lancamento.id}`}
       titulo={titulo}
       painel={<LinhaDoTempo itens={itens} proximo={proximo} hoje={hoje} quem={quem} />}
-      className={`rounded-xl border bg-cartao p-5 hover:border-apagado ${
+      className={`scroll-mt-16 rounded-xl border bg-cartao p-4 hover:border-apagado sm:p-5 ${
         urgencia.faixa === "abaixo" ? "border-power" : "border-borda"
       }`}
     >
@@ -319,9 +320,14 @@ function CartaoLancamento({
           }
           detalhe={
             item.atrasados.length
-              ? item.atrasados
-                  .map((a) => `${a.titulo} há ${a.dias} ${a.dias === 1 ? "dia" : "dias"}`)
-                  .join(" · ")
+              ? (
+                  // No celular a lista inteira esticava a linha; ela está completa na linha do tempo.
+                  <span className="line-clamp-3 md:line-clamp-none">
+                    {item.atrasados
+                      .map((a) => `${a.titulo} há ${a.dias} ${a.dias === 1 ? "dia" : "dias"}`)
+                      .join(" · ")}
+                  </span>
+                )
               : undefined
           }
         />
@@ -630,7 +636,25 @@ export function VisaoDoEstrategista({
         </p>
       ) : null}
 
-      {problemas.length ? <ol className="mt-6 grid gap-4">{problemas.map(cartao)}</ol> : null}
+      {/* No celular cada cartão é longo: atalhos fixos para pular entre eles. */}
+      {problemas.length > 1 ? (
+        <nav
+          aria-label="Ir para o lançamento"
+          className="sticky top-0 z-20 -mx-4 mt-6 flex gap-2 overflow-x-auto bg-fundo px-4 py-2 md:hidden"
+        >
+          {problemas.map((item) => (
+            <a
+              key={item.lancamento.id}
+              href={`#lancamento-${item.lancamento.id}`}
+              className="flex min-h-11 max-w-[60vw] shrink-0 items-center rounded-full border border-borda bg-cartao px-4 text-sm"
+            >
+              <span className="truncate">{item.lancamento.nome}</span>
+            </a>
+          ))}
+        </nav>
+      ) : null}
+
+      {problemas.length ? <ol className="mt-6 grid gap-4 max-md:mt-2">{problemas.map(cartao)}</ol> : null}
 
       {tranquilos.length ? (
         // Sem nenhum problema na tela, os que estão em dia já aparecem abertos.

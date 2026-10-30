@@ -33,7 +33,38 @@ dialog {
   overscroll-behavior: contain;
 }
 
+/* Telas de toque: dedo precisa de alvo de 44px, e campo com letra menor que
+   16px faz o iPhone dar zoom sozinho ao tocar. Vale para celular e tablet. */
+@media (pointer: coarse) {
+  input:not([type="hidden"], [type="radio"], [type="checkbox"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  input:not([type="hidden"], [type="radio"], [type="checkbox"]),
+  select,
+  button:not(.toque-livre),
+  summary {
+    min-height: 44px;
+  }
+  summary.list-none {
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* No iPhone o campo de data ignora a largura da coluna e estoura o cartão. */
+@supports (-webkit-touch-callout: none) {
+  input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+  }
+}
+
 body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
   background: var(--color-fundo);
   color: var(--color-texto);
   /* Sem isto a fonte desenha o zero como a letra "o" e D0 vira "Do". */

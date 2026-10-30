@@ -144,6 +144,18 @@ Pedido do Ricardo: reconstruir a experiência do admin em Nível 1 (macro, 6 est
 ## Próximos passos (fora do v1)
 Pauta automática da call de sexta, integrações (Meta Ads por BM em modo leitura, Berry Pay preenchendo as métricas sozinha, Asana), lançamentos perpétuos, teste de aceite com os estrategistas, domínio próprio.
 
+## Celular e tela inicial (Ricardo, 30/10/2026)
+- Pedido dele: todos usarem a Central pelo celular e tablet, e ela virar atalho na tela inicial, "quase como um app".
+- Até o tablet o menu fica no topo; no celular (abaixo de `md`) quem navega é a barra fixa de baixo (`MenuInferior` em `interacoes.tsx`). Rótulo longo tem versão `curto` no `layout.tsx`.
+- `globals.css`: em tela de toque (`pointer: coarse`) todo botão e campo tem 44px e a letra dos campos é 16px (menor que isso o iPhone dá zoom). Botão que precisa ser menor leva a classe `toque-livre` e área de toque maior por `after:`, como o "?" da `Dica`.
+- Histórico de métricas: tabela do tablet para cima, fichas no celular; as duas usam `colunasDaFoto`. Coluna nova entra só ali.
+- Com dois ou mais cartões com problema, atalhos fixos no topo do celular pulam entre eles. Nada de cartão foi escondido, por causa da lição "número que ele pede precisa ser visível"; só a lista de atrasados limita a 3 linhas no celular (completa na linha do tempo).
+- Atalho: `app/manifest.ts`, ícones em `public/icones/`, `appleWebApp` no `layout.tsx`. O `proxy.ts` precisa deixar passar `.webmanifest`, senão o navegador recebe o login e não oferece instalar. Sem service worker, de propósito: nada fica guardado no aparelho e os números nunca ficam velhos; sem internet, não abre.
+- `ConviteInstalar`: no topo das páginas em tela de toque, até dispensar; fica sempre em Minha conta. No Android tem botão; no iPhone, instrução. `AtualizarAoVoltar` recarrega os dados quem volta depois de 5 minutos, porque aberto pelo atalho o iPhone não tem "puxar para atualizar".
+- No iPhone o aplicativo instalado tem login separado do Safari: entra uma vez lá dentro.
+- Teste: `isMobile` + `hasTouch` no puppeteer. Parar o servidor local com `lsof -ti:3100 | xargs kill -9`: o `pkill -f "next start"` não pega e o servidor velho segue no ar misturado com o build novo.
+- O `next build` passou a falhar de vez em quando com `SecurityFatalError` em versão com falha conhecida: `npm audit --omit=dev` e subir a versão. Em 30/10/2026: 16.4.0 → 16.4.3 (falhas críticas).
+
 ## Estado do projeto
 - Repositório `aprodutorapower-spec/central-power`, projeto Vercel `central-power`, Supabase `pruntjhpcucfiudcdtpb`.
 - A Central Power antiga (página única) ficou guardada em `public/legado.html`. As tabelas dela (`clients`, `tasks`, `sprints`, `daily_updates`, `client_kpis`) são legado: não mexer.
