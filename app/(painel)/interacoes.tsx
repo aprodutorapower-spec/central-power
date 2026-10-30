@@ -186,6 +186,27 @@ export function ConviteInstalar({ sempre = false }: { sempre?: boolean }) {
           app&rdquo; ou &ldquo;Adicionar à tela inicial&rdquo;.
         </p>
       )}
+      {estado === "android" ? (
+        // A marca nem sempre aparece para o site (Xiaomi quase nunca): em todo
+        // Android, o caminho de cada uma fica à mão.
+        <details className="mt-2 text-apagado">
+          <summary className="cursor-pointer text-texto">Não apareceu? Veja no seu celular</summary>
+          <ul className="mt-2 grid gap-2">
+            <li>
+              <span className="text-texto">Samsung:</span> no navegador Samsung Internet,
+              toque no menu (os três risquinhos, embaixo), depois em &ldquo;Adicionar
+              página a&rdquo; e em &ldquo;Tela inicial&rdquo;. No Chrome, use os três
+              pontinhos, em cima.
+            </li>
+            <li>
+              <span className="text-texto">Xiaomi, Redmi ou Poco:</span> use o Chrome: três
+              pontinhos, depois &ldquo;Adicionar à tela inicial&rdquo;. Se o ícone não
+              aparecer, abra Configurações, Aplicativos, Chrome, Outras permissões e
+              libere &ldquo;Atalhos na tela inicial&rdquo;. Depois repita.
+            </li>
+          </ul>
+        </details>
+      ) : null}
       <div className="mt-2 flex flex-wrap gap-2">
         {pedido ? (
           <button
